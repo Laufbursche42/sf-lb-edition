@@ -5,4 +5,3 @@
 This is an independent community project. It is not affiliated with, endorsed by or connected to SoFlow.
 
 The name "SoFlow" is used here only descriptively (nominative fair use) to indicate the scooters this app works with. The project does not use SoFlow's logo, brand artwork or styling and is named "Laufbursche Edition".
-</content>

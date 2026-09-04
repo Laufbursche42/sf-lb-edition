@@ -24,4 +24,3 @@ First release of the SoFlow edition, built on the Laufbursche Edition WebView da
 - Scooter controls: top speed, ride mode (eco / normal / sport), lock / unlock, lights and dark mode, battery unlock and units, each offered only when the connected model's family supports it.
 - Triple-tap the speed tile to unlock or re-lock the top speed over Bluetooth.
 - Keeps the offline bicycle navigation, offline maps, POI overlays, SRT screen streaming, GPS/ride recording and in-app app-update features.
-</content>

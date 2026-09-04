@@ -86,8 +86,8 @@ Everything below is implemented and shipping in the app.
 
 - **Live speed drum** - the scooter's own measured speed, side by side with GPS speed.
 - **Hero tiles** - state of charge, current ride mode and pack current at a glance.
-- **Voltage, current and power tiles** read live from the controller.
-- **Lock tile** showing whether the scooter reports itself locked or unlocked.
+- **Live-value tiles** read from the controller: voltage, power, trip and total distance, fault state and the lock state.
+- **Quick function switches** across the bottom of the main screen - front light, zero-start and the immobiliser lock - one tap each, greyed until connected and shown only for the models that support them.
 
 ### "All values" telemetry (scroll down on the main screen)
 
@@ -102,12 +102,14 @@ Everything below is implemented and shipping in the app.
 - **Broad scan** on the SoFlow advertising names (`SFS...` prefixes plus the plain `SoFlow` / `SOFLOW` name), then model classification once the link is up.
 - **Remembers the last scooter and auto-reconnects.**
 - **"Last device" quick-reconnect** button.
+- **Manual model override** - if the automatic classification picks the wrong model, a dropdown in the menu lets you force the right one; the app reconnects with that model's transport, crypto and command set. Leave it on "Auto" to keep the name-based detection.
 
 ### Scooter settings
 
 - **A "?" help popup on every setting.**
-- **Top speed** - set the maximum speed the controller aims for, in 0.1 km/h steps, on every model except SO6 and SO4 UL.
+- **Top speed** - set the maximum speed the controller aims for, in 0.1 km/h steps, on every model except SO6 and SO4 UL. Two fields sit side by side: an **Open** speed (the unlocked target) and an **eKFV** speed (the road-legal value); the triple-tap on the main screen switches the controller between exactly these two.
 - **Ride mode** - eco / normal / sport, mapped to the right command for the model's family.
+- **Zero-start** - choose whether the scooter starts from a standstill or only once you kick off, on the models whose family exposes it.
 - **Lock / unlock** - immobilise the scooter or release it over Bluetooth.
 - **Lights** - headlight on/off and dark-mode display, on the models whose family exposes them.
 - **Battery unlock** - on the D7 family, release the battery lock.
@@ -173,43 +175,7 @@ The scooter can also be fully **locked or unlocked** (immobiliser) from the sett
 
 ## Screenshots
 
-The screenshots are not kept in step with every release, so a screen can look different in the version you are running.
-
-<table>
-  <tr>
-    <td align="center" width="33%"><img src="screenshots/MainScreen1.jpg" width="240" alt="Dashboard"></td>
-    <td align="center" width="33%"><img src="screenshots/MainScreen2.jpg" width="240" alt="All values: ride"></td>
-    <td align="center" width="33%"><img src="screenshots/MainScreen3.jpg" width="240" alt="All values: power and battery"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/MainScreen4.jpg" width="240" alt="All values: status and locks"></td>
-    <td align="center"><img src="screenshots/MainScreen5.jpg" width="240" alt="All values: lights and odometer"></td>
-    <td align="center"><img src="screenshots/MainScreenLightMode.jpg" width="240" alt="Dashboard in light mode"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/ScooterConnect.jpg" width="240" alt="Connect scooter"></td>
-    <td align="center"><img src="screenshots/ScooterInfo.jpg" width="240" alt="Scooter info"></td>
-    <td align="center"><img src="screenshots/ScooterSettings1.jpg" width="240" alt="Scooter settings"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/ScooterSettings2.jpg" width="240" alt="Scooter settings: speed and mode"></td>
-    <td align="center"><img src="screenshots/ScooterSettings3.jpg" width="240" alt="Scooter settings: modes"></td>
-    <td align="center"><img src="screenshots/SavedRoutes.jpg" width="240" alt="Saved rides"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/RoutePlanner1.jpg" width="240" alt="Offline navigation (light map)"></td>
-    <td align="center"><img src="screenshots/RoutePlanner2.jpg" width="240" alt="Offline navigation (dark map)"></td>
-    <td align="center"><img src="screenshots/RoutePlannerMaps.jpg" width="240" alt="Offline maps download"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/SideMenu1.jpg" width="240" alt="Settings menu"></td>
-    <td align="center"><img src="screenshots/SideMenu2.jpg" width="240" alt="Settings: GPS recording and debug"></td>
-    <td align="center"><img src="screenshots/SRT-Streaming.jpg" width="240" alt="Screen streaming over SRT"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/POIs.jpg" width="240" alt="Camping and charging POI overlay on the offline map"></td>
-  </tr>
-</table>
+<p align="center"><img src="screenshots/livetoggle.png" width="260" alt="Triple-tap the km/h VCU tile to release or re-lock the top speed over Bluetooth"></p>
 
 ## Installing the app
 
@@ -483,5 +449,3 @@ See the [`license.md`](license.md) file for the full Additional Terms and the co
 This is **source-available, not OSI "open source"**, by design: the noncommercial restriction means it does not meet the Open Source Definition and that is intentional. It is **not** a pure open-source project in the OSI sense - the source is made **public** so that anyone can inspect it, see exactly what the app does and modify it for their own **private** use.
 
 Once you **publish** your own version (distribute a fork), you must observe the license terms: rename the app by replacing "Laufbursche" with your own developer name or pseudonym while keeping the word "Edition" (for example, "Falcon Edition") and never reuse the name "Laufbursche Edition" or the "Laufbursche Edition" logo, use your **own** name and your **own** logo, keep the origin notice in the app's **Version Info & Disclaimer** screen and keep it **noncommercial** unless you have the author's written permission.
-</content>
-</invoke>

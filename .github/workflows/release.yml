@@ -1,9 +1,7 @@
 # Release build - fully automatic, no manual tagging.
-# On every push to `main` this computes the version from version.properties, the same file the
-# gradle build reads, builds a SIGNED release APK and publishes a GitHub Release tagged
-# `v<major>.<minor>.<n>` with the APK attached. If a release for that version already exists it
-# does nothing, so a new release appears whenever a new commit lands on main.
-# Manual runs (Actions -> Run workflow) behave the same.
+# Version comes from version.properties, same formula as app/build.gradle, passed to Gradle via
+# -PverName / -PverCode so the APK number matches the tag. Builds a signed APK on every push to
+# main and publishes a GitHub Release; skips if that version already exists.
 #
 # Required repository Secrets (Settings -> Secrets and variables -> Actions):
 #   KEYSTORE_BASE64    - the release keystore, base64-encoded (contents of keystore.base64.txt)
@@ -38,18 +36,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Compute version from git commit count
+      - name: Compute the version - app/src commits for the name, all commits for the code
         id: ver
         run: |
-          COUNT=$(git rev-list --count HEAD)
-          # The series comes from version.properties, the same file the gradle build reads.
           MAJOR=$(sed -n 's/^major=//p' version.properties)
           MINOR=$(sed -n 's/^minor=//p' version.properties)
-          ZERO=$(sed -n 's/^patchZeroAt=//p' version.properties)
-          PATCH=$(( COUNT - ZERO )); [ "$PATCH" -lt 0 ] && PATCH=0
-          echo "version=$MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
-          echo "tag=v$MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
-          echo "Version $MAJOR.$MINOR.$PATCH  (commit count $COUNT, patch 0 at $ZERO)"
+          PATCH_ZERO_AT=$(sed -n 's/^patchZeroAt=//p' version.properties)
+          CODE_BASE=$(sed -n 's/^codeBase=//p' version.properties)
+          # versionName counts only app/src commits (identical to app/build.gradle), so docs/CI/config
+          # commits never bump it; the duplicate-tag guard below then skips a release that has no new app.
+          APP_COMMITS=$(git rev-list --count HEAD -- app/src)
+          ALL_COMMITS=$(git rev-list --count HEAD)
+          PATCH=$(( APP_COMMITS - PATCH_ZERO_AT ))
+          if [ "$PATCH" -lt 0 ]; then PATCH=0; fi
+          VERSION="$MAJOR.$MINOR.$PATCH"
+          TAG="v$VERSION"
+          # versionCode grows with every commit and never goes backwards.
+          VCODE=$(( CODE_BASE + ALL_COMMITS ))
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "vcode=$VCODE" >> "$GITHUB_OUTPUT"
+          echo "Version $TAG (versionCode $VCODE): $APP_COMMITS app/src commits, $ALL_COMMITS total - same as the local build"
 
       - name: Skip if this version was already released
         id: exists
@@ -96,7 +103,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease -PverName="${{ steps.ver.outputs.version }}" -PverCode="${{ steps.ver.outputs.vcode }}"
 
       - name: Stage APK under the release name
         if: steps.exists.outputs.exists == 'false'

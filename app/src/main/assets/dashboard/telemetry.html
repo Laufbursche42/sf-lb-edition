@@ -121,7 +121,6 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div id="drive-quick" class="dq-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group">
       <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
       <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
-      <button type="button" class="dq-btn" data-dq="darkMode" data-cap="darkMode" aria-label="Toggle dark mode" data-i18n-aria="dash.drive.quick.darkmode.aria" data-i18n="dash.drive.quick.darkmode">Dark</button>
       <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
     </div>
 
@@ -429,7 +428,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
     <!-- Speed release: fields feed both the buttons here and the triple-tap gesture on the main
          screen. Values are kept locally (localStorage), not read from the scooter. -->
-    <div id="ss-speed-section" style="display:none">
+    <div id="ss-speed-section" class="is-hidden">
       <div class="section-hdr sub-hdr" data-i18n="scooter.speed.section.title">Speed</div>
       <div class="settings-group pt-4">
         <div class="settings-row-sublabel mb-8" data-i18n="scooter.speed.intro">
@@ -456,7 +455,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     </div>
 
     <!-- Ride mode: eco / normal / sport -> setSpeedMode(0/1/2). -->
-    <div id="ss-mode-section" style="display:none">
+    <div id="ss-mode-section" class="is-hidden">
       <div class="section-hdr sub-hdr" data-i18n="scooter.mode.section.title">Ride mode</div>
       <div class="settings-group pt-4">
         <div class="settings-row col-stretch">
@@ -470,7 +469,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     </div>
 
     <!-- Options: each row is shown only when its capability is supported. -->
-    <div id="ss-options-section" style="display:none">
+    <div id="ss-options-section" class="is-hidden">
       <div class="section-hdr sub-hdr" data-i18n="scooter.options.section.title">Options</div>
       <div class="settings-group pt-4">
         <div class="settings-row" id="ss-row-lock" data-cap="vlock">
@@ -2453,7 +2452,9 @@ window.__onBleState = function(stArg) {
   const connBtn = document.getElementById('btn-connect');
   if (connBtn) connBtn.classList.toggle('connected', connected);
   // Per-model capabilities: gate the scooter-settings sections and the main-screen quick toggles.
-  if (s.caps && typeof s.caps === 'object') { _caps = s.caps; applyCaps(); }
+  _connectedState = !!s.connected;
+  _caps = (s.caps && typeof s.caps === 'object') ? s.caps : {};
+  applyCaps();
   if (s.model) { setTxt('model-name', s.model); setTxt('info-model', s.model); setModelDetectedHint(s.model); }
 };
 
@@ -2463,23 +2464,25 @@ window.__onBleState = function(stArg) {
 // zeroStart/unit/indicator). Sections and rows carry a data-cap attribute and are shown only when
 // their flag is true, exactly like the navee model gating.
 let _caps = {};
+let _connectedState = false;   // true while a scooter is connected; main toggles grey out until then
 
 function capOn(name) { return !!(_caps && _caps[name]); }
 
 function applyCaps() {
   // Scooter-settings sections.
-  const showEls = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+  const showEls = (id, on) => { const el = document.getElementById(id); if (el) el.classList.toggle('is-hidden', !on); };
   showEls('ss-speed-section',  capOn('speed'));
   showEls('ss-mode-section',   capOn('mode'));
   // Options section is shown when at least one of its rows is available.
   const optRows = ['vlock','battery','frontLight','darkMode','zeroStart','unit','indicator'];
   document.querySelectorAll('#ss-options-section .settings-row[data-cap]').forEach(row => {
-    row.style.display = capOn(row.getAttribute('data-cap')) ? '' : 'none';
+    row.classList.toggle('is-hidden', !capOn(row.getAttribute('data-cap')));
   });
   showEls('ss-options-section', optRows.some(capOn));
-  // Main-screen quick toggles: hide a button whose capability is unsupported.
+  // Main-screen quick toggles: always visible (greyed until connected, like navee). Only hide a
+  // button once connected AND the connected model reports it unsupported.
   document.querySelectorAll('#drive-quick .dq-btn[data-cap]').forEach(btn => {
-    btn.style.display = capOn(btn.getAttribute('data-cap')) ? '' : 'none';
+    btn.classList.toggle('is-hidden', _connectedState && !capOn(btn.getAttribute('data-cap')));
   });
 }
 
@@ -3222,8 +3225,8 @@ function reflectDriveQuick() {
    on the right value. */
 
 const FOLD_MIN_SCALE = 0.55;   // below this the labels stop being readable, so allow a scroll instead
-const FOLD_MAX_SCALE = 1.5;    // above this the tiles look inflated on a tall screen
-const FOLD_BOTTOM_GAP = 5;     // breathing room between the last button row and the screen edge
+const FOLD_MAX_SCALE = 2.6;    // scale up enough that the fold always reaches the bottom edge
+const FOLD_BOTTOM_GAP = 10;    // breathing room between the last button row and the screen edge
 
 let _foldScale = 0;            // last applied factor, 0 = never fitted
 

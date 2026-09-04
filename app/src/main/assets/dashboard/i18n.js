@@ -20,14 +20,12 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>The main screen now fits on one screen.</b> Speed, battery, gear, current, the motors and the quick switches are scaled to fill exactly the visible height, so nothing you read while riding needs a scroll. The detail sections start below the bottom edge and come up with a swipe as before.",
-      "<b>Pack current reads the way you think.</b> Current you draw shows as a minus in red, recuperation as a plus in green. Only the sign changed, not the measurement.",
-      "<b>Eight switches under the motor tiles.</b> Front, Rear, Both and Smart moved into their own row. Below them are kick start, ABS, eco and cruise control. Each writes to the scooter the moment you tap it and carries only the setting you touched. Cruise control is greyed out while the scooter is road-legal, because the controller refuses that write.",
-      "<b>Display settings.</b> Under Display you can now set the tile colour, the background and one brightness slider that dims the text and every coloured value together, kept separately for dark and light mode. On an OLED screen a pure black background really switches those pixels off.",
-      "<b>A recording ride shows one marker.</b> Distance, time and a stop button, floating above the motor tiles. Drag it wherever you want it; the spot is remembered.",
-      "<b>The motor tiles carry one value each.</b> Temperatures and power on top, the currents in a second row of tiles underneath, each with its unit below the number.",
-      "<b>Park replaces the gear number.</b> Instead of a small P beneath the number, the number itself becomes P.",
-      "<b>Fixed: the turn-signal indicators had left and right swapped.</b>",
+      "<b>The main screen fits on one screen.</b> Speed, battery, mode, current and the live values scale to fill the height. The function switches sit at the bottom, so nothing you read while riding needs a scroll; the detail sections come up with a swipe.",
+      "<b>Speed limit by triple-tap.</b> Tap the speed tile three times to switch the scooter between your open value and the eKFV value. Both values are set on the Scooter settings page.",
+      "<b>Function switches on the main screen.</b> Front light, zero-start, dark mode and the immobilizer are one tap each; only the ones your model supports appear.",
+      "<b>Settings, battery info and error reports.</b> Ride mode, lights and the speed values live on the Scooter settings page. Battery and active faults have their own pages, and the firmware versions are under Scooter info.",
+      "<b>Pick your model if detection is wrong.</b> A model dropdown in the menu overrides the auto-detected model and reconnects.",
+      "<b>Display settings.</b> Under Display you can set the tile colour, the background and one brightness slider that dims the text and every coloured value together, kept separately for dark and light mode.",
     ],
 
     'disclaimer.points': [
@@ -726,14 +724,12 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Der Hauptbildschirm passt jetzt auf einen Bildschirm.</b> Geschwindigkeit, Akku, Gang, Strom, die Motoren und die Schnellschalter werden auf die sichtbare Höhe skaliert, damit nichts, was du während der Fahrt liest, ein Scrollen braucht. Die Detail-Abschnitte beginnen unterhalb des Randes und kommen wie bisher mit einem Wisch hoch.",
-      "<b>Der Akkustrom wird so angezeigt, wie du ihn denkst.</b> Entnommener Strom steht als Minus in Rot, Rekuperation als Plus in Grün. Geändert hat sich nur das Vorzeichen, nicht der Messwert.",
-      "<b>Acht Schalter unter den Motor-Kacheln.</b> Vorne, Hinten, Beide und Smart haben eine eigene Reihe bekommen, darunter liegen Kickstart, ABS, Eco und Tempomat. Jeder schreibt sofort beim Antippen zum Scooter und überträgt nur die eine Einstellung, die du angefasst hast. Der Tempomat ist ausgegraut, solange der Scooter im straßenzugelassenen Zustand ist, weil die Steuerung diesen Schreibvorgang ablehnt.",
-      "<b>Anzeige-Einstellungen.</b> Unter Display kannst du jetzt Kachelfarbe, Hintergrund und einen Helligkeitsregler einstellen, der Text und alle farbigen Werte gemeinsam dimmt, getrennt für dunklen und hellen Modus. Auf einem OLED-Bildschirm schaltet ein reinschwarzer Hintergrund diese Pixel wirklich ab.",
-      "<b>Eine laufende Aufzeichnung zeigt eine Anzeige.</b> Strecke, Zeit und ein Stop-Knopf, schwebend über den Motor-Kacheln. Zieh sie hin, wo du sie haben willst, die Stelle wird gemerkt.",
-      "<b>Die Motor-Kacheln tragen je einen Wert.</b> Temperaturen und Leistung oben, die Ströme in einer zweiten Kachelreihe darunter, jeweils mit der Einheit unter der Zahl.",
-      "<b>P ersetzt die Gangzahl.</b> Statt eines kleinen P unter der Zahl wird die Zahl selbst zum P.",
-      "<b>Behoben: bei den Blinkern waren links und rechts vertauscht.</b>",
+      "<b>Der Hauptbildschirm passt auf einen Bildschirm.</b> Geschwindigkeit, Akku, Modus, Strom und die Live-Werte füllen die Höhe. Die Funktionsschalter sitzen unten, damit du während der Fahrt nichts scrollen musst; die Detail-Abschnitte kommen mit einem Wisch hoch.",
+      "<b>Drossel per Dreifach-Tipp.</b> Tippe die Speed-Kachel dreimal an, dann wechselt der Scooter zwischen deinem offenen Wert und dem eKFV-Wert. Beide Werte stellst du in den Scooter-Einstellungen ein.",
+      "<b>Funktionsschalter auf dem Hauptbildschirm.</b> Frontlicht, Zero-Start, Dunkelmodus und die Wegfahrsperre sind je ein Tipp. Es erscheinen nur die, die dein Modell kann.",
+      "<b>Einstellungen, Batterie-Info und Fehlerberichte.</b> Fahrmodus, Licht und die Speed-Werte liegen in den Scooter-Einstellungen. Akku und aktive Fehler haben eigene Seiten. Die Firmware-Versionen stehen unter Scooter-Info.",
+      "<b>Modell selbst wählen, falls die Erkennung daneben liegt.</b> Ein Modell-Dropdown im Menü überschreibt das automatisch erkannte Modell und verbindet neu.",
+      "<b>Anzeige-Einstellungen.</b> Unter Display kannst du Kachelfarbe, Hintergrund und einen Helligkeitsregler einstellen, der Text und alle farbigen Werte gemeinsam dimmt, getrennt für dunklen und hellen Modus.",
     ],
 
     'disclaimer.points': [
