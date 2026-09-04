@@ -628,6 +628,23 @@ public class MainActivity extends Activity {
             }
         }
 
+        /** Manual model override when auto-detection is wrong. id "" or "auto" restores auto. */
+        @JavascriptInterface
+        public void setModel(String id) {
+            try {
+                Log.i(TAG, "LB.setModel(" + id + ")");
+                if (ble != null) ble.setForcedModel(id);
+            } catch (Throwable t) {
+                Log.e(TAG, "setModel bridge failed", t);
+            }
+        }
+
+        /** JSON array of selectable models [{id,label},...] for the override dropdown. */
+        @JavascriptInterface
+        public String models() {
+            try { return Models.uiListJson(); } catch (Throwable t) { return "[]"; }
+        }
+
         /** Open the native offline navigation screen (map + bike routing + camping/charging POIs). */
         @JavascriptInterface
         public void openNavigation() {

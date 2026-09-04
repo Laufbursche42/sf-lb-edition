@@ -64,9 +64,8 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <div class="hc-unit" data-i18n="dash.hero.battery.unit">Battery %</div>
       </div>
       <div class="hero-cell">
-        <div class="hc-val" id="gear-val">-</div>
-        <div class="hc-unit" data-i18n="dash.hero.gear.label">Gear</div>
-        <div class="hc-tag is-hidden" id="gear-tag"></div>
+        <div class="hc-val" id="mode-val">-</div>
+        <div class="hc-unit" data-i18n="dash.hero.mode.label">Mode</div>
       </div>
       <div class="hero-cell">
         <div class="hc-val" id="current-val">-</div>
@@ -74,46 +73,56 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
     </div>
 
-    <!-- Motors (dual motor: rear + front). One value per tile: the temperatures and the power in
-         the first row, the currents in the second. -->
-    <div class="section-hdr sub-hdr sf-hide">
-      <span data-i18n="dash.motors.section">Motors</span>
+    <!-- Live telemetry tiles: the values the SoFlow controller streams. First row drive
+         (voltage, power, trip), second row context (total distance, error, lock). Reuses the
+         shared motor-tile grid classes. -->
+    <div class="section-hdr sub-hdr">
+      <span data-i18n="dash.tele.section">Live values</span>
     </div>
     <div id="motor-area">
       <div id="motor-row">
         <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.motor.rear.title">REAR</div>
-          <div class="mc-main"><span id="mr-temp">-</span></div>
-          <div class="mc-unit" data-i18n="dash.motor.rear.temp.unit">°C</div>
+          <div class="mc-title" data-i18n="dash.tele.volt.title">VOLTAGE</div>
+          <div class="mc-main"><span id="tl-volt">-</span></div>
+          <div class="mc-unit" data-i18n="dash.tele.volt.unit">V</div>
         </div>
         <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.motor.front.title">FRONT</div>
-          <div class="mc-main"><span id="mf-temp">-</span></div>
-          <div class="mc-unit" data-i18n="dash.motor.front.temp.unit">°C</div>
+          <div class="mc-title" data-i18n="dash.tele.power.title">POWER</div>
+          <div class="mc-main"><span id="tl-power">-</span></div>
+          <div class="mc-unit" data-i18n="dash.tele.power.unit">W</div>
         </div>
         <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.motor.power.title">POWER</div>
-          <div class="mc-main"><span id="m-power">-</span></div>
-          <div class="mc-unit" data-i18n="dash.motor.power.unit">kW</div>
+          <div class="mc-title" data-i18n="dash.tele.trip.title">TRIP</div>
+          <div class="mc-main"><span id="tl-trip">-</span></div>
+          <div class="mc-unit" data-i18n="dash.tele.trip.unit">km</div>
         </div>
       </div>
       <div id="motor-row-2">
         <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.motor.rear.title">REAR</div>
-          <div class="mc-main"><span id="mr-cur">-</span></div>
-          <div class="mc-unit" data-i18n="dash.motor.rear.current.unit">A</div>
+          <div class="mc-title" data-i18n="dash.tele.total.title">TOTAL</div>
+          <div class="mc-main"><span id="tl-total">-</span></div>
+          <div class="mc-unit" data-i18n="dash.tele.total.unit">km</div>
         </div>
         <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.motor.front.title">FRONT</div>
-          <div class="mc-main"><span id="mf-cur">-</span></div>
-          <div class="mc-unit" data-i18n="dash.motor.front.current.unit">A</div>
+          <div class="mc-title" data-i18n="dash.tele.error.title">ERROR</div>
+          <div class="mc-main"><span id="tl-error">-</span></div>
+          <div class="mc-unit" data-i18n="dash.tele.error.unit">code</div>
         </div>
         <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.motor.current.total.title">TOTAL</div>
-          <div class="mc-main"><span id="m-total-cur">-</span></div>
-          <div class="mc-unit" data-i18n="dash.motor.rear.current.unit">A</div>
+          <div class="mc-title" data-i18n="dash.tele.lock.title">LOCK</div>
+          <div class="mc-main"><span id="tl-lock">-</span></div>
+          <div class="mc-unit" data-i18n="dash.tele.lock.unit">state</div>
         </div>
       </div>
+    </div>
+
+    <!-- Quick function toggles, sent to the scooter immediately over BLE. Each button appears only
+         when its capability is supported; greyed out until connected. -->
+    <div id="drive-quick" class="dq-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group">
+      <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
+      <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
+      <button type="button" class="dq-btn" data-dq="darkMode" data-cap="darkMode" aria-label="Toggle dark mode" data-i18n-aria="dash.drive.quick.darkmode.aria" data-i18n="dash.drive.quick.darkmode">Dark</button>
+      <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
     </div>
 
      </div>
@@ -129,35 +138,14 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
       <div class="dg-row">
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.voltage">Voltage</span><button type="button" class="set-help" data-set-help="dg-volt" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-volt">-</span></div>
-        <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.pole.voltage">Pole volt</span><button type="button" class="set-help" data-set-help="dg-pole" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-pole">-</span></div>
-      </div>
-      <div class="dg-row">
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.battery.soh">Battery SOH</span><span class="dg-value" id="dg-soh">-</span></div>
-        <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label dg-label-wide" data-i18n="dash.grid.recuperation">Recuperation</span><button type="button" class="set-help" data-set-help="dg-recup" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-fb">-</span></div>
-      </div>
-      <div class="dg-row">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.total">Total</span><span class="dg-value" id="dg-total">-</span></div>
+      </div>
+      <div class="dg-row">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.trip">Trip</span><span class="dg-value" id="dg-single">-</span></div>
-      </div>
-      <div class="dg-row">
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.rssi">RSSI</span><button type="button" class="set-help" data-set-help="dg-rssi" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-rssi">-</span></div>
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.error">Error</span><span class="dg-value" id="dg-err">-</span></div>
-      </div>
-    </div>
-
-    <!-- Active gear (legacy per-gear values; SoFlow does not report these) -->
-    <div class="section-hdr sub-hdr sf-hide" data-i18n="dash.gear.section">Active gear</div>
-    <div id="data-grid" class="sf-hide">
-      <div class="dg-row">
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.gear.front.start">Front start</span><span class="dg-value" id="dg-fstart">-</span></div>
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.gear.rear.start">Rear start</span><span class="dg-value" id="dg-rstart">-</span></div>
-      </div>
-      <div class="dg-row">
-        <div class="dg-cell"><span class="dg-label dg-label-wide" data-i18n="dash.gear.front.current.limit">Front cur. limit</span><span class="dg-value" id="dg-fcurlim">-</span></div>
-        <div class="dg-cell"><span class="dg-label dg-label-wide" data-i18n="dash.gear.rear.current.limit">Rear cur. limit</span><span class="dg-value" id="dg-rcurlim">-</span></div>
       </div>
       <div class="dg-row one-col">
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.gear.eabs.level">EABS level</span><span class="dg-value" id="dg-eabs">-</span></div>
+        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.error">Error</span><span class="dg-value" id="dg-err">-</span></div>
       </div>
     </div>
 
@@ -267,103 +255,34 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
   </div>
 
   <div id="model-banner">
-    <div class="model-line"><span data-i18n="settings.model.label">Model:</span> <span id="model-name">-</span><span id="model-unsupported" data-i18n="settings.model.unsupported"> . The Tetra is not supported by this app yet; settings and firmware are disabled for it.</span></div>
-    <div id="model-pick-row" class="sf-hide">
-      <span class="model-pick-label" data-i18n="settings.model.pick.prompt">Wrong or unknown? Pick it:</span>
-      <select id="model-select" aria-label="Select scooter model" data-i18n-aria="settings.model.select.label"></select>
-    </div>
-    <div id="model-manual-note" data-i18n="settings.model.manual.note">Manual model selected. Auto-detection is overridden. Choose "Auto-detect" to go back.</div>
+    <div class="model-line"><span data-i18n="settings.model.label">Model:</span> <span id="model-name">-</span></div>
   </div>
 
   <!-- Scooter connection + settings -->
   <div class="settings-group">
     <div class="settings-group-title" data-i18n="settings.scooter.group.title">Scooter</div>
+    <div class="settings-row">
+      <div class="settings-row-left">
+        <div class="settings-row-label" data-i18n="settings.scooter.model.label">Model</div>
+        <div class="settings-row-sublabel" id="model-detected-hint"></div>
+      </div>
+      <select class="set-ctrl" id="model-sel">
+        <option value="auto" data-i18n="settings.scooter.model.auto">Auto (detect)</option>
+      </select>
+    </div>
     <button id="btn-connect-scooter"><svg class="icon-inline" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M17.71 7.71 12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg> <span data-i18n="settings.scooter.connect.action">Connect scooter</span></button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.connect.hint">Scan and connect over Bluetooth</div>
-    <button id="btn-error-reports" class="sf-hide" data-i18n="settings.scooter.errors.action">&#9888; Read error reports</button>
-    <div class="settings-row-sublabel note-gap sf-hide" data-i18n="settings.scooter.errors.hint">Active scooter faults and battery warnings (scooter must be connected)</div>
+    <button id="btn-scooter-settings" data-i18n="settings.scooter.settings.action">&#9881; Scooter settings</button>
+    <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.settings.hint">Power limit, gears, currents, cruise, timers (scooter must be connected)</div>
+    <button id="btn-error-reports" data-i18n="settings.scooter.errors.action">&#9888; Read error reports</button>
+    <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.errors.hint">Active scooter faults and battery warnings (scooter must be connected)</div>
     <button id="btn-info" data-i18n="settings.scooter.info.action">&#8505; Scooter info</button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.info.hint">Serial number, firmware and app versions</div>
-    <button id="btn-battery" class="sf-hide" data-i18n="settings.scooter.battery.action">&#128267; Battery info</button>
-    <div class="settings-row-sublabel note-gap sf-hide" data-i18n="settings.scooter.battery.hint">Pack, health and per-cell voltages (scooter must be connected)</div>
+    <button id="btn-battery" data-i18n="settings.scooter.battery.action">&#128267; Battery info</button>
+    <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.battery.hint">Pack, health and per-cell voltages (scooter must be connected)</div>
     <button id="btn-navigation" data-i18n="settings.scooter.navigation.action">&#129517; Navigation</button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.navigation.hint">Open the navigation screen</div>
   </div>
-
-  <!-- SoFlow control: throttle (Max-Speed 0xA9), ride mode and extra switches. -->
-  <div class="settings-group has-top-rule">
-    <div class="settings-group-title" data-i18n="sf.control.title">Speed</div>
-
-    <div class="settings-row">
-      <div class="settings-row-left">
-        <div class="settings-row-label" data-i18n="sf.speed.open.label">Open (km/h)</div>
-        <div class="settings-row-sublabel" data-i18n="sf.speed.open.hint">Unlocked max speed</div>
-      </div>
-      <input class="set-ctrl" id="sf-speed-open" type="number" min="0" max="60" step="0.1" inputmode="decimal">
-    </div>
-    <div class="settings-row">
-      <div class="settings-row-left">
-        <div class="settings-row-label" data-i18n="sf.speed.ekfv.label">eKFV (km/h)</div>
-        <div class="settings-row-sublabel" data-i18n="sf.speed.ekfv.hint">Road-legal max speed</div>
-      </div>
-      <input class="set-ctrl" id="sf-speed-ekfv" type="number" min="0" max="60" step="0.1" inputmode="decimal">
-    </div>
-    <div class="row-center-8 mt-10">
-      <button id="sf-btn-unlock" class="grow" data-i18n="sf.speed.unlock">Unlock</button>
-      <button id="sf-btn-lock" class="grow" data-i18n="sf.speed.lock">Lock</button>
-    </div>
-    <div class="settings-row-sublabel m-8-0-0" data-i18n="sf.speed.hint">Triple-tap the VCU speed tile to toggle the throttle.</div>
-
-    <div class="settings-row col-stretch mt-10">
-      <div class="settings-row-label row-center-6"><span data-i18n="sf.mode.label">Ride mode</span></div>
-      <div class="seg" id="sf-mode-seg">
-        <button data-val="0" data-i18n="sf.mode.eco">Eco</button>
-        <button data-val="1" data-i18n="sf.mode.normal">Normal</button>
-        <button data-val="2" data-i18n="sf.mode.sport">Sport</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Extra SoFlow switches (collapsible). Each writes straight over BLE; SoFlow reports no state. -->
-  <details class="settings-group has-top-rule">
-    <summary class="settings-group-title" data-i18n="sf.extra.title">More settings</summary>
-    <div class="settings-row">
-      <div class="settings-row-left"><div class="settings-row-label" data-i18n="sf.extra.frontlight.label">Front light</div></div>
-      <div class="seg" id="sf-frontlight-seg">
-        <button data-on="1" data-i18n="sf.on">On</button>
-        <button data-on="0" data-i18n="sf.off">Off</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div class="settings-row-left"><div class="settings-row-label" data-i18n="sf.extra.darkmode.label">Display dark mode</div></div>
-      <div class="seg" id="sf-darkmode-seg">
-        <button data-on="1" data-i18n="sf.on">On</button>
-        <button data-on="0" data-i18n="sf.off">Off</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div class="settings-row-left"><div class="settings-row-label" data-i18n="sf.extra.zerostart.label">Zero-start</div></div>
-      <div class="seg" id="sf-zerostart-seg">
-        <button data-on="1" data-i18n="sf.on">On</button>
-        <button data-on="0" data-i18n="sf.off">Off</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div class="settings-row-left"><div class="settings-row-label" data-i18n="sf.extra.unit.label">Display unit</div></div>
-      <div class="seg" id="sf-unit-seg">
-        <button data-imp="0" data-i18n="sf.unit.km">km/h</button>
-        <button data-imp="1" data-i18n="sf.unit.mi">mph</button>
-      </div>
-    </div>
-    <div class="settings-row">
-      <div class="settings-row-left"><div class="settings-row-label" data-i18n="sf.extra.immobilizer.label">Immobilizer</div></div>
-      <div class="seg" id="sf-lock-seg">
-        <button data-unlocked="1" data-i18n="sf.lock.off">Unlocked</button>
-        <button data-unlocked="0" data-i18n="sf.lock.on">Locked</button>
-      </div>
-    </div>
-    <button id="sf-btn-battery" class="mt-10" data-i18n="sf.extra.battery.action">Battery unlock</button>
-  </details>
 
   <!-- GPS: the recording settings and the recordings they produce belong together. -->
   <div class="settings-group has-top-rule">
@@ -492,6 +411,103 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
   </div>
 </div>
 
+<!-- ── Scooter settings page ──────────────────────── -->
+<div id="scooter-page">
+  <div id="topbar">
+    <div class="tb-left">
+      <button class="icon-btn" id="btn-scooter-back" aria-label="Back" data-i18n-aria="scooter.nav.back">&#8592;</button>
+    </div>
+    <span class="tb-title" data-i18n="scooter.page.title">Scooter settings</span>
+    <div class="tb-right"><span class="tb-spacer"></span></div>
+  </div>
+  <div id="scooter-scroller">
+
+    <div class="settings-row-sublabel mb-8" data-i18n="scooter.intro.note">
+      Every change is sent to the scooter over Bluetooth right away. Please connect first. Which
+      functions your model supports depends on the firmware; unsupported rows are hidden.
+    </div>
+
+    <!-- Speed release: fields feed both the buttons here and the triple-tap gesture on the main
+         screen. Values are kept locally (localStorage), not read from the scooter. -->
+    <div id="ss-speed-section" style="display:none">
+      <div class="section-hdr sub-hdr" data-i18n="scooter.speed.section.title">Speed</div>
+      <div class="settings-group pt-4">
+        <div class="settings-row-sublabel mb-8" data-i18n="scooter.speed.intro">
+          Unlock raises the limiter to the open value; Lock sets it back to the road-legal value.
+          The triple-tap gesture on the main screen switches between the same two values.
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.speed.open.label">Open (km/h)</div><div class="settings-row-sublabel" data-i18n="scooter.speed.open.sub">Speed sent by Unlock</div></div>
+          <input class="set-ctrl" id="ss-open" type="number" min="1" max="60" step="0.1" inputmode="decimal" value="35">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.speed.ekfv.label">eKFV (km/h)</div><div class="settings-row-sublabel" data-i18n="scooter.speed.ekfv.sub">Road-legal limit, sent by Lock</div></div>
+          <input class="set-ctrl" id="ss-ekfv" type="number" min="1" max="60" step="0.1" inputmode="decimal" value="22">
+        </div>
+        <div class="fw-warn" data-i18n="scooter.speed.legal">
+          <b>Private ground only.</b> Unlocking makes the scooter run faster than approved. That voids
+          the operating permit and the insurance cover; it is not allowed on public roads.
+        </div>
+        <div class="row-8">
+          <button id="ss-speed-unlock" class="grow gs-save-btn" data-i18n="scooter.speed.unlock">Unlock</button>
+          <button id="ss-speed-lock" class="grow route-gpx-btn" data-i18n="scooter.speed.lock">Lock</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ride mode: eco / normal / sport -> setSpeedMode(0/1/2). -->
+    <div id="ss-mode-section" style="display:none">
+      <div class="section-hdr sub-hdr" data-i18n="scooter.mode.section.title">Ride mode</div>
+      <div class="settings-group pt-4">
+        <div class="settings-row col-stretch">
+          <div class="seg" id="ss-mode-seg">
+            <button data-val="0" data-i18n="scooter.mode.eco">Eco</button>
+            <button data-val="1" data-i18n="scooter.mode.normal">Normal</button>
+            <button data-val="2" data-i18n="scooter.mode.sport">Sport</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options: each row is shown only when its capability is supported. -->
+    <div id="ss-options-section" style="display:none">
+      <div class="section-hdr sub-hdr" data-i18n="scooter.options.section.title">Options</div>
+      <div class="settings-group pt-4">
+        <div class="settings-row" id="ss-row-lock" data-cap="vlock">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.lock.label">Immobilizer</div><div class="settings-row-sublabel" data-i18n="scooter.opt.lock.sub">Lock the scooter electronically</div></div>
+          <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-lock"><label class="toggle-label" for="ss-lock"></label></div>
+        </div>
+        <div class="settings-row" id="ss-row-battery" data-cap="battery">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.battery.label">Battery unlock</div><div class="settings-row-sublabel" data-i18n="scooter.opt.battery.sub">Release the battery lock</div></div>
+          <button id="ss-battery" class="route-gpx-btn" data-i18n="scooter.opt.battery.action">Unlock</button>
+        </div>
+        <div class="settings-row" id="ss-row-frontlight" data-cap="frontLight">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.frontlight.label">Front light</div></div>
+          <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-frontlight"><label class="toggle-label" for="ss-frontlight"></label></div>
+        </div>
+        <div class="settings-row" id="ss-row-darkmode" data-cap="darkMode">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.darkmode.label">Dark mode</div><div class="settings-row-sublabel" data-i18n="scooter.opt.darkmode.sub">Scooter display dark mode</div></div>
+          <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-darkmode"><label class="toggle-label" for="ss-darkmode"></label></div>
+        </div>
+        <div class="settings-row" id="ss-row-zerostart" data-cap="zeroStart">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.zerostart.label">Zero-start</div><div class="settings-row-sublabel" data-i18n="scooter.opt.zerostart.sub">Start without kicking off</div></div>
+          <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-zerostart"><label class="toggle-label" for="ss-zerostart"></label></div>
+        </div>
+        <div class="settings-row" id="ss-row-unit" data-cap="unit">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.unit.label">Unit: mph</div><div class="settings-row-sublabel" data-i18n="scooter.opt.unit.sub">Scooter display unit (off = km/h)</div></div>
+          <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-unit"><label class="toggle-label" for="ss-unit"></label></div>
+        </div>
+        <div class="settings-row no-bottom-rule" id="ss-row-indicator" data-cap="indicator">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.indicator.label">Indicator light</div></div>
+          <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-indicator"><label class="toggle-label" for="ss-indicator"></label></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="icon-16"></div>
+  </div>
+</div>
+
 <!-- ── Streaming page ─────────────────────────────── -->
 <div id="streaming-page">
   <div id="topbar">
@@ -564,19 +580,20 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <button id="btn-copy-btname" class="route-gpx-btn" data-i18n="info.copy">Copy</button>
       </div>
       <div class="settings-row">
-        <div class="settings-row-left">
-          <div class="settings-row-label" data-i18n="info.scooter.frame.label">Frame number (VCU)</div>
-          <div class="settings-row-sublabel mono-break" id="info-serial">-</div>
-        </div>
-        <button id="btn-copy-serial" class="route-gpx-btn">Copy</button>
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.model.label">Model</div></div>
+        <span class="note-md" id="info-model">-</span>
       </div>
       <div class="settings-row">
-        <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.ivcu.version">IVCU software version</div></div>
-        <span class="note-md" id="info-swver">-</span>
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.fw.proto">Firmware Protocol</div></div>
+        <span class="note-md" id="info-fw-proto">-</span>
       </div>
-      <div class="settings-row sf-hide">
-        <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.lb.firmware">Laufbursche firmware</div></div>
-        <span class="note-md" id="info-hwver">-</span>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.fw.disp">Firmware Display</div></div>
+        <span class="note-md" id="info-fw-disp">-</span>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.fw.cpu">Firmware CPU</div></div>
+        <span class="note-md" id="info-fw-cpu">-</span>
       </div>
     </div>
 
@@ -586,7 +603,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       <div class="settings-row">
         <div class="settings-row-left">
           <div class="settings-row-label" data-i18n="info.ridelog.record.label">Record ride log</div>
-          <div class="settings-row-sublabel" data-i18n="info.ridelog.record.hint">Off by default. Records the complete telemetry snapshot the scooter sends, once per minute while you ride: speeds, gear, power, currents, pack and pole voltage, motor temperatures, trip and total distance, status and error bits plus the whole battery block with every cell voltage. Recording starts as soon as the scooter first moves. All rides are kept until you delete them.</div>
+          <div class="settings-row-sublabel" data-i18n="info.ridelog.record.hint">Off by default. Records the telemetry snapshot the scooter sends, once per minute while you ride: speed, ride mode, battery level, pack voltage and current, power, trip and total distance and the fault code. Recording starts as soon as the scooter first moves. All rides are kept until you delete them.</div>
         </div>
         <div class="toggle-wrap">
           <input type="checkbox" class="toggle-input" id="toggle-ridelog">
@@ -618,7 +635,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
   </div>
   <div id="battery-scroller">
     <div class="settings-row-sublabel mb-10" data-i18n="info.battery.hint">
-      Pack health, summary and per-cell voltages read live from the scooter (BLE). No command is sent: the BMS streams this automatically.
+      Battery values read live from the scooter (BLE). No command is sent: the scooter streams them automatically.
     </div>
     <div class="settings-group pt-4">
       <div class="settings-group-title" data-i18n="info.battery.health.title">Battery health</div>
@@ -627,10 +644,6 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div class="settings-group has-top-rule">
       <div class="settings-group-title" data-i18n="info.battery.pack.title">Pack summary</div>
       <div id="bat-pack"></div>
-    </div>
-    <div class="settings-group has-top-rule">
-      <div class="settings-group-title" data-i18n="info.battery.cells.title">Cells</div>
-      <div id="bat-cells" class="cell-grid"></div>
     </div>
   </div>
 </div>
@@ -1051,7 +1064,7 @@ function closeDisplayPage() {
 
 function applyTheme(dark) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  // Swap the logo so its "app for SoFlow e-scooters" subtitle stays readable (white on dark, dark on light).
+  // Swap the logo so its "App für SoFlow E-Scooter" subtitle stays readable (white on dark, dark on light).
   const logo = document.querySelector('.tb-logo');
   if (logo) logo.src = dark ? 'logo.svg' : 'logo-light.svg';
   // Let native screens follow the same theme.
@@ -1074,47 +1087,29 @@ function initTheme() {
 
 /* ── BLE Data ─────────────────────────────────────────────── */
 
-/* Normalise the SoFlow FrameParser.toJson() snapshot into the shape the dashboard renders.
-   SoFlow reports: speed, voltage, current, power, battery, mode, modeText, locked, headlight,
-   imperial, darkMode, error, tripKm, totalKm, fw, model, family, rssi, ts. Fields the SoFlow
-   protocol does not carry (per-cell, motor temps, dual currents) default to 0/empty so no
-   downstream code throws. */
 function parseBLE(raw) {
   if (!raw) return null;
   try {
     const d = JSON.parse(raw);
     if (!d || typeof d.ts !== 'number') return null;
     const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
-    // Lock state drives the speed-tile colour + triple-tap: 0=LOCKED, 1=UNLOCKED, -1=unknown.
-    const vcuUnlock = (d.locked === true) ? 0 : (d.locked === false ? 1 : -1);
     return {
+      // SoFlow FrameParser.toJson fields.
       speed:    num(d.speed),
-      avgSpeed: num(d.avgSpeed),
-      maxSpeed: num(d.maxSpeed),
-      soc:      num(d.battery),
-      soh:      0,
-      volt:     num(d.voltage),
-      poleVolt: 0,
+      voltage:  num(d.voltage),
       current:  num(d.current),
-      // The "Gear" hero tile shows the SoFlow ride mode text (Eco/Normal/Sport).
-      gear:     (d.modeText != null && d.modeText !== '') ? d.modeText : '-',
-      mode:     (typeof d.mode === 'number') ? d.mode : -1,
-      rearCurrent:  0,
-      frontCurrent: 0,
-      rTemp:    0,
-      fTemp:    0,
       power:    num(d.power),
-      singleMile: num(d.tripKm),
-      totalMile:  num(d.totalKm),
-      fb:       0,
+      battery:  (typeof d.battery === 'number' ? d.battery : (parseInt(d.battery) || 0)),
+      mode:     (typeof d.mode === 'number' ? d.mode : -1),
+      modeText: (d.modeText != null ? ('' + d.modeText) : ''),
+      locked:   (typeof d.locked === 'boolean' ? d.locked : null),
+      tripKm:   num(d.tripKm),
+      totalKm:  num(d.totalKm),
+      error:    (typeof d.error === 'number' ? d.error : (parseInt(d.error) || 0)),
+      errorHex: (d.errorHex != null ? ('' + d.errorHex) : ''),
+      model:    (d.model != null ? ('' + d.model) : ''),
+      btName:   (d.btName != null ? ('' + d.btName) : ''),
       rssi:     num(d.rssi),
-      error:    (typeof d.error === 'number') ? d.error : 0,
-      errorHex: (d.errorHex != null) ? ('' + d.errorHex) : '',
-      park:     false,
-      systemStatus: [],
-      top:      [],
-      bottom:   [],
-      vcuUnlock: vcuUnlock,
       ts:       d.ts
     };
   } catch(e) { return null; }
@@ -1279,10 +1274,7 @@ function ensureSettingsHelpDelegation() {
     const h = key && SETTINGS_HELP[key];
     if (h) {
       e.preventDefault(); e.stopPropagation();
-      // On a non-Fighter model, drop the Fighter-Mini-eKFV "NOTE (eKFV): ..." tail from the help text.
-      const full = t(h.text);
-      const txt = fighterFeatures() ? full : full.split(/\n\s*NOTE \(eKFV\)/i)[0].trim();
-      openHelp(t(h.title), txt);
+      openHelp(t(h.title), t(h.text));
     }
   });
   settingsHelpDelegated = true;
@@ -1339,19 +1331,6 @@ function isFresh(ts) {
   return ts && (Date.now() - ts < 5000);
 }
 
-// The gear tile shows only the gear NUMBER; this tag adds a P (parked) / R (reverse) state or is
-// hidden when neither applies. No Eco/Drive/Sport words.
-function gearTag(park, reverse) {
-  if (park)    return { text: t('msg.gear.tag.park'), cls: 'gear-tag-na',    show: true };
-  if (reverse) return { text: t('msg.gear.tag.reverse'), cls: 'gear-tag-sport', show: true };
-  return { text: '', cls: '', show: false };
-}
-
-function hideGearTag() {
-  const el = document.getElementById('gear-tag');
-  if (el) { el.textContent = ''; el.style.display = 'none'; }
-}
-
 function convSpeed(kmh) {
   if (state.useMph) return (kmh * 0.621371).toFixed(1);
   return kmh.toFixed(1);
@@ -1367,19 +1346,22 @@ function distUnit() { return state.useMph ? 'mi' : 'km'; }
 
 function setTxt(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 
+// Session speed stats (avg/max), computed from the streamed speed since the last connect.
+let _spdSum = 0, _spdCnt = 0, _spdMax = 0;
+function resetSpeedStats() { _spdSum = 0; _spdCnt = 0; _spdMax = 0; }
+
 function updateBLEUI(data) {
   const bleDot     = document.getElementById('ble-dot');
 
   document.querySelector('.ble-drum .sd-unit').textContent = speedUnit();
   document.querySelector('.gps-drum .sd-unit').textContent = speedUnitGPS();
 
-  const DASH = ['ble-speed','soc-val','gear-val','current-val','dg-avg','dg-max',
-    'dg-volt','dg-pole','dg-soh','dg-fb','dg-total','dg-single','dg-rssi',
-    'mr-temp','mr-cur','mf-temp','mf-cur','m-power','m-total-cur'];
+  const DASH = ['ble-speed','soc-val','mode-val','current-val','dg-avg','dg-max',
+    'dg-volt','dg-total','dg-single','dg-rssi','dg-err',
+    'tl-volt','tl-power','tl-trip','tl-total','tl-error','tl-lock'];
 
   if (!data) {
     DASH.forEach(id => setTxt(id, '-'));
-    hideGearTag();
     renderAllValues(null);
     return;
   }
@@ -1389,8 +1371,7 @@ function updateBLEUI(data) {
   state.bleConnected = connected;
   state.ble = data;
 
-  if (connected !== wasConnected) onBLEConnectionChange(connected);
-  try { refreshUpdateUi(); } catch (e) {}   // firmware-available depends on connection + scooter build
+  if (connected !== wasConnected) { onBLEConnectionChange(connected); resetSpeedStats(); }
 
   bleDot.classList.toggle('connected', connected);
   const connBtn = document.getElementById('btn-connect');
@@ -1398,53 +1379,34 @@ function updateBLEUI(data) {
 
   if (!connected) {
     DASH.forEach(id => setTxt(id, '-'));
-    hideGearTag();
     renderAllValues(null);
     return;
   }
 
-  // Adapt the UI to the connected model: settings work on the SoFlow scooter; only the
-  // Fighter-Mini-only features (firmware / FIN unlock) are gated and the Tetra is flagged unsupported.
-  try { applyModelUi(liveRaw().btName); } catch (e) {}
+  // Show the connected model name in the settings banner.
+  try { applyModelUi(data.model); } catch (e) {}
 
   // Auto-arm a ride once the scooter has actually moved ~20 m (keeps GPS off while parked).
   try { maybeArmRide(data); } catch (e) {}
 
-  // Speed
+  // Speed. The VCU tile turns red while the throttle release (triple-tap / Unlock) is active this
+  // session. The scooter does not report the limiter back, so this reflects what THIS session sent.
   setTxt('ble-speed', convSpeed(data.speed));
-  // VCU speed colour = speed-lock state: red when UNLOCKED (speed uncapped). Driven by the streamed
-  // 55 71 lock byte (data.vcuUnlock: 0 = LOCKED, 1 = UNLOCKED) on TESTLOCK firmware; falls back to the
-  // FIN "TDE" heuristic only when the byte is absent (-1 / old fw). Triple-tap the VCU tile to toggle.
   {
-    // The lock tile colour is a Fighter-Mini-eKFV concept. Only colour it for the Fighter Mini (or the
-    // unknown/disconnected default); on other models keep it neutral.
     const spEl = document.getElementById('ble-speed');
-    const finU = ((liveRaw().btName || '') + '').toUpperCase();
-    const known = (data.vcuUnlock === 0 || data.vcuUnlock === 1);
-    const locked = (data.vcuUnlock === 0);
-    const unlocked = known ? !locked : (finU && !finU.includes('TDE'));
-    if (spEl) spEl.style.color = (fighterFeatures() && unlocked) ? 'var(--danger)' : '';
+    if (spEl) spEl.style.color = _speedReleased ? 'var(--danger)' : '';
   }
-  // SoFlow does not report a scooter-side avg/max speed; the GPS ride avg lives in its own section.
-  setTxt('dg-avg', '-');
-  setTxt('dg-max', '-');
+  // Session avg / max from the streamed speed.
+  _spdSum += data.speed; _spdCnt++;
+  if (data.speed > _spdMax) _spdMax = data.speed;
+  const avg = _spdCnt ? (_spdSum / _spdCnt) : 0;
+  setTxt('dg-avg', `${convSpeed(avg)} ${state.useMph ? 'mph' : 'km/h'}`);
+  setTxt('dg-max', `${convSpeed(_spdMax)} ${state.useMph ? 'mph' : 'km/h'}`);
 
-  // Hero
-  setTxt('soc-val', Math.round(data.soc));
-  const bit = (v) => v === true || v === 1 || v === '1';
-  const isPark = bit(data.park);
-  // Park takes over the gear number itself rather than adding a small marker beneath it, so the
-  // state is readable at a glance while riding.
-  setTxt('gear-val', isPark ? t('msg.gear.tag.park') : data.gear);
-  const gt = gearTag(false, Array.isArray(data.systemStatus) && bit(data.systemStatus[5]));
-  const gearTagEl = document.getElementById('gear-tag');
-  if (gearTagEl) {
-    gearTagEl.textContent = gt.text;
-    gearTagEl.className = gt.show ? `hc-tag ${gt.cls}` : 'hc-tag';
-    showEl(gearTagEl, gt.show);
-  }
-  // Signed from the rider's point of view: current drawn from the pack reads negative and red,
-  // recuperation reads positive and green. The controller reports the opposite sign, hence the flip.
+  // Hero: battery %, ride mode, pack current.
+  setTxt('soc-val', Math.round(data.battery));
+  setTxt('mode-val', data.modeText ? modeLabel(data.modeText) : (data.mode >= 0 ? String(data.mode) : '-'));
+  // Signed from the rider's point of view: pack draw reads negative and red, recuperation positive.
   const cur = data.current;
   const curEl = document.getElementById('current-val');
   if (curEl) {
@@ -1453,42 +1415,39 @@ function updateBLEUI(data) {
     curEl.style.color = cur > 0 ? 'var(--danger)' : cur < 0 ? 'var(--good)' : 'var(--text)';
   }
 
-  // Motors (dual motor)
-  setTxt('mr-temp', data.rTemp.toFixed(0));
-  setTxt('mf-temp', data.fTemp.toFixed(0));
-  setTxt('mr-cur', data.rearCurrent.toFixed(1));
-  setTxt('mf-cur', data.frontCurrent.toFixed(1));
-  const mrt = document.getElementById('mr-temp'); if (mrt) mrt.style.color = tempColor(data.rTemp);
-  const mft = document.getElementById('mf-temp'); if (mft) mft.style.color = tempColor(data.fTemp);
-  setTxt('m-power', data.power.toFixed(2));
-  setTxt('m-total-cur', (data.rearCurrent + data.frontCurrent).toFixed(1));
+  // Live tiles: voltage, power, trip / total, error, lock.
+  setTxt('tl-volt', data.voltage.toFixed(1));
+  setTxt('tl-power', Math.round(data.power));
+  setTxt('tl-trip', convDist(data.tripKm).toFixed(1));
+  setTxt('tl-total', Math.round(convDist(data.totalKm)));
+  const errStr = data.error ? (data.errorHex || String(data.error)) : t('msg.error.ok');
+  setTxt('tl-error', errStr);
+  const teEl = document.getElementById('tl-error'); if (teEl) teEl.style.color = data.error ? 'var(--danger)' : '';
+  const lk = (data.locked === true) ? t('msg.lock.locked') : (data.locked === false) ? t('msg.lock.open') : '-';
+  setTxt('tl-lock', lk);
+  const tlkEl = document.getElementById('tl-lock'); if (tlkEl) tlkEl.style.color = (data.locked === true) ? 'var(--danger)' : '';
 
-  // Grid. SoFlow carries pack voltage, trip/total km, RSSI and an error code; pole voltage, SOH and
-  // recuperation are legacy-only and stay blank.
-  setTxt('dg-volt', `${data.volt.toFixed(1)} V`);
-  setTxt('dg-pole', '-');
-  setTxt('dg-soh', '-');
-  setTxt('dg-fb', '-');
-  setTxt('dg-total', `${Math.round(convDist(data.totalMile))} ${distUnit()}`);
-  setTxt('dg-single', `${convDist(data.singleMile).toFixed(1)} ${distUnit()}`);
+  // Grid.
+  setTxt('dg-volt', `${data.voltage.toFixed(1)} V`);
+  setTxt('dg-total', `${Math.round(convDist(data.totalKm))} ${distUnit()}`);
+  setTxt('dg-single', `${convDist(data.tripKm).toFixed(1)} ${distUnit()}`);
   setTxt('dg-rssi', `${data.rssi} dBm`);
-  setTxt('dg-err', (data.error ? (data.errorHex ? data.errorHex : ('E' + data.error)) : t('msg.error.none')));
   const rssiEl = document.getElementById('dg-rssi');
   if (rssiEl) rssiEl.style.color = data.rssi < -85 ? 'var(--danger)' : data.rssi < -70 ? 'var(--warn)' : 'var(--good)';
+  setTxt('dg-err', errStr);
+  const dgErrEl = document.getElementById('dg-err'); if (dgErrEl) dgErrEl.style.color = data.error ? 'var(--danger)' : '';
 
-  // Active-gear per-gear values (from the maintained 55 71 state; "-" until first received).
-  {
-    const s = liveRaw();
-    const sv = (v, suf) => (v == null ? '-' : String(v) + (suf || ''));
-    setTxt('dg-fstart',  sv(s.frontStartLevel));
-    setTxt('dg-rstart',  sv(s.rearStartLevel));
-    setTxt('dg-eabs',    sv(s.eabsRegen));
-    setTxt('dg-fcurlim', sv(s.frontCurrentLimit, ' A'));
-    setTxt('dg-rcurlim', sv(s.rearCurrentLimit, ' A'));
-  }
-
-  // All values (battery/cells)
+  // All values (SoFlow streams no cell/BMS arrays, so this stays empty).
   renderAllValues(data);
+}
+
+// Map the SoFlow modeText (eco/normal/sport) to a localized label; unknown text passes through.
+function modeLabel(txt) {
+  const k = ('' + txt).toLowerCase();
+  if (k === 'eco') return t('scooter.mode.eco');
+  if (k === 'normal') return t('scooter.mode.normal');
+  if (k === 'sport') return t('scooter.mode.sport');
+  return txt;
 }
 
 function tickBLE() {
@@ -1496,8 +1455,10 @@ function tickBLE() {
   const data = parseBLE(raw);
   updateBLEUI(data);
   updateRideUI();
-  // Keep the SoFlow speed unlock/lock buttons mirroring the locally tracked state.
-  sfReflectSpeedButtons();
+  // Mirror the SoFlow quick toggles onto the scooter state (~2x/s).
+  reflectDriveQuick();
+  // Keep the scooter-settings page live while it is open.
+  maybeLiveRefreshScooterSettings();
 }
 
 /* ── BLE Connect / Disconnect Events ──────────────────────── */
@@ -2024,6 +1985,11 @@ function loadSettings() {
   const gpsIntSel = document.getElementById('gps-interval-sel');
   if (gpsIntSel) gpsIntSel.value = String(gpsIntSec);
 
+  // Manual scooter-model override: fill the dropdown from the native list, restore the saved pick
+  // and re-apply it to the native side so an override survives a restart.
+  populateModelSelect();
+  applyForcedModelOnStart();
+
   // Fullscreen (native immersive mode; reflect the persisted native flag into the toggle).
   try {
     if (typeof LB !== 'undefined' && LB.isFullscreen) {
@@ -2215,13 +2181,9 @@ function applyLang() {
   document.querySelectorAll('#lang-switch button').forEach(b => {
     b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
   });
-  // Text the script owns: the model dropdown is rebuilt, the model banner
-  // only once it shows a looked-up name.
-  populateModelSelect();
-  if (_lastModelKey !== null) {
-    _lastModelKey = null;
-    try { applyModelUi(liveRaw().btName); } catch (e) {}
-  }
+  // Text the script owns: refresh the model banner + the cap-gated sections.
+  try { applyModelUi(liveRaw().model); } catch (e) {}
+  try { applyCaps(); } catch (e) {}
   renderWhatsNewList();
   renderDisclaimerList();
   // Label lengths just changed, so the fold has to be measured again.
@@ -2471,7 +2433,7 @@ window.__onBleScan = function(listArg) {
   });
 };
 
-/* Native pushes connection state here: {connected, name, address, status}. */
+/* Native pushes connection state here: {connected, name, model, family, caps:{...}}. */
 window.__onBleState = function(stArg) {
   let s = stArg;
   try { if (typeof stArg === 'string') s = JSON.parse(stArg); } catch (e) { s = {}; }
@@ -2490,159 +2452,102 @@ window.__onBleState = function(stArg) {
   if (dot) dot.classList.toggle('connected', connected);
   const connBtn = document.getElementById('btn-connect');
   if (connBtn) connBtn.classList.toggle('connected', connected);
+  // Per-model capabilities: gate the scooter-settings sections and the main-screen quick toggles.
+  if (s.caps && typeof s.caps === 'object') { _caps = s.caps; applyCaps(); }
+  if (s.model) { setTxt('model-name', s.model); setTxt('info-model', s.model); setModelDetectedHint(s.model); }
 };
 
-/* ── Live BLE data accessor ── */
+/* ── Scooter capabilities + model (from __onBleState) ── */
+
+// Live capability flags from the native state (speed/mode/vlock/battery/frontLight/darkMode/
+// zeroStart/unit/indicator). Sections and rows carry a data-cap attribute and are shown only when
+// their flag is true, exactly like the navee model gating.
+let _caps = {};
+
+function capOn(name) { return !!(_caps && _caps[name]); }
+
+function applyCaps() {
+  // Scooter-settings sections.
+  const showEls = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+  showEls('ss-speed-section',  capOn('speed'));
+  showEls('ss-mode-section',   capOn('mode'));
+  // Options section is shown when at least one of its rows is available.
+  const optRows = ['vlock','battery','frontLight','darkMode','zeroStart','unit','indicator'];
+  document.querySelectorAll('#ss-options-section .settings-row[data-cap]').forEach(row => {
+    row.style.display = capOn(row.getAttribute('data-cap')) ? '' : 'none';
+  });
+  showEls('ss-options-section', optRows.some(capOn));
+  // Main-screen quick toggles: hide a button whose capability is unsupported.
+  document.querySelectorAll('#drive-quick .dq-btn[data-cap]').forEach(btn => {
+    btn.style.display = capOn(btn.getAttribute('data-cap')) ? '' : 'none';
+  });
+}
 
 function liveRaw() {
   try { const o = JSON.parse(storage.get('lb_live_data')); return (o && typeof o === 'object') ? o : {}; }
   catch (e) { return {}; }
 }
 
-/* ── Model detection from the BLE name + feature gating ──
-   The app talks to the SoFlow scooter: settings read (55 71) and write (0x18) are model-agnostic,
-   and a write only changes the ONE field the user touched, merged onto the device's REAL reported state
-   (the native received71 guard blocks a write until that state is known). So writing settings is safe on
-   any model. Only the FIN unlock / speed clamp / firmware update stay Fighter-Mini-only (gated by the
-   body.is-fighter class). The Tetra is not supported (its 4-motor node frames are not handled). The
-   scooter advertises its model code at a fixed offset in the BLE name: chars 7-9 on a T2 prefix,
-   chars 6-9 otherwise. */
-function detectModel(name) {
-  name = (name || '').trim().toUpperCase();
-  let code = '', model = '';
-  if (name.startsWith('T2') && name.length >= 9) {
-    // ver2 / T2 naming: the scooter puts its model code at chars 7-9 of the advertised name.
-    code = name.substring(7, 9);
-    model = ({ FM: 'FIGHTER MINI', FP: 'FIGHTER MINI PRO', FE: 'FIGHTER ELEVEN', FU: 'FIGHTER ELEVEN+',
-               SU: 'SUPREME ULTRA', SR: 'SUPREME 7260', T4: 'TETRA 4 MOTOR', T2: 'TETRA 2 MOTOR' })[code] || '';
-  } else if (name.length >= 9) {
-    // legacy naming: the model code sits at chars 6-9 instead.
-    code = name.substring(6, 9);
-    const tbl = [[/^GT[EP]/, 'GT'], [/^T40/, 'TETRA 4 MOTOR'], [/^T20/, 'TETRA 2 MOTOR'],
-                 [/^FTE/, 'FIGHTER TEN'], [/^FE[EP]/, 'FIGHTER ELEVEN'], [/^SPP/, 'SUPREME PLUS'],
-                 [/^SPU/, 'SUPREME ULTRA'], [/^SPR/, 'SUPREME 7260R'], [/^BM[EPU]/, 'BLADE MINI'],
-                 [/^FM[EOP]/, 'FIGHTER MINI'], [/^BQ[EP]/, 'BLADE Q'], [/^FQ/, 'FIGHTER Q'], [/^SE/, 'SPACE']];
-    for (const [re, nm] of tbl) { if (re.test(code)) { model = nm; break; } }
-  }
-  // Fallback for the short eKFV / ECU name formats (e.g. TDE1FMA... or its unlocked T1FMA...
-  // form): those names are shorter, so the fixed offsets above land off the model token.
-  // Recover the family from the letters right after "T" + optional 2-letter region + generation digit.
-  if (!model) {
-    const m = name.match(/^T(?:[A-Z]{2})?\d+([A-Z]{2,3})/);
-    if (m) {
-      const fam = { FM: 'FIGHTER MINI', FP: 'FIGHTER MINI PRO', FE: 'FIGHTER ELEVEN', FU: 'FIGHTER ELEVEN+',
-                    FT: 'FIGHTER TEN', FQ: 'FIGHTER Q', BM: 'BLADE MINI', BQ: 'BLADE Q',
-                    GT: 'GT', SP: 'SUPREME', SE: 'SPACE' }[m[1].substring(0, 2)];
-      if (fam) { code = m[1]; model = fam; }
-    }
-  }
-  return { code, name: model, known: !!model,
-           isFighter: /^FIGHTER MINI/.test(model), isTetra: /TETRA/.test(model) };
+// Show the connected model name (from the SoFlow live data / state) in the settings banner + info page.
+function applyModelUi(model) {
+  const nm = (model && ('' + model).trim()) || '-';
+  setTxt('model-name', nm);
+  setTxt('info-model', nm);
+  setModelDetectedHint(model);
 }
 
-// Manual model override. The list drives the SAME gating as auto-detection, so a user whose
-// scooter name does not resolve (auto-detect + fallback both miss) can pick the model by hand.
-// cat: 'fighter' = Fighter-Mini family (all settings + the Fighter-only tools), 'other' = any
-// other supported model (settings only), 'tetra' = unsupported. This is a UI preference only
-// (never written to the scooter), so it is persisted in localStorage.
-// The table holds the KEY, never the text: the label is looked up when the options are built,
-// so a language switch rebuilds the list while id and cat stay language-independent.
-const MODEL_OPTIONS = [
-  { id: 'auto',    key: 'msg.model.option.auto',    cat: 'auto' },
-  { id: 'fmini',   key: 'msg.model.option.fmini',   cat: 'fighter' },
-  { id: 'fmpro',   key: 'msg.model.option.fmpro',   cat: 'fighter' },
-  { id: 'fmekfv',  key: 'msg.model.option.fmekfv',  cat: 'fighter' },
-  { id: 'fmeco',   key: 'msg.model.option.fmeco',   cat: 'fighter' },
-  { id: 'f11',     key: 'msg.model.option.f11',     cat: 'other' },
-  { id: 'ften',    key: 'msg.model.option.ften',    cat: 'other' },
-  { id: 'fq',      key: 'msg.model.option.fq',      cat: 'other' },
-  { id: 'fspace',  key: 'msg.model.option.fspace',  cat: 'other' },
-  { id: 'supreme', key: 'msg.model.option.supreme', cat: 'other' },
-  { id: 'bmini',   key: 'msg.model.option.bmini',   cat: 'other' },
-  { id: 'bgt',     key: 'msg.model.option.bgt',     cat: 'other' },
-  { id: 'bq',      key: 'msg.model.option.bq',      cat: 'other' },
-  { id: 'gt',      key: 'msg.model.option.gt',      cat: 'other' },
-  { id: 'tetra',   key: 'msg.model.option.tetra',   cat: 'tetra' },
-  { id: 'other',   key: 'msg.model.option.other',   cat: 'other' },
-];
-let _modelOverride = null;   // MODEL_OPTIONS id or null for auto-detect
-let _lastModelKey = null;
-let _modelSelectWired = false;
+/* ── Manual model override (dropdown) ──────────────────────────
+   When auto-detection is wrong the rider can force a model. The choice is kept in localStorage
+   (sf_forced_model) and re-applied on the next start, so the override survives a restart. All LB
+   calls are guarded: without the native bridge the dropdown still fills from nothing and stays inert. */
+const FORCED_MODEL_KEY = 'sf_forced_model';
 
-function loadModelOverride() {
-  try {
-    const v = localStorage.getItem('lb_model_override');
-    _modelOverride = (v && v !== 'auto' && MODEL_OPTIONS.some(o => o.id === v)) ? v : null;
-  } catch (e) { _modelOverride = null; }
-}
-
-// Builds the list from scratch every call, so a language switch can call it again.
+// Fill the dropdown from LB.models(): first "Auto (detect)" (value "auto"), then every native model.
 function populateModelSelect() {
-  const sel = document.getElementById('model-select');
+  const sel = document.getElementById('model-sel');
   if (!sel) return;
-  sel.textContent = '';
-  for (const o of MODEL_OPTIONS) {
-    const opt = document.createElement('option');
-    opt.value = o.id;              // the id drives the gating and is never translated
-    opt.textContent = t(o.key);
-    sel.appendChild(opt);
+  let list = [];
+  try { if (typeof LB !== 'undefined' && LB.models) list = JSON.parse(LB.models() || '[]'); } catch (e) { list = []; }
+  if (!Array.isArray(list)) list = [];
+  sel.innerHTML = '';
+  const auto = document.createElement('option');
+  auto.value = 'auto';
+  auto.setAttribute('data-i18n', 'settings.scooter.model.auto');
+  auto.textContent = t('settings.scooter.model.auto');
+  sel.appendChild(auto);
+  list.forEach(m => {
+    if (!m || m.id == null) return;
+    const o = document.createElement('option');
+    o.value = '' + m.id;
+    o.textContent = '' + (m.label != null ? m.label : m.id);
+    sel.appendChild(o);
+  });
+  // Restore a previously forced model; if it is no longer offered, fall back to Auto.
+  const saved = storage.get(FORCED_MODEL_KEY);
+  if (saved && saved !== 'auto') {
+    sel.value = saved;
+    if (sel.value !== saved) sel.value = 'auto';
+  } else {
+    sel.value = 'auto';
   }
-  sel.value = _modelOverride || 'auto';   // the stored choice survives a rebuild
-  if (!_modelSelectWired) {
-    sel.addEventListener('change', () => setModelOverride(sel.value));
-    _modelSelectWired = true;
+}
+
+// Re-apply a saved forced model to the native side on startup so the override persists.
+function applyForcedModelOnStart() {
+  const saved = storage.get(FORCED_MODEL_KEY);
+  if (saved && saved !== 'auto') {
+    try { if (typeof LB !== 'undefined' && LB.setModel) LB.setModel(saved); } catch (e) {}
   }
 }
 
-function setModelOverride(id) {
-  _modelOverride = (id && id !== 'auto' && MODEL_OPTIONS.some(o => o.id === id)) ? id : null;
-  try {
-    if (_modelOverride) localStorage.setItem('lb_model_override', _modelOverride);
-    else localStorage.removeItem('lb_model_override');
-  } catch (e) {}
-  _lastModelKey = null;   // force applyModelUi to re-apply the gating
-  try { applyModelUi(liveRaw().btName); } catch (e) {}
+// Small hint under the dropdown showing which model auto-detection currently reports.
+function setModelDetectedHint(model) {
+  const el = document.getElementById('model-detected-hint');
+  if (!el) return;
+  const nm = (model && ('' + model).trim());
+  el.textContent = nm ? tf('settings.scooter.model.detected', { model: nm }) : '';
 }
 
-function applyModelUi(btName) {
-  const auto = detectModel(btName);
-  const ov = _modelOverride ? MODEL_OPTIONS.find(o => o.id === _modelOverride) : null;
-  const isFighter = ov ? ov.cat === 'fighter' : auto.isFighter;
-  const isTetra   = ov ? ov.cat === 'tetra'   : auto.isTetra;
-  const known     = ov ? true : auto.known;
-  // Prefer the SoFlow model name the native layer classified and streams in lb_live_data.
-  const liveModel = (function(){ try { return liveRaw().model; } catch(e){ return null; } })();
-  const dispName  = ov ? t(ov.key)
-    : (liveModel ? ('' + liveModel) : (auto.known ? auto.name : (btName ? t('msg.model.unknown') : '-')));
-  const key = dispName + '|' + isFighter + '|' + isTetra + '|' + (ov ? 'm' : 'a');
-  if (key === _lastModelKey) return;   // only touch the DOM when the effective model changes
-  _lastModelKey = key;
-  const cl = document.body.classList;
-  cl.toggle('is-fighter', isFighter);
-  cl.toggle('is-tetra', isTetra);
-  // is-other = a KNOWN non-Fighter, non-Tetra model. Fighter-only features (firmware, FIN unlock)
-  // hide only then - so they stay visible by default / when disconnected (the app's primary
-  // audience is Fighter Mini owners, who patch offline).
-  cl.toggle('is-other', known && !isFighter && !isTetra);
-  cl.toggle('model-manual', !!ov);
-  const nameEl = document.getElementById('model-name');
-  if (nameEl) nameEl.textContent = dispName;
-  const sel = document.getElementById('model-select');
-  if (sel && sel.options.length) sel.value = _modelOverride || 'auto';
-}
-
-// True unless a KNOWN non-Fighter model is connected. Fighter-Mini-only behaviour (FIN unlock/lock,
-// the eKFV notes, the speed-tile lock colour) keys on this, so it stays active by default and when
-// disconnected (the app's primary audience is Fighter Mini owners; a non-Fighter model turns it off).
-function fighterFeatures() {
-  const c = document.body.classList;
-  return !c.contains('is-other') && !c.contains('is-tetra');
-}
-
-function pick(d, keys) {
-  for (const k of keys) { if (d[k] !== undefined && d[k] !== null && d[k] !== '') return d[k]; }
-  return undefined;
-}
 function setSegActive(sel, val) {
   document.querySelectorAll(sel + ' button').forEach(b => {
     const raw = (b.dataset.val != null) ? b.dataset.val : b.dataset.mode;
@@ -2650,57 +2555,34 @@ function setSegActive(sel, val) {
   });
 }
 
-/* ── Error reports (active faults / warnings from live BLE data) ── */
 
-// Our wording for each battery/BMS fault the 55 54 frame can raise, keyed by its array index.
-const ERROR_CODE_TEXT = {
-  0: t('msg2.error.bms.discharge_over_temp'), 1: t('msg2.error.bms.discharge_under_temp'), 2: t('msg2.error.bms.charge_over_temp'), 3: t('msg2.error.bms.charge_under_temp'),
-  4: t('msg2.error.bms.cell_over_voltage'), 5: t('msg2.error.bms.cell_under_voltage'), 6: t('msg2.error.bms.pack_over_voltage'), 7: t('msg2.error.bms.pack_under_voltage'),
-  8: t('msg2.error.bms.discharge_over_current'), 9: t('msg2.error.bms.charge_over_current'), 10: t('msg2.error.bms.cell_voltage_spread'), 11: t('msg2.error.bms.cell_temp_spread'),
-  12: t('msg2.error.bms.charge_level_low'), 13: t('msg2.error.bms.mosfet1_over_temp'), 14: t('msg2.error.bms.mosfet2_over_temp'), 15: t('msg2.error.bms.charging_state'), 16: t('msg2.error.bms.pack_flag_1')
-};
-
-// Read a fault flag: prefer the explicit boolean emitted by FrameParser, else fall back to the
-// ecuStatus bit array (BLE_PROTOCOL §2.4).
-function errBool(d, key, bitArrKey, bitIdx) {
-  if (d[key] !== undefined && d[key] !== null) return d[key] === true || d[key] === 1 || d[key] === '1';
-  const arr = d[bitArrKey];
-  return Array.isArray(arr) && (arr[bitIdx] === 1 || arr[bitIdx] === '1');
+function openScooterPage() {
+  applyCaps();                     // show only the sections this model supports
+  loadSpeedFields();               // fill the open/eKFV fields from localStorage
+  prefillScooterSettings();        // reflect live state onto the option toggles + ride mode
+  document.getElementById('scooter-page').classList.add('open');
+}
+function closeScooterPage() {
+  document.getElementById('scooter-page').classList.remove('open');
 }
 
-// Build the list of currently active errors/faults, applying the warn thresholds
-// for the 55 54 battery array plus the ECU fault bits.
+/* ── Error reports (active faults / warnings from live BLE data) ── */
+
+// Build the list of currently active errors. SoFlow reports ONE fault code in its live frame
+// (error, with a hex form in errorHex); 0 means no fault. The code is shown raw with a generic note -
+// we never claim a specific diagnosis the scooter did not give.
 function collectErrors() {
   const d = liveRaw();
   const items = [];
-
-  // Battery / BMS errors (55 54). Index 16 is not a fault; index 0/2 need severity>1, others >2.
-  const errs = Array.isArray(d.errors) ? d.errors : [];
-  errs.forEach(e => {
-    const code = (e && e.code != null) ? Number(e.code) : -1;
-    const sev = (e && e.severity != null) ? Number(e.severity) : 0;
-    if (code < 0 || code === 16 || sev <= 0) return;
-    const active = (code === 0 || code === 2) ? sev > 1 : sev > 2;
-    if (!active) return;
+  const code = (typeof d.error === 'number') ? d.error : parseInt(d.error, 10);
+  if (code && !isNaN(code)) {
+    const shown = d.errorHex || String(code);
     items.push({
       kind: 'fault',
-      title: ERROR_CODE_TEXT[code] || tf('msg2.error.bms.unknown_code', { code: code }),
-      sub: 'Battery / BMS · severity ' + sev
+      title: tf('msg2.error.soflow.title', { code: shown }),
+      sub: t('msg2.error.soflow.unknown')
     });
-  });
-
-  // Controller / ECU fault bits (ecuStatus1 / ecuStatus2).
-  if (errBool(d, 'brakeFault', 'ecuStatus1', 0))
-    items.push({ kind: 'fault', title: t('msg2.error.ecu.brake_fault.title'), sub: t('msg2.error.ecu.brake_fault.sub') });
-  if (errBool(d, 'warning', 'ecuStatus1', 3))
-    items.push({ kind: 'fault', title: t('msg2.error.ecu.warning.title'), sub: t('msg2.error.ecu.warning.sub') });
-  if (errBool(d, 'warning2', 'ecuStatus1', 4))
-    items.push({ kind: 'fault', title: t('msg2.error.ecu.warning2.title'), sub: t('msg2.error.ecu.warning2.sub') });
-  if (errBool(d, 'tailLightWarning', 'ecuStatus1', 2))
-    items.push({ kind: 'warn', title: t('msg2.error.ecu.taillight.title'), sub: t('msg2.error.ecu.taillight.sub') });
-  if (errBool(d, 'park', 'ecuStatus1', 7))
-    items.push({ kind: 'info', title: t('msg2.error.ecu.park.title'), sub: t('msg2.error.ecu.park.sub') });
-
+  }
   return items;
 }
 
@@ -2748,147 +2630,16 @@ function closeErrorReports() {
 
 /* ── Scooter info page (identity + firmware from live BLE data) ── */
 
-// Render the info fields from lb_live_data; show "-" for anything not yet received.
+// Render the info fields from lb_live_data; show "-" for anything not yet received. Firmware lives
+// here: the three SoFlow versions proto / display / cpu.
 function renderInfoPage() {
   const d = liveRaw();
   const dash = v => (v === undefined || v === null || v === '') ? '-' : ('' + v);
-  // Bluetooth advertised name (this IS the full FIN, read from the scooter over BLE).
-  setTxt('info-btname',  dash(d.btName));
-  // SoFlow identity: the advertised name is the frame identity; the model comes from classification.
-  setTxt('info-serial',  dash(d.model));
-  // SoFlow firmware version (display CPU / protocol version).
-  setTxt('info-swver',   dash(d.fwDisplay || d.fw));
-  // Laufbursche firmware version: the firmware stamps its build number into the hwVer MAJOR byte
-  // (55 43 t[6]); the app reads it back over BLE. Only our firmware reports a build number here, so show
-  // "V<build>" when it is readable, otherwise NONE (not our firmware / version not readable).
-  {
-    const major = d.hwVer ? parseInt(String(d.hwVer).split('.')[0], 10) : 0;
-    setTxt('info-hwver', major > 0 ? ('V' + major) : t('msg2.info.fw_build.none'));
-  }
-  syncBtNameEditor();
-}
-
-/* ── Change VCU identity / BLE name (cmd 0x1f, Gate-1 toggle) ──
-   The advertised BLE name IS the VCU identity/FIN. Its first 3 chars gate the eKFV speed clamp
-   ("TDE" = limited). Set writes a new identity (region code swapped, serial kept); Reset restores
-   the identity as first seen this session (re-lock). Only clears Gate 1 - the display still clamps. */
-let _btNamePrefilled = false;    // reset on each info-page open so the field re-fills with the current FIN
-
-// Prefill the editor with the full current FIN so you just edit it and press Set. Also keep a silent
-// write-once record of the original locked FIN (when a "TDE..." name is seen) in localStorage, so the
-// true original is never lost even though the editor lets you overwrite the whole name. Never clobbers
-// what you are typing.
-function syncBtNameEditor() {
-  const cur = liveRaw().btName;
-  if (cur === undefined || cur === null || cur === '') return;
-  const s = '' + cur;
-  try {
-    if (s.slice(0, 3).toUpperCase() === 'TDE') localStorage.setItem('lb_orig_fin', s);
-    else if (!localStorage.getItem('lb_orig_fin')) localStorage.setItem('lb_orig_fin', s);
-  } catch (e) {}
-  const inp = document.getElementById('info-btname-input');
-  if (inp && !_btNamePrefilled && document.activeElement !== inp) {
-    inp.value = s;
-    _btNamePrefilled = true;
-  }
-}
-
-/* ── SoFlow speed throttle (Max-Speed 0xA9 via LB.setSpeed) ──
-   The throttle sets the max speed to the "Open" value (unlock) or the "eKFV" value (lock). SoFlow
-   reports no speed-limit state, so the unlocked flag is tracked locally in localStorage, exactly like
-   the sf-unlock web tool. The two km/h fields are remembered on disk too. */
-const SF_OPEN_KEY = 'sf_speed_open', SF_EKFV_KEY = 'sf_speed_ekfv', SF_UNLOCKED_KEY = 'sf_speed_unlocked', SF_MODE_KEY = 'sf_speed_mode';
-function sfNum(id, dflt) { const el = document.getElementById(id); const v = parseFloat(el && el.value); return isNaN(v) ? dflt : v; }
-function sfOpenSpeed() { return sfNum('sf-speed-open', 30); }
-function sfEkfvSpeed() { return sfNum('sf-speed-ekfv', 22); }
-function sfSpeedUnlocked() { return storage.get(SF_UNLOCKED_KEY) === '1'; }
-function sfSetSpeedUnlocked(on) { storage.set(SF_UNLOCKED_KEY, on ? '1' : '0'); sfReflectSpeedButtons(); }
-
-// Reflect the locally tracked unlock state on the Unlock/Lock buttons (no state comes from SoFlow).
-function sfReflectSpeedButtons() {
-  const on = sfSpeedUnlocked();
-  const u = document.getElementById('sf-btn-unlock'), l = document.getElementById('sf-btn-lock');
-  if (u) u.classList.toggle('active', on);
-  if (l) l.classList.toggle('active', !on);
-}
-
-// Send the max speed (0xA9). Returns true when dispatched.
-function sfSetSpeed(kmh, toastKey) {
-  if (typeof LB === 'undefined' || !LB.setSpeed) { showToast(t('msg.app.only.in.app')); return false; }
-  if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
-  try { LB.setSpeed(kmh); showToast(tf(toastKey, { v: kmh }), 3000); return true; }
-  catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
-}
-function sfUnlockSpeed() { if (sfSetSpeed(sfOpenSpeed(), 'sf.toast.unlocked')) sfSetSpeedUnlocked(true); }
-function sfLockSpeed() { if (sfSetSpeed(sfEkfvSpeed(), 'sf.toast.locked')) sfSetSpeedUnlocked(false); }
-
-// Ride mode 0 eco / 1 normal / 2 sport (LB.setSpeedMode).
-function sfSetMode(mode) {
-  if (typeof LB === 'undefined' || !LB.setSpeedMode) { showToast(t('msg.app.only.in.app')); return; }
-  if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return; }
-  try { LB.setSpeedMode(mode); setSegActive('#sf-mode-seg', mode); storage.set(SF_MODE_KEY, String(mode)); showToast(t('sf.toast.mode'), 2500); }
-  catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
-}
-
-/* Hidden gesture on the VCU speed tile: triple-tap toggles the SoFlow throttle (Max-Speed 0xA9):
-   unlock -> LB.setSpeed(open), lock -> LB.setSpeed(eKFV). The unlocked flag is tracked locally. */
-let _finTapCount = 0, _finTapTimer = null;
-function onVcuTileTap() {
-  _finTapCount++;
-  clearTimeout(_finTapTimer);
-  if (_finTapCount >= 3) { _finTapCount = 0; toggleFinLock(); return; }
-  _finTapTimer = setTimeout(() => { _finTapCount = 0; }, 700);
-}
-function toggleFinLock() {
-  if (sfSpeedUnlocked()) sfLockSpeed(); else sfUnlockSpeed();
-}
-
-// Wire the SoFlow control section: throttle fields (remembered on disk), unlock/lock buttons,
-// ride-mode segment and the extra switches. Called once from wireEvents().
-function wireSfControls() {
-  // Restore the remembered km/h fields, then persist any edit.
-  const openIn = document.getElementById('sf-speed-open'), ekfvIn = document.getElementById('sf-speed-ekfv');
-  if (openIn) {
-    const v = storage.get(SF_OPEN_KEY); if (v != null && v !== '') openIn.value = v; else openIn.value = '30';
-    openIn.addEventListener('change', () => storage.set(SF_OPEN_KEY, openIn.value));
-  }
-  if (ekfvIn) {
-    const v = storage.get(SF_EKFV_KEY); if (v != null && v !== '') ekfvIn.value = v; else ekfvIn.value = '22';
-    ekfvIn.addEventListener('change', () => storage.set(SF_EKFV_KEY, ekfvIn.value));
-  }
-  const bu = document.getElementById('sf-btn-unlock'); if (bu) bu.addEventListener('click', sfUnlockSpeed);
-  const bl = document.getElementById('sf-btn-lock'); if (bl) bl.addEventListener('click', sfLockSpeed);
-  sfReflectSpeedButtons();
-
-  // Ride mode: reflect the remembered choice, then write on tap.
-  const modeSaved = parseInt(storage.get(SF_MODE_KEY), 10);
-  if (!isNaN(modeSaved)) setSegActive('#sf-mode-seg', modeSaved);
-  document.querySelectorAll('#sf-mode-seg button[data-val]').forEach(btn => {
-    btn.addEventListener('click', () => sfSetMode(parseInt(btn.dataset.val, 10)));
-  });
-
-  // Extra switches: each is a direct BLE write (SoFlow reports no state to reflect).
-  const wire = (sel, attr, fn) => document.querySelectorAll(sel + ' button[' + attr + ']').forEach(btn => {
-    btn.addEventListener('click', () => fn(parseInt(btn.getAttribute(attr), 10) === 1, btn));
-  });
-  wire('#sf-frontlight-seg', 'data-on', on => sfWriteSwitch('setFrontLight', on));
-  wire('#sf-darkmode-seg', 'data-on', on => sfWriteSwitch('setScooterDarkMode', on));
-  wire('#sf-zerostart-seg', 'data-on', on => sfWriteSwitch('setZeroStart', on));
-  wire('#sf-unit-seg', 'data-imp', imp => sfWriteSwitch('setUnit', imp));
-  wire('#sf-lock-seg', 'data-unlocked', unlocked => sfWriteSwitch('setLock', unlocked));
-  const bb = document.getElementById('sf-btn-battery');
-  if (bb) bb.addEventListener('click', () => {
-    if (typeof LB === 'undefined' || !LB.batteryUnlock) { showToast(t('msg.app.only.in.app')); return; }
-    if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return; }
-    try { LB.batteryUnlock(); showToast(t('sf.toast.done'), 2500); } catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
-  });
-}
-
-// Generic one-argument boolean BLE write for the extra switches.
-function sfWriteSwitch(fn, arg) {
-  if (typeof LB === 'undefined' || !LB[fn]) { showToast(t('msg.app.only.in.app')); return; }
-  if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return; }
-  try { LB[fn](arg); showToast(t('sf.toast.done'), 2500); } catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
+  setTxt('info-btname', dash(d.btName));
+  setTxt('info-model',  dash(d.model));
+  setTxt('info-fw-proto', dash(d.fw));
+  setTxt('info-fw-disp',  dash(d.fwDisplay));
+  setTxt('info-fw-cpu',   dash(d.fwCpu));
 }
 
 // Copy the Bluetooth advertised name (from live BLE data) to the Android clipboard.
@@ -2900,14 +2651,41 @@ function copyBtName() {
   catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
 }
 
-// Copy the scooter model (FrameParser.toJson provides d.model) to the Android clipboard.
-function copySerial() {
-  const d = liveRaw();
-  const serial = d.model;
-  if (serial === undefined || serial === null || serial === '') { showToast(t('msg2.info.toast.no_serial')); return; }
-  if (typeof LB === 'undefined' || !LB.copyClipboard) { showToast(t('msg.app.only.in.app')); return; }
-  try { LB.copyClipboard('' + serial); showToast(t('msg2.info.toast.serial_copied')); }
-  catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
+/* ── Speed release (throttle) ──────────────────────────────────
+   The open / eKFV target speeds are kept locally (localStorage), never read from the scooter. Unlock
+   sends the open value via LB.setSpeed(kmh); Lock sends the eKFV value. The triple-tap gesture on the
+   VCU speed tile toggles between the two. _speedReleased drives the red tile colour (session only). */
+const SPEED_OPEN_KEY = 'lb_speed_open', SPEED_EKFV_KEY = 'lb_speed_ekfv';
+let _speedReleased = false;
+
+function speedOpenVal() { const v = parseFloat(storage.get(SPEED_OPEN_KEY)); return isNaN(v) ? 35 : v; }
+function speedEkfvVal() { const v = parseFloat(storage.get(SPEED_EKFV_KEY)); return isNaN(v) ? 22 : v; }
+
+// Fill the Scooter-settings speed fields from localStorage.
+function loadSpeedFields() {
+  const o = document.getElementById('ss-open'); if (o) o.value = speedOpenVal();
+  const e = document.getElementById('ss-ekfv'); if (e) e.value = speedEkfvVal();
+}
+
+function sendSpeedRelease(open) {
+  if (typeof LB === 'undefined' || !LB.setSpeed) { showToast(t('msg.app.only.in.app')); return false; }
+  if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
+  const kmh = open ? speedOpenVal() : speedEkfvVal();
+  try { LB.setSpeed(kmh); _speedReleased = !!open; return true; }
+  catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
+}
+
+/* Hidden gesture on the VCU speed tile: triple-tap toggles the throttle between open and eKFV. */
+let _spdTapCount = 0, _spdTapTimer = null;
+function onVcuTileTap() {
+  _spdTapCount++;
+  clearTimeout(_spdTapTimer);
+  if (_spdTapCount >= 3) { _spdTapCount = 0; toggleSpeedRelease(); return; }
+  _spdTapTimer = setTimeout(() => { _spdTapCount = 0; }, 700);
+}
+function toggleSpeedRelease() {
+  const next = !_speedReleased;
+  if (sendSpeedRelease(next)) showToast(next ? t('msg2.speed.toast.unlocked') : t('msg2.speed.toast.locked'), 3000);
 }
 
 /* ── Ride log (Scooter info page): opt-in local recording owned by the native side.
@@ -3059,7 +2837,6 @@ function renderRideLog() {
 
 let _infoTimer = null;
 function openInfoPage() {
-  _btNamePrefilled = false;   // re-prefill the identity editor with the current FIN on open
   renderInfoPage();
   renderRideLog();                                  // toggle state + last-3-rides list, refreshed on open
   document.getElementById('info-page').classList.add('open');
@@ -3072,10 +2849,10 @@ function closeInfoPage() {
   _infoTimer = null;
 }
 
-/* ── Battery Info page (pack, health and per-cell voltages from live BLE data) ── */
+/* ── Battery Info page (pack values from live BLE data) ── */
 
-// Render the battery health summary, pack summary and per-cell grid from lb_live_data. No command
-// is sent - the BMS streams the 55 51/54/55/56/52/53 frames automatically once connected.
+// Render the battery health summary and pack summary from lb_live_data. SoFlow streams only a small
+// set of battery values (system voltage, level, current) - no per-cell data.
 function renderBatteryPage() {
   const d = liveRaw();
   const dash = v => (v === undefined || v === null || v === '') ? '-' : ('' + v);
@@ -3083,24 +2860,19 @@ function renderBatteryPage() {
   // Not connected: prompt to connect instead of showing stale or empty values.
   if (!state.bleConnected) {
     const h = document.getElementById('bat-health');
-    if (h) { h.className = 'bat-health'; h.innerHTML = '<div class="bat-health-title" data-i18n="msg2.battery.health.connect_first">Connect scooter first</div>'; }
+    if (h) { h.className = 'bat-health'; h.innerHTML = '<div class="bat-health-title">' + t('msg2.battery.health.connect_first') + '</div>'; }
     const p = document.getElementById('bat-pack'); if (p) p.innerHTML = '';
-    const g = document.getElementById('bat-cells');
-    if (g) g.innerHTML = '<div class="settings-row-sublabel span-all">' + t('msg2.battery.cells.connect_first') + '</div>';
     return;
   }
 
-  // Health summary: reuse the error-reports filter (which applies the correct 55 54 severity
-  // thresholds - index 0/2 need severity > 1, others > 2) restricted to the battery / BMS faults, so
-  // it matches "Read error reports" and never shows a non-active level (for example a resting low charge level).
-  const warnings = (typeof collectErrors === 'function' ? collectErrors() : [])
-    .filter(it => it && typeof it.sub === 'string' && it.sub.indexOf('Battery / BMS') === 0)
-    .map(it => it.title);
+  // Health summary: healthy unless there is an active fault or the battery is very low.
+  const warnings = (typeof collectErrors === 'function' ? collectErrors() : []).map(it => it.title);
+  if ((typeof d.battery === 'number') && d.battery >= 0 && d.battery <= 5) warnings.push(t('msg2.battery.health.low'));
   const health = document.getElementById('bat-health');
   if (health) {
     if (!warnings.length) {
       health.className = 'bat-health ok';
-      health.innerHTML = '<div class="bat-health-title" data-i18n="msg2.battery.health.ok">Healthy: no active battery faults</div>';
+      health.innerHTML = '<div class="bat-health-title">' + t('msg2.battery.health.ok') + '</div>';
     } else {
       health.className = 'bat-health bad';
       const items = warnings.map(w => '<li>' + w + '</li>').join('');
@@ -3110,55 +2882,18 @@ function renderBatteryPage() {
     }
   }
 
-  // Pack summary rows.
-  const mv2v = mv => (typeof mv === 'number' && isFinite(mv)) ? (mv / 1000).toFixed(3) : null;
+  // Pack summary rows: system voltage, battery level, current.
   const rows = [];
   const push = (label, val) => rows.push({ label: label, val: val });
-  push(t('msg2.battery.pack.system_voltage'),    d.packVoltageLive != null ? dash(d.packVoltageLive) + ' V' : '-');
-  push(t('msg2.battery.pack.current'),           d.current != null ? dash(d.current) + ' A' : '-');
-  push(t('msg2.battery.pack.soc'),               d.SOC != null ? dash(d.SOC) + ' %' : '-');
-  push(t('msg2.battery.pack.soh'),               d.soh != null ? dash(d.soh) + ' %' : '-');
-  push(t('msg2.battery.pack.capacity'),    d.capacity != null ? dash(d.capacity) + ' Ah' : '-');
-  push(t('msg2.battery.pack.charge_cycles'),     dash(d.chargeCounter));
-  push(t('msg2.battery.pack.max_cell_voltage'),  mv2v(d.maxCellV) != null ? mv2v(d.maxCellV) + ' V' : '-');
-  push(t('msg2.battery.pack.min_cell_voltage'),  mv2v(d.minCellV) != null ? mv2v(d.minCellV) + ' V' : '-');
-  push(t('msg2.battery.pack.max_cell_temp'),     d.maxCellTemp != null ? dash(d.maxCellTemp) + ' °C' : '-');
-  push(t('msg2.battery.pack.min_cell_temp'),     d.minCellTemp != null ? dash(d.minCellTemp) + ' °C' : '-');
-  const delta = (typeof d.maxCellV === 'number' && typeof d.minCellV === 'number') ? (d.maxCellV - d.minCellV) : null;
-  push(t('msg2.battery.pack.cell_delta'),        delta != null ? delta + ' mV' : '-');
+  push(t('msg2.battery.pack.system_voltage'), (typeof d.voltage === 'number') ? d.voltage.toFixed(1) + ' V' : '-');
+  push(t('msg2.battery.pack.level'),          (typeof d.battery === 'number') ? dash(d.battery) + ' %' : '-');
+  push(t('msg2.battery.pack.current'),        (typeof d.current === 'number') ? d.current.toFixed(1) + ' A' : '-');
   const pack = document.getElementById('bat-pack');
   if (pack) {
     pack.innerHTML = rows.map(r =>
       '<div class="settings-row"><div class="settings-row-left"><div class="settings-row-label">' + r.label +
       '</div></div><span class="note-md">' + r.val + '</span></div>'
     ).join('');
-  }
-
-  // Per-cell grid: colour-code by voltage and mark balancing cells (balState0 covers cells 0-7).
-  const cells = Array.isArray(d.cellMv) ? d.cellMv : [];
-  const count = (typeof d.cellCount === 'number' && d.cellCount > 0) ? d.cellCount : cells.length;
-  const bal = Array.isArray(d.balState0) ? d.balState0 : [];
-  const grid = document.getElementById('bat-cells');
-  if (grid) {
-    const anyCells = count > 0 && cells.some(mv => mv > 0);
-    if (!anyCells) {
-      grid.innerHTML = '<div class="settings-row-sublabel span-all" data-i18n="msg2.battery.cells.waiting">Waiting for battery data...</div>';
-    } else {
-      let html = '';
-      for (let k = 0; k < count; k++) {
-        const mv = cells[k] || 0;
-        let cls = 'cell-mid';
-        if (mv > 3400) cls = 'cell-full';
-        else if (mv < 2650) cls = 'cell-low';
-        const balancing = (k < 8) && (bal[k] === 1 || bal[k] === '1');
-        html += '<div class="cell-tile ' + cls + (balancing ? ' cell-bal' : '') + '">' +
-          '<span class="cell-name">' + tf('msg2.battery.cell.name', { n: k + 1 }) + '</span>' +
-          '<span class="cell-volt">' + (mv / 1000).toFixed(3) + ' V</span>' +
-          (balancing ? '<span class="cell-bal-tag" data-i18n="msg2.battery.cell.balancing">balancing</span>' : '') +
-          '</div>';
-      }
-      grid.innerHTML = html;
-    }
   }
 }
 
@@ -3342,10 +3077,144 @@ function initRideBanner() {
   b.addEventListener('pointercancel', drop);
 }
 
+
+/* ── Scooter settings (SoFlow) ────────────────────────────────
+   Each control writes to the scooter immediately over BLE through a dedicated bridge method; there
+   is no Save button. State that the scooter reports back (lock, front light, dark mode, unit, ride
+   mode) is reflected live onto the controls; the rest have no read-back and stay as last set. */
+
+// Connected guard for a settings write; toasts and returns false when not usable.
+function ssGuard() {
+  if (typeof LB === 'undefined') { showToast(t('msg.app.only.in.app')); return false; }
+  if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
+  return true;
+}
+
+// Reflect the live SoFlow state onto the settings controls. On a per-tick refresh (live=true) never
+// clobber a control the user is currently interacting with (focused).
+function prefillScooterSettings(live) {
+  const d = liveRaw();
+  const focused = id => { const ae = document.activeElement; return !!ae && ae.id === id; };
+  const setC = (id, on) => { if (live && focused(id)) return; const el = document.getElementById(id); if (el && on != null) el.checked = !!on; };
+  if (typeof d.locked === 'boolean')   setC('ss-lock', d.locked);
+  if (typeof d.headlight === 'boolean') setC('ss-frontlight', d.headlight);
+  if (typeof d.darkMode === 'boolean') setC('ss-darkmode', d.darkMode);
+  if (typeof d.imperial === 'boolean') setC('ss-unit', d.imperial);
+  if (typeof d.mode === 'number' && d.mode >= 0) setSegActive('#ss-mode-seg', d.mode);
+}
+
+// While the scooter-settings page is open, refresh the reflected controls every tick.
+function maybeLiveRefreshScooterSettings() {
+  const page = document.getElementById('scooter-page');
+  if (!page || !page.classList.contains('open')) return;
+  prefillScooterSettings(true);
+}
+
+function wireScooterSettings() {
+  // Speed release: persist the two target speeds, and Unlock / Lock send them.
+  const openF = document.getElementById('ss-open');
+  if (openF) openF.addEventListener('change', () => storage.set(SPEED_OPEN_KEY, String(parseFloat(openF.value) || 0)));
+  const ekfvF = document.getElementById('ss-ekfv');
+  if (ekfvF) ekfvF.addEventListener('change', () => storage.set(SPEED_EKFV_KEY, String(parseFloat(ekfvF.value) || 0)));
+  const unlockB = document.getElementById('ss-speed-unlock');
+  if (unlockB) unlockB.addEventListener('click', () => { if (sendSpeedRelease(true)) showToast(t('msg2.speed.toast.unlocked'), 3000); });
+  const lockB = document.getElementById('ss-speed-lock');
+  if (lockB) lockB.addEventListener('click', () => { if (sendSpeedRelease(false)) showToast(t('msg2.speed.toast.locked'), 3000); });
+
+  // Ride mode: eco / normal / sport -> setSpeedMode(0/1/2).
+  document.querySelectorAll('#ss-mode-seg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!ssGuard()) return;
+      const v = parseInt(btn.dataset.val, 10) || 0;
+      try { LB.setSpeedMode(v); setSegActive('#ss-mode-seg', v); } catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
+    });
+  });
+
+  // Options: each control routes to its dedicated bridge method.
+  const lock = document.getElementById('ss-lock');
+  if (lock) lock.addEventListener('change', e => {
+    if (!ssGuard()) { e.target.checked = !e.target.checked; return; }
+    // setLock(unlocked): checked = locked -> setLock(false); unchecked -> setLock(true).
+    try { LB.setLock(!e.target.checked); } catch (err) { showToast(tf('msg2.toast.error', { e: err })); }
+  });
+  const bat = document.getElementById('ss-battery');
+  if (bat) bat.addEventListener('click', () => {
+    if (!ssGuard()) return;
+    try { LB.batteryUnlock(); showToast(t('msg2.battery.toast.unlocked')); } catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
+  });
+  const fl = document.getElementById('ss-frontlight');
+  if (fl) fl.addEventListener('change', e => {
+    if (!ssGuard()) { e.target.checked = !e.target.checked; return; }
+    try { LB.setFrontLight(e.target.checked); } catch (err) { showToast(tf('msg2.toast.error', { e: err })); }
+  });
+  const dm = document.getElementById('ss-darkmode');
+  if (dm) dm.addEventListener('change', e => {
+    if (!ssGuard()) { e.target.checked = !e.target.checked; return; }
+    try { LB.setScooterDarkMode(e.target.checked); } catch (err) { showToast(tf('msg2.toast.error', { e: err })); }
+  });
+  const zs = document.getElementById('ss-zerostart');
+  if (zs) zs.addEventListener('change', e => {
+    if (!ssGuard()) { e.target.checked = !e.target.checked; return; }
+    _zeroStartOn = e.target.checked;
+    try { LB.setZeroStart(e.target.checked); } catch (err) { showToast(tf('msg2.toast.error', { e: err })); }
+  });
+  const un = document.getElementById('ss-unit');
+  if (un) un.addEventListener('change', e => {
+    if (!ssGuard()) { e.target.checked = !e.target.checked; return; }
+    try { LB.setUnit(e.target.checked); } catch (err) { showToast(tf('msg2.toast.error', { e: err })); }
+  });
+  const ind = document.getElementById('ss-indicator');
+  if (ind) ind.addEventListener('change', e => {
+    if (!ssGuard()) { e.target.checked = !e.target.checked; return; }
+    try { LB.setIndicator(e.target.checked); } catch (err) { showToast(tf('msg2.toast.error', { e: err })); }
+  });
+}
+
+/* ── Main-screen quick toggles (front light / zero-start / dark mode / lock) ──
+   Same bridge methods as the scooter-settings options, sent immediately. Each button is shown only
+   when its capability is supported (applyCaps) and greyed until connected. */
+let _zeroStartOn = false;
+
+function toggleDriveQuick(key) {
+  if (!ssGuard()) return;
+  const d = liveRaw();
+  try {
+    if (key === 'frontLight') { LB.setFrontLight(!(d.headlight === true)); }
+    else if (key === 'darkMode') { LB.setScooterDarkMode(!(d.darkMode === true)); }
+    else if (key === 'lock') {
+      const locked = (d.locked === true);
+      LB.setLock(locked);   // setLock(unlocked): locked -> unlock (true); unlocked -> lock (false)
+      showToast(locked ? t('msg2.lock.toast.unlocking') : t('msg2.lock.toast.locking'), 3000);
+    } else if (key === 'zeroStart') {
+      _zeroStartOn = !_zeroStartOn;
+      LB.setZeroStart(_zeroStartOn);
+    }
+  } catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
+}
+
+// Mirror the scooter state onto the quick buttons (called every tickBLE).
+function reflectDriveQuick() {
+  const wrap = document.getElementById('drive-quick');
+  if (!wrap) return;
+  const connected = !!state.bleConnected;
+  wrap.classList.toggle('dq-disabled', !connected);
+  const d = liveRaw();
+  const on = {
+    frontLight: (d.headlight === true),
+    darkMode: (d.darkMode === true),
+    lock: (d.locked === true),
+    zeroStart: _zeroStartOn
+  };
+  wrap.querySelectorAll('.dq-btn[data-dq]').forEach(btn => {
+    btn.classList.toggle('active', connected && !!on[btn.dataset.dq]);
+  });
+}
+
+
 /* ── First-screen fold ────────────────────────────────────────
    Scale the fold so it fills exactly the visible height of the scroller: the rider sees speed,
-   battery, gear, current, motors and the quick toggles without scrolling, and everything after
-   it begins below the bottom edge.
+   battery, mode, current, the live tiles and the quick toggles without scrolling, and everything
+   after it begins below the bottom edge.
 
    The inner block is laid out at 100/scale percent width and then scaled from its top-left, so
    the scaled result is exactly the scroller width. Height feeds back into width through text
@@ -3468,8 +3337,14 @@ function wireEvents() {
     openConnectPage();
   });
 
-  // SoFlow speed controls (throttle unlock/lock, ride mode, extra switches).
-  wireSfControls();
+  // Scooter settings: open the in-app scooter settings page (requires a connected scooter).
+  document.getElementById('btn-scooter-settings').addEventListener('click', () => {
+    if (!state.bleConnected) { showToast(t('msg2.toast.no_scooter_connected'), 3000, 'err'); return; }
+    closeSettings();
+    openScooterPage();
+  });
+  document.getElementById('btn-scooter-back').addEventListener('click', closeScooterPage);
+  wireScooterSettings();
 
   // Read error reports: show current active faults/errors from live BLE data (requires connection).
   document.getElementById('btn-error-reports').addEventListener('click', () => {
@@ -3486,7 +3361,7 @@ function wireEvents() {
   });
   document.getElementById('btn-info-back').addEventListener('click', closeInfoPage);
 
-  // Battery info: pack, health and per-cell voltages read from live BLE data.
+  // Battery info: pack values read from live BLE data.
   document.getElementById('btn-battery').addEventListener('click', () => {
     closeSettings();
     openBatteryPage();
@@ -3500,7 +3375,6 @@ function wireEvents() {
   document.getElementById('btn-display-back').addEventListener('click', closeDisplayPage);
 
   document.getElementById('btn-copy-btname').addEventListener('click', copyBtName);
-  document.getElementById('btn-copy-serial').addEventListener('click', copySerial);
 
   // App-update banner: download the APK and open the installer.
   {
@@ -3521,7 +3395,12 @@ function wireEvents() {
     else showToast(t('msg.app.only.in.app'));
   });
 
-  // Hidden gesture: triple-tap the VCU speed tile to toggle the SoFlow throttle (open <-> eKFV).
+  // Main-screen quick toggles: front light / zero-start / dark mode / lock.
+  document.querySelectorAll('#drive-quick .dq-btn[data-dq]').forEach(btn => {
+    btn.addEventListener('click', () => toggleDriveQuick(btn.dataset.dq));
+  });
+
+  // Hidden gesture: triple-tap the VCU speed tile to toggle the throttle between open and eKFV.
   const vcuTile = document.querySelector('#speed-row .ble-drum');
   if (vcuTile) vcuTile.addEventListener('click', onVcuTileTap);
 
@@ -3608,6 +3487,18 @@ function wireEvents() {
     storage.set('lb_gps_interval', String(sec));
   });
 
+  // Manual model override: remember the pick (or clear it for Auto) and switch the native detection.
+  const modelSel = document.getElementById('model-sel');
+  if (modelSel) modelSel.addEventListener('change', e => {
+    const id = e.target.value || 'auto';
+    if (id === 'auto') storage.remove(FORCED_MODEL_KEY);
+    else storage.set(FORCED_MODEL_KEY, id);
+    try {
+      if (typeof LB !== 'undefined' && LB.setModel) LB.setModel(id);
+      else showToast(t('msg.app.only.in.app'));
+    } catch (err) {}
+  });
+
   // Fullscreen toggle: hide/show the Android status bar via the native bridge (persisted natively).
   const fsToggle = document.getElementById('toggle-fullscreen');
   if (fsToggle) fsToggle.addEventListener('change', e => {
@@ -3686,8 +3577,6 @@ function init() {
   loadSettings();
   initLang();      // before anything renders, so the first paint is in the rider's language
   wireEvents();
-  loadModelOverride();
-  populateModelSelect();
   recoverStuckRides();
   renderRoutes();
   initNavBanner();

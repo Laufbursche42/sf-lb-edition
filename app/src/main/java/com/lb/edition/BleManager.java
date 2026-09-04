@@ -97,6 +97,7 @@ final class BleManager {
 
     private String desiredAddress;
     private String deviceName = "";
+    private volatile String forcedProtoId;   // manual model override; null = auto classify by name/service
 
     // Active model + transport, resolved on connect (name first, service as fallback for "SoFlow").
     private volatile Proto activeProto;
@@ -270,8 +271,21 @@ final class BleManager {
     }
 
     private void classifyByName() {
+        if (forcedProtoId != null) { activeProto = Models.resolve(forcedProtoId); return; }   // manual override
         String id = Models.classifyByName(deviceName);
         activeProto = (id != null) ? Models.get(id) : null;   // null -> resolve from service later
+    }
+
+    /** Manual model override for a wrong auto-detection. null/"auto" restores name-based classification. */
+    void setForcedModel(String id) {
+        forcedProtoId = (id == null || id.isEmpty() || "auto".equals(id)) ? null : id;
+        String addr = desiredAddress;
+        if (addr != null && adapter != null) {   // reconnect so the chosen transport and crypto apply
+            try { closeGatt(); } catch (Throwable ignored) {}
+            connected = false;
+            notifyReady = false;
+            connect(addr);
+        }
     }
 
     void disconnect() {
@@ -818,7 +832,23 @@ final class BleManager {
             o.put("address", desiredAddress == null ? "" : desiredAddress);
             o.put("status", status == null ? "" : status);
             Proto p = activeProto;
-            if (p != null) { o.put("model", p.name); o.put("family", p.family.name()); }
+            if (p != null) {
+                o.put("model", p.name);
+                o.put("family", p.family.name());
+                // Per-model capabilities so the dashboard shows only the settings this model supports.
+                boolean so5base = (p.family == Family.D7 && "so5base".equals(p.variant));
+                JSONObject caps = new JSONObject();
+                caps.put("speed", Models.speedSupported(p, settings));
+                caps.put("mode", p.speed);
+                caps.put("vlock", true);
+                caps.put("battery", Models.batterySupported(p, settings));
+                caps.put("frontLight", so5base);
+                caps.put("darkMode", so5base);
+                caps.put("zeroStart", so5base);
+                caps.put("unit", so5base || p.family == Family.SO3);
+                caps.put("indicator", "so4".equals(p.variant));
+                o.put("caps", caps);
+            }
             if (listener != null) listener.onState(o.toString());
         } catch (Throwable t) {
             Log.e(TAG, "pushState failed", t);

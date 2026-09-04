@@ -119,6 +119,21 @@ final class Models {
         return PROTOCOLS.get(key);
     }
 
+    /** Model list for the dashboard override dropdown: branded aliases first, then base protocols. */
+    static String uiListJson() {
+        StringBuilder sb = new StringBuilder("[");
+        boolean first = true;
+        for (Map.Entry<String, Branded> e : BRANDED.entrySet()) {
+            if (!first) sb.append(','); first = false;
+            sb.append("{\"id\":\"").append(e.getKey()).append("\",\"label\":\"").append(e.getValue().label).append("\"}");
+        }
+        for (Proto pr : PROTOCOLS.values()) {
+            if (!first) sb.append(','); first = false;
+            sb.append("{\"id\":\"").append(pr.id).append("\",\"label\":\"").append(pr.name).append("\"}");
+        }
+        return sb.append("]").toString();
+    }
+
     /**
      * Classify an advertised device name to a base protocol id, in the app's exact check order
      * (spec 1.4). Returns null for a non-SoFlow name.

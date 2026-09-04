@@ -580,14 +580,14 @@ html, body {
 /* The settings action button. .settings-btn is the reusable form; the id list is the same
    declaration for the buttons that predate the class. New buttons take the class. */
 .settings-btn,
-#btn-scooter-settings, #btn-connect-scooter, #btn-export-logs, #btn-error-reports, #btn-navigation, #btn-info, #btn-battery, #btn-whatsnew, #btn-version-info {
+#btn-scooter-settings, #btn-connect-scooter, #btn-export-logs, #btn-error-reports, #btn-navigation, #btn-info, #btn-battery, #btn-firmware, #btn-whatsnew, #btn-version-info {
   width: 100%; padding: 12px; border: 1px solid var(--border);
   background: var(--bg); color: var(--text); font-size: var(--fs-base); font-weight: var(--fw-semibold);
   border-radius: 9px; cursor: pointer; text-align: center;
   -webkit-tap-highlight-color: transparent;
 }
 .settings-btn:active,
-#btn-scooter-settings:active, #btn-connect-scooter:active, #btn-export-logs:active, #btn-error-reports:active, #btn-navigation:active, #btn-info:active, #btn-battery:active, #btn-whatsnew:active, #btn-version-info:active { background: var(--border); }
+#btn-scooter-settings:active, #btn-connect-scooter:active, #btn-export-logs:active, #btn-error-reports:active, #btn-navigation:active, #btn-info:active, #btn-battery:active, #btn-firmware:active, #btn-whatsnew:active, #btn-version-info:active { background: var(--border); }
 /* #btn-stream-start (good fill) + #btn-stream-stop (neutral) are styled by the shared action-button base. */
 #stream-url { color: var(--text); background: var(--bg); border: 1px solid var(--border);
   border-radius: 8px; padding: 8px; font-family: monospace; }
@@ -604,14 +604,14 @@ html, body {
 #routes-page.open, #streaming-page.open,
 #connect-page.open, #scooter-page.open, #error-reports-page.open, #info-page.open, #battery-page.open, #display-page.open { transform: translateX(0); }
 #streaming-scroller,
-#connect-scroller, #scooter-scroller, #error-reports-scroller, #info-scroller, #battery-scroller, #display-scroller {
+#connect-scroller, #scooter-scroller, #error-reports-scroller, #info-scroller, #battery-scroller, #firmware-scroller, #display-scroller {
   flex: 1; min-height: 0; overflow-y: auto; padding: var(--gap);
   display: flex; flex-direction: column; gap: 4px;
   padding-bottom: calc(var(--gap) + env(safe-area-inset-bottom, 0px) + 12px);
 }
 /* children must NOT shrink, otherwise the flex column squashes instead of scrolling */
 #routes-scroller > *, #streaming-scroller > *,
-#connect-scroller > *, #scooter-scroller > *, #error-reports-scroller > *, #info-scroller > *, #battery-scroller > *, #display-scroller > * { flex-shrink: 0; }
+#connect-scroller > *, #scooter-scroller > *, #error-reports-scroller > *, #info-scroller > *, #battery-scroller > *, #firmware-scroller > *, #display-scroller > * { flex-shrink: 0; }
 
 /* ── Battery Info page ── */
 .bat-health {
@@ -637,11 +637,36 @@ html, body {
 .cell-tile.cell-bal { border-color: var(--ble); }
 .cell-tile .cell-bal-tag { font-size: var(--fs-sm); color: var(--ble); }
 
+/* Firmware update page */
+.fw-warn {
+  border: 1px solid var(--danger); border-radius: 10px; padding: 10px 12px; margin-bottom: 4px;
+  background: color-mix(in srgb, var(--danger) 12%, transparent); font-size: var(--fs-sm); line-height: 1.5;
+}
+.fw-warn b { color: var(--danger); }
+#fw-fileinfo { font-size: var(--fs-sm); line-height: 1.6; margin-top: 8px; }
+#fw-fileinfo .fw-row { display: flex; justify-content: space-between; gap: 10px; }
+#fw-fileinfo .fw-k { color: var(--label); flex-shrink: 0; white-space: nowrap; }
+#fw-fileinfo .fw-row > span:last-child { min-width: 0; text-align: right; overflow-wrap: anywhere; }
+.fw-checks { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.fw-check { display: flex; align-items: flex-start; gap: 8px; }
+.fw-check > span:last-child { flex: 1; }
+.fw-verdict { margin-top: 10px; padding: 8px 10px; border-radius: 8px; font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.fw-verdict.ok  { background: color-mix(in srgb, var(--ble) 16%, transparent); color: var(--ble); }
+.fw-verdict.bad { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
+/* Hidden until the compatibility check fails: the script switches it back to flex, which the
+   shared .consent-row already supplies. */
+#fw-override-wrap { display: none; margin: 4px 0 10px; color: var(--danger); }
+#fw-consent-wrap { margin: 4px 0 0; }
+.fw-badge { display: inline-block; min-width: 16px; text-align: center; padding: 1px 6px; border-radius: 999px; font-size: var(--fs-xs); font-weight: var(--fw-bold); }
+.fw-badge.ok { background: color-mix(in srgb, var(--ble) 22%, transparent); color: var(--ble); }
+.fw-badge.warn { background: color-mix(in srgb, var(--danger) 20%, transparent); color: var(--danger); }
 /* ── Action buttons (shared base) ────────────────────────────
-   ONE base for every full-tap "action" button: connect scan/disconnect, streaming start/stop
-   plus the per-gear/settings Save. It holds the shared look (12px pad, 9px radius, hairline
-   border, base/bold type, transparent tap highlight); the thin variants below add only the
-   colour + width differences (primary-fill / good-fill / danger-outline). */
+   ONE base for every full-tap "action" button: firmware pick/start/cancel, connect
+   scan/disconnect, streaming start/stop plus the per-gear/settings Save. It holds the shared look
+   (12px pad, 9px radius, hairline border, base/bold type, transparent tap highlight); the thin
+   variants below add only the colour + width differences (neutral / primary-fill / good-fill /
+   danger-outline). */
+#btn-fw-pick, #btn-fw-start, #btn-fw-cancel,
 #btn-scan, #btn-disconnect,
 #btn-stream-start, #btn-stream-stop,
 .gs-save-btn {
@@ -650,11 +675,12 @@ html, body {
   font-size: var(--fs-base); font-weight: var(--fw-bold);
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-/* Full-width action button (save); scan + stream sit in a flex row. */
-.gs-save-btn { width: 100%; }
+/* Full-width action buttons (firmware / save); scan + stream sit in a flex row. */
+#btn-fw-pick, #btn-fw-start, #btn-fw-cancel, .gs-save-btn { width: 100%; }
+#btn-fw-pick, #btn-fw-start, #btn-fw-cancel { text-align: center; }
 /* Variant: primary fill (also the selected motor-mode button and the accept button of the
    disclaimer, the one modal button that grants something rather than dismissing). */
-#btn-scan, .gs-save-btn, #disclaimer-accept,
+#btn-fw-start, #btn-scan, .gs-save-btn, #disclaimer-accept,
 #motor-quick .mq-btn.active, #drive-quick .dq-btn.active {
   background: var(--btnfill); color: #0A0C10; border-color: var(--btnfill);
 }
@@ -662,13 +688,26 @@ html, body {
    button carries .mq-btn and .mq-smart at equal specificity, so the later rule decides. */
 #btn-stream-start,
 #motor-quick .mq-smart.active { background: var(--good); color: #06251a; border-color: var(--good); }
-/* Variant: danger outline (disconnect) */
-#btn-disconnect { background: var(--bg); color: var(--danger); border-color: var(--danger); }
-/* Disabled (disclaimer accept before the box is ticked) */
+/* Variant: neutral card (firmware pick) */
+#btn-fw-pick { background: var(--card); color: var(--text); }
+/* Variant: danger outline (cancel / disconnect) */
+#btn-fw-cancel, #btn-disconnect { background: var(--bg); color: var(--danger); border-color: var(--danger); }
+/* Disabled (firmware start, disclaimer accept before the box is ticked) */
+#btn-fw-start:disabled,
 #disclaimer-accept:disabled { background: var(--border); color: var(--label); border-color: var(--border); cursor: default; }
 /* Pressed (streaming fades a touch lighter) */
+#btn-fw-pick:active, #btn-fw-start:active, #btn-fw-cancel:active,
 #btn-scan:active, #btn-disconnect:active, .gs-save-btn:active { opacity: .75; }
 #btn-stream-start:active, #btn-stream-stop:active { opacity: .7; }
+.fw-bar { height: 12px; border-radius: 999px; background: var(--border); overflow: hidden; }
+#fw-bar-fill { height: 100%; width: 0; background: var(--ble); transition: width .25s ease; }
+#fw-progress-text { font-size: var(--fs-md); font-weight: var(--fw-semibold); text-align: center; margin: 6px 0; font-variant-numeric: tabular-nums; }
+#fw-phase { font-size: var(--fs-sm); color: var(--label); text-align: center; }
+#fw-log {
+  margin-top: 6px; font-family: monospace; font-size: var(--fs-xs); line-height: 1.6;
+  background: var(--card, var(--border)); border-radius: 8px; padding: 8px 10px;
+  max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+}
 
 /* Error report rows */
 .err-item {
@@ -805,7 +844,7 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
 
 /* ── Utilities that replace the former inline style attributes ────────────── */
 .is-hidden.is-hidden { display: none; }
-/* A tick box the rider has to set before a risky step, e.g. the disclaimer. */
+/* A tick box the rider has to set before a risky step: the disclaimer, the firmware page. */
 .consent-row {
   display: flex; align-items: flex-start; gap: 8px;
   font-size: var(--fs-sm); line-height: 1.5; cursor: pointer;
@@ -878,7 +917,3 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
   background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
 }
 .range-ctrl { width: 100%; accent-color: var(--btnfill); height: 28px; cursor: pointer; }
-
-/* SoFlow edition: hide the UI that the SoFlow protocol does not feed
-   (dual-motor tiles, motor-mode / drive-mode quick toggles, per-gear values). */
-#motor-area, #motor-quick, #drive-quick, .sf-hide { display: none !important; }
