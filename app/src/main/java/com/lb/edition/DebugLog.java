@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * In-app debug logger for the standalone TR-LB Edition app.
+ * In-app debug logger for the standalone SF-LB Edition app.
  *
  * <p>When enabled it records this process's own native logs (every {@code Log.*} call, including the
  * {@code lbble}/{@code lbedition} BLE tags) by running {@code logcat --pid=<self>} on a background

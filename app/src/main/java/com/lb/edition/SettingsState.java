@@ -1,12 +1,12 @@
-// Laufbursche SoFlow Edition - a companion app for SoFlow e-scooters.
+// Laufbursche Edition - an app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 
 package com.lb.edition;
 
 /**
- * Minimal local state the SoFlow commands and decoders need. SoFlow has no big settings frame like
- * Teverun, so this only holds the few values the protocol carries between frames: the last ride mode
+ * Minimal local state the SoFlow commands and decoders need. SoFlow has no big settings frame, so
+ * this only holds the few values the protocol carries between frames: the last ride mode
  * (for the old-SO4 packed mode byte), the SO3 rolling secret, the SO4 firmware version (drives the
  * plaintext/AES choice) and the local speed lock flag (SoFlow reports no speed-limit state).
  */
