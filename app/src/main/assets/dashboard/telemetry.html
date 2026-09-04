@@ -14,7 +14,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 <meta http-equiv="Content-Security-Policy"
       content="style-src file:; object-src 'none'; base-uri 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Telemetry - Teverun LB</title>
+<title>Telemetry - SoFlow LB</title>
 <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
@@ -76,7 +76,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
     <!-- Motors (dual motor: rear + front). One value per tile: the temperatures and the power in
          the first row, the currents in the second. -->
-    <div class="section-hdr sub-hdr">
+    <div class="section-hdr sub-hdr sf-hide">
       <span data-i18n="dash.motors.section">Motors</span>
     </div>
     <div id="motor-area">
@@ -163,9 +163,9 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
     </div>
 
-    <!-- Active gear (per-gear values the controller is delivering in the current gear) -->
-    <div class="section-hdr sub-hdr" data-i18n="dash.gear.section">Active gear</div>
-    <div id="data-grid">
+    <!-- Active gear (Teverun per-gear values; SoFlow does not report these) -->
+    <div class="section-hdr sub-hdr sf-hide" data-i18n="dash.gear.section">Active gear</div>
+    <div id="data-grid" class="sf-hide">
       <div class="dg-row">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.gear.front.start">Front start</span><span class="dg-value" id="dg-fstart">-</span></div>
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.gear.rear.start">Rear start</span><span class="dg-value" id="dg-rstart">-</span></div>
@@ -286,7 +286,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
   <div id="model-banner">
     <div class="model-line"><span data-i18n="settings.model.label">Model:</span> <span id="model-name">-</span><span id="model-unsupported" data-i18n="settings.model.unsupported"> . The Tetra is not supported by this app yet; settings and firmware are disabled for it.</span></div>
-    <div id="model-pick-row">
+    <div id="model-pick-row" class="sf-hide">
       <span class="model-pick-label" data-i18n="settings.model.pick.prompt">Wrong or unknown? Pick it:</span>
       <select id="model-select" aria-label="Select scooter model" data-i18n-aria="settings.model.select.label"></select>
     </div>
@@ -298,14 +298,14 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div class="settings-group-title" data-i18n="settings.scooter.group.title">Scooter</div>
     <button id="btn-connect-scooter"><svg class="icon-inline" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M17.71 7.71 12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg> <span data-i18n="settings.scooter.connect.action">Connect scooter</span></button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.connect.hint">Scan and connect over Bluetooth</div>
-    <button id="btn-scooter-settings" data-i18n="settings.scooter.settings.action">&#9881; Scooter settings</button>
-    <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.settings.hint">Power limit, gears, currents, cruise, timers (scooter must be connected)</div>
-    <button id="btn-error-reports" data-i18n="settings.scooter.errors.action">&#9888; Read error reports</button>
-    <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.errors.hint">Active scooter faults and battery warnings (scooter must be connected)</div>
+    <button id="btn-scooter-settings" class="sf-hide" data-i18n="settings.scooter.settings.action">&#9881; Scooter settings</button>
+    <div class="settings-row-sublabel note-gap sf-hide" data-i18n="settings.scooter.settings.hint">Power limit, gears, currents, cruise, timers (scooter must be connected)</div>
+    <button id="btn-error-reports" class="sf-hide" data-i18n="settings.scooter.errors.action">&#9888; Read error reports</button>
+    <div class="settings-row-sublabel note-gap sf-hide" data-i18n="settings.scooter.errors.hint">Active scooter faults and battery warnings (scooter must be connected)</div>
     <button id="btn-info" data-i18n="settings.scooter.info.action">&#8505; Scooter info</button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.info.hint">Serial number, firmware and app versions</div>
-    <button id="btn-battery" data-i18n="settings.scooter.battery.action">&#128267; Battery info</button>
-    <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.battery.hint">Pack, health and per-cell voltages (scooter must be connected)</div>
+    <button id="btn-battery" class="sf-hide" data-i18n="settings.scooter.battery.action">&#128267; Battery info</button>
+    <div class="settings-row-sublabel note-gap sf-hide" data-i18n="settings.scooter.battery.hint">Pack, health and per-cell voltages (scooter must be connected)</div>
     <button id="btn-navigation" data-i18n="settings.scooter.navigation.action">&#129517; Navigation</button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.scooter.navigation.hint">Open the navigation screen</div>
   </div>
@@ -408,10 +408,6 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
   <!-- Version info + disclaimer (opens a modal) -->
   <div class="settings-group has-top-rule">
-    <div class="fighter-only">
-      <button id="btn-firmware" data-i18n="settings.firmware.update.action">&#9889; Firmware update</button>
-      <div class="settings-row-sublabel note-gap" data-i18n="settings.firmware.update.hint">Flash an IVCU .hex over Bluetooth (scooter must be connected)</div>
-    </div>
     <button id="btn-whatsnew" data-i18n="settings.whatsnew">&#10024; What is new</button>
     <div class="settings-row-sublabel note-gap" data-i18n="settings.whatsnew.sub">What changed in this version</div>
     <button id="btn-version-info" data-i18n="settings.version.info.action">&#8505; Version Info &amp; Disclaimer</button>
@@ -679,19 +675,6 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         </div>
         <button id="btn-copy-btname" class="route-gpx-btn" data-i18n="info.copy">Copy</button>
       </div>
-      <!-- Change the VCU identity / BLE name (cmd 0x1f). Swaps the region code in the FIN and keeps
-           the serial. On the patched (0x1B lock) firmware the FIN no longer controls the speed lock -
-           that is the live Bluetooth lock. This just renames the identity. Reversible via Reset. -->
-      <div class="settings-row fighter-only col-stretch">
-        <div class="settings-row-left">
-          <div class="settings-row-label" data-i18n="info.scooter.identity.change.label">Change identity / BLE name</div>
-        </div>
-        <div class="row-center-8">
-          <input class="text-input" id="info-btname-input" type="text" maxlength="16" autocomplete="off"
-                 autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="full FIN" data-i18n-ph="info.scooter.identity.input.placeholder">
-          <button id="btn-set-btname" class="route-gpx-btn" data-i18n="info.scooter.identity.set">Set</button>
-        </div>
-      </div>
       <div class="settings-row">
         <div class="settings-row-left">
           <div class="settings-row-label" data-i18n="info.scooter.frame.label">Frame number (VCU)</div>
@@ -703,7 +686,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.ivcu.version">IVCU software version</div></div>
         <span class="note-md" id="info-swver">-</span>
       </div>
-      <div class="settings-row">
+      <div class="settings-row sf-hide">
         <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.lb.firmware">Laufbursche firmware</div></div>
         <span class="note-md" id="info-hwver">-</span>
       </div>
@@ -825,67 +808,13 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
   </div>
 </div>
 
-<!-- ── Firmware update page ───────────────────────── -->
-<div id="firmware-page">
-  <div id="topbar">
-    <div class="tb-left">
-      <button class="icon-btn" id="btn-firmware-back" aria-label="Back" data-i18n-aria="fw.nav.back.label" data-i18n="fw.nav.back.icon">&#8592;</button>
-    </div>
-    <span class="tb-title" data-i18n="fw.page.title">Firmware update</span>
-    <div class="tb-right"><span class="tb-spacer"></span></div>
-  </div>
-  <div id="firmware-scroller">
-    <div class="fw-warn" data-i18n="fw.warn.board"></div>
-
-    <div class="fw-warn" data-i18n="fw.warn.intro">
-      <b>Read this first.</b> Flashing IVCU firmware over Bluetooth takes about 13 minutes. During the update: keep the scooter switched on and within range, keep this app in the foreground (the screen stays on) and do not turn the scooter off. If the flash is interrupted the IVCU stays in update mode and can simply be flashed again. It is not bricked. This page flashes whatever .hex you pick, so only flash a file that matches your IVCU.
-    </div>
-
-    <div id="fw-ver2-note" class="fw-warn is-hidden ble-callout" data-i18n="fw.warn.ver2">
-      <b class="text-ble">ver2 device (T2/tetra).</b> This scooter flashes every node (display, light module, the front/rear controllers, BMS) through the display block, selecting the target node from the firmware file's header (a 06 e2 handshake). Pick the matching component's .hex and flash as usual; the node is chosen automatically from the file.
-    </div>
-
-    <div class="settings-group pt-6">
-      <div class="settings-group-title" data-i18n="fw.section.file.title">Firmware file</div>
-      <button id="btn-fw-pick" data-i18n="fw.file.choose">&#128193; Choose firmware file (.hex)</button>
-      <div id="fw-fileinfo" data-i18n="fw.file.none">No file selected.</div>
-    </div>
-
-    <div class="settings-group has-top-rule">
-      <!-- Asked again on every visit to this page: the tick is deliberately NOT remembered. -->
-      <label class="consent-row" id="fw-consent-wrap">
-        <input type="checkbox" id="fw-consent">
-        <span data-i18n="fw.consent.text">I have read the disclaimer and I flash at my own risk.</span>
-      </label>
-      <div class="settings-row-sublabel m-6-0-0"><span class="link-ble" id="fw-consent-link" data-i18n="disclaimer.read.link">Read the liability disclaimer</span></div>
-      <label class="consent-row" id="fw-override-wrap">
-        <input type="checkbox" id="fw-override">
-        <span data-i18n="fw.override.consent">The compatibility check did not pass. I am sure this is the right firmware for this IVCU: flash anyway.</span>
-      </label>
-      <button id="btn-fw-start" disabled data-i18n="fw.start.button">Start update</button>
-      <div class="settings-row-sublabel m-6-0-0" id="fw-start-hint" data-i18n="fw.start.hint">
-        Choose a valid firmware file and connect the scooter to enable the update.
-      </div>
-
-      <div class="is-hidden mt-12" id="fw-progress-wrap">
-        <div class="fw-bar"><div id="fw-bar-fill"></div></div>
-        <div id="fw-progress-text" data-i18n="fw.progress.percent">0%</div>
-        <div id="fw-phase" data-i18n="fw.progress.phase.preparing">Preparing</div>
-        <button class="mt-10" id="btn-fw-cancel" data-i18n="fw.cancel.button">Cancel update</button>
-      </div>
-
-      <div class="is-hidden" id="fw-log"></div>
-    </div>
-  </div>
-</div>
-
 <!-- ── Version Info & Disclaimer modal ─────────────── -->
 <div id="verinfo-overlay">
   <div id="verinfo-box" role="dialog" aria-modal="true" aria-labelledby="verinfo-title">
     <h3 id="verinfo-title" data-i18n="fw.verinfo.title">Version Info &amp; Disclaimer</h3>
     <div class="verinfo-ver"><span data-i18n="fw.verinfo.appversion.label">App version:</span> <span id="verinfo-ver">-</span></div>
     <p id="verinfo-disclaimer" data-i18n="fw.verinfo.disclaimer">This is not an official Teverun app. The developer (Laufbursche) is not affiliated with, endorsed by or connected to Teverun. Teverun is a trademark of its respective owner.</p>
-    <p id="verinfo-license" data-i18n="fw.verinfo.license">Laufbursche Edition is source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. Read the <span class="link-ble" onclick="openExt('https://github.com/Laufbursche42/tr-lb-edition/blob/main/README.md')">GitHub README</span> and <span class="link-ble" onclick="openExt('https://github.com/Laufbursche42/tr-lb-edition/blob/main/license.md')">License</span>.</p>
+    <p id="verinfo-license" data-i18n="fw.verinfo.license">Laufbursche Edition is source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. Read the <span class="link-ble" onclick="openExt('https://github.com/Laufbursche42/sf-lb-edition/blob/main/README.md')">GitHub README</span> and <span class="link-ble" onclick="openExt('https://github.com/Laufbursche42/sf-lb-edition/blob/main/license.md')">License</span>.</p>
     <p id="verinfo-osm" data-i18n="fw.verinfo.map.attribution">Offline maps and POI data (camping / charging) are &copy; OpenStreetMap contributors, licensed under the ODbL 1.0.</p>
     <p><span class="link-ble" id="verinfo-disclaimer-link" data-i18n="disclaimer.read.link">Read the liability disclaimer</span></p>
     <button type="button" id="verinfo-close" data-i18n="fw.verinfo.close">Close</button>
@@ -1257,36 +1186,47 @@ function initTheme() {
 
 /* ── BLE Data ─────────────────────────────────────────────── */
 
+/* Normalise the SoFlow FrameParser.toJson() snapshot into the shape the dashboard renders.
+   SoFlow reports: speed, voltage, current, power, battery, mode, modeText, locked, headlight,
+   imperial, darkMode, error, tripKm, totalKm, fw, model, family, rssi, ts. Fields the SoFlow
+   protocol does not carry (per-cell, motor temps, dual currents) default to 0/empty so no
+   downstream code throws. */
 function parseBLE(raw) {
   if (!raw) return null;
   try {
     const d = JSON.parse(raw);
     if (!d || typeof d.ts !== 'number') return null;
     const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+    // Lock state drives the speed-tile colour + triple-tap: 0=LOCKED, 1=UNLOCKED, -1=unknown.
+    const vcuUnlock = (d.locked === true) ? 0 : (d.locked === false ? 1 : -1);
     return {
       speed:    num(d.speed),
       avgSpeed: num(d.avgSpeed),
       maxSpeed: num(d.maxSpeed),
-      soc:      num(d.soc),
-      soh:      num(d.soh),
-      volt:     num(d.volt),
-      poleVolt: num(d.poleVolt),
+      soc:      num(d.battery),
+      soh:      0,
+      volt:     num(d.voltage),
+      poleVolt: 0,
       current:  num(d.current),
-      gear:     typeof d.gear === 'number' ? d.gear : (parseInt(d.gear) || 0),
-      rearCurrent:  num(d.rearCurrent),
-      frontCurrent: num(d.frontCurrent),
-      rTemp:    num(d.rTemp),
-      fTemp:    num(d.fTemp),
+      // The "Gear" hero tile shows the SoFlow ride mode text (Eco/Normal/Sport).
+      gear:     (d.modeText != null && d.modeText !== '') ? d.modeText : '-',
+      mode:     (typeof d.mode === 'number') ? d.mode : -1,
+      rearCurrent:  0,
+      frontCurrent: 0,
+      rTemp:    0,
+      fTemp:    0,
       power:    num(d.power),
-      singleMile: num(d.singleMile),
-      totalMile:  num(d.totalMile),
-      fb:       num(d.fb),
+      singleMile: num(d.tripKm),
+      totalMile:  num(d.totalKm),
+      fb:       0,
       rssi:     num(d.rssi),
-      park:     d.park === true || d.park === 1 || d.park === '1',
-      systemStatus: Array.isArray(d.systemStatus) ? d.systemStatus : [],
-      top:      Array.isArray(d.top) ? d.top : [],
-      bottom:   Array.isArray(d.bottom) ? d.bottom : [],
-      vcuUnlock: (typeof d.vcuUnlock === 'number' ? d.vcuUnlock : -1),   // 0=LOCKED, 1=UNLOCKED, -1=unknown (drives the km/h-VCU tile colour)
+      error:    (typeof d.error === 'number') ? d.error : 0,
+      errorHex: (d.errorHex != null) ? ('' + d.errorHex) : '',
+      park:     false,
+      systemStatus: [],
+      top:      [],
+      bottom:   [],
+      vcuUnlock: vcuUnlock,
       ts:       d.ts
     };
   } catch(e) { return null; }
@@ -1597,8 +1537,9 @@ function updateBLEUI(data) {
     const unlocked = known ? !locked : (finU && !finU.includes('TDE'));
     if (spEl) spEl.style.color = (fighterFeatures() && unlocked) ? 'var(--danger)' : '';
   }
-  setTxt('dg-avg', `${convSpeed(data.avgSpeed)} ${state.useMph ? 'mph' : 'km/h'}`);
-  setTxt('dg-max', `${convSpeed(data.maxSpeed)} ${state.useMph ? 'mph' : 'km/h'}`);
+  // SoFlow does not report a scooter-side avg/max speed; the GPS ride avg lives in its own section.
+  setTxt('dg-avg', '-');
+  setTxt('dg-max', '-');
 
   // Hero
   setTxt('soc-val', Math.round(data.soc));
@@ -1634,14 +1575,16 @@ function updateBLEUI(data) {
   setTxt('m-power', data.power.toFixed(2));
   setTxt('m-total-cur', (data.rearCurrent + data.frontCurrent).toFixed(1));
 
-  // Grid
+  // Grid. SoFlow carries pack voltage, trip/total km, RSSI and an error code; pole voltage, SOH and
+  // recuperation are Teverun-only and stay blank.
   setTxt('dg-volt', `${data.volt.toFixed(1)} V`);
-  setTxt('dg-pole', `${data.poleVolt.toFixed(1)} V`);
-  setTxt('dg-soh', `${Math.round(data.soh)} %`);
-  setTxt('dg-fb', data.fb.toFixed(1));
+  setTxt('dg-pole', '-');
+  setTxt('dg-soh', '-');
+  setTxt('dg-fb', '-');
   setTxt('dg-total', `${Math.round(convDist(data.totalMile))} ${distUnit()}`);
   setTxt('dg-single', `${convDist(data.singleMile).toFixed(1)} ${distUnit()}`);
   setTxt('dg-rssi', `${data.rssi} dBm`);
+  setTxt('dg-err', (data.error ? (data.errorHex ? data.errorHex : ('E' + data.error)) : t('msg.error.none')));
   const rssiEl = document.getElementById('dg-rssi');
   if (rssiEl) rssiEl.style.color = data.rssi < -85 ? 'var(--danger)' : data.rssi < -70 ? 'var(--warn)' : 'var(--good)';
 
@@ -2789,7 +2732,10 @@ function applyModelUi(btName) {
   const isFighter = ov ? ov.cat === 'fighter' : auto.isFighter;
   const isTetra   = ov ? ov.cat === 'tetra'   : auto.isTetra;
   const known     = ov ? true : auto.known;
-  const dispName  = ov ? t(ov.key) : (auto.known ? auto.name : (btName ? t('msg.model.unknown') : '-'));
+  // Prefer the SoFlow model name the native layer classified and streams in lb_live_data.
+  const liveModel = (function(){ try { return liveRaw().model; } catch(e){ return null; } })();
+  const dispName  = ov ? t(ov.key)
+    : (liveModel ? ('' + liveModel) : (auto.known ? auto.name : (btName ? t('msg.model.unknown') : '-')));
   const key = dispName + '|' + isFighter + '|' + isTetra + '|' + (ov ? 'm' : 'a');
   if (key === _lastModelKey) return;   // only touch the DOM when the effective model changes
   _lastModelKey = key;
@@ -2950,9 +2896,10 @@ function renderInfoPage() {
   const dash = v => (v === undefined || v === null || v === '') ? '-' : ('' + v);
   // Bluetooth advertised name (this IS the full FIN, read from the scooter over BLE).
   setTxt('info-btname',  dash(d.btName));
-  // Frame number (VCU): the number the scooter actually reports.
-  setTxt('info-serial',  dash(d.frameNum));
-  setTxt('info-swver',   dash(d.swVer));
+  // SoFlow identity: the advertised name is the frame identity; the model comes from classification.
+  setTxt('info-serial',  dash(d.model));
+  // SoFlow firmware version (display CPU / protocol version).
+  setTxt('info-swver',   dash(d.fwDisplay || d.fw));
   // Laufbursche firmware version: the firmware stamps its build number into the hwVer MAJOR byte
   // (55 43 t[6]); the app reads it back over BLE. Only our firmware reports a build number here, so show
   // "V<build>" when it is readable, otherwise NONE (not our firmware / version not readable).
@@ -3076,14 +3023,13 @@ function onVcuTileTap() {
   _finTapTimer = setTimeout(() => { _finTapCount = 0; }, 700);
 }
 function toggleFinLock() {
-  if (!fighterFeatures()) { showToast(t('msg2.lock.toast.fighter_only'), 3000, 'err'); return; }
   if (typeof LB === 'undefined' || !LB.setLock) { showToast(t('msg.app.only.in.app')); return; }
   if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return; }
   const d = liveRaw();
-  const known = (d.vcuUnlock === 0 || d.vcuUnlock === 1);
-  if (!known) { showToast(t('msg2.lock.toast.state_unknown'), 3500, 'err'); return; }
-  const locked = (d.vcuUnlock === 0);
-  // locked -> unlock (setLock true); unlocked -> lock (setLock false). LB.setLock(unlocked).
+  // SoFlow streams a boolean lock state. Unknown (never received) -> ask the user to wait.
+  if (typeof d.locked !== 'boolean') { showToast(t('msg2.lock.toast.state_unknown'), 3500, 'err'); return; }
+  const locked = d.locked;
+  // locked -> unlock (setLock true); unlocked -> lock (setLock false).
   try {
     LB.setLock(locked);
     showToast(locked ? t('msg2.lock.toast.unlocking') : t('msg2.lock.toast.locking'), 3000);
@@ -4384,20 +4330,6 @@ function wireEvents() {
 
   document.getElementById('btn-copy-btname').addEventListener('click', copyBtName);
   document.getElementById('btn-copy-serial').addEventListener('click', copySerial);
-  // Change identity (cmd 0x1f): Set writes the full edited FIN. Prefilled with the current FIN.
-  document.getElementById('btn-set-btname').addEventListener('click', setBleName);
-
-  // Firmware update: pick a .hex and flash the IVCU over BLE (native OtaEngine). Opening is
-  // allowed offline so a file can be inspected; Start is gated on a connected scooter + valid CRC.
-  document.getElementById('btn-firmware').addEventListener('click', () => {
-    closeSettings();
-    openFirmwarePage();
-  });
-  document.getElementById('btn-firmware-back').addEventListener('click', closeFirmwarePage);
-  document.getElementById('btn-fw-pick').addEventListener('click', fwPick);
-  document.getElementById('btn-fw-start').addEventListener('click', fwStart);
-  document.getElementById('btn-fw-cancel').addEventListener('click', fwCancel);
-  document.getElementById('fw-override').addEventListener('change', fwSyncStartEnabled);
 
   // App-update banner: download the APK and open the installer.
   {
@@ -4481,8 +4413,6 @@ function wireEvents() {
     closeVersionInfo();
     openDisclaimer('read');
   });
-  document.getElementById('fw-consent-link').addEventListener('click', () => openDisclaimer('read'));
-  document.getElementById('fw-consent').addEventListener('change', fwSyncStartEnabled);
 
   // Language switch in the display settings
   document.querySelectorAll('#lang-switch button').forEach(b => {

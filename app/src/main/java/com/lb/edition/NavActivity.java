@@ -1,4 +1,4 @@
-// Laufbursche Edition - an app for Teverun e-scooters.
+// Laufbursche Edition - an app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 

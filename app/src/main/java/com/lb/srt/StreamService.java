@@ -1,4 +1,4 @@
-// Laufbursche Edition - an app for Teverun e-scooters.
+// Laufbursche Edition - an app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 
@@ -220,7 +220,7 @@ public class StreamService extends Service implements ConnectChecker, ScreenGlEn
         nm.createNotificationChannel(
                 new NotificationChannel(CH, "Streaming", NotificationManager.IMPORTANCE_LOW));
         Notification.Builder b = new Notification.Builder(this, CH);
-        return b.setContentTitle("Teverun LB Stream")
+        return b.setContentTitle("SoFlow LB Stream")
                 .setContentText("Screen is being streamed")
                 .setSmallIcon(android.R.drawable.presence_video_online)
                 .build();

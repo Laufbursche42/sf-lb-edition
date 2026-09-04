@@ -1,4 +1,4 @@
-// Laufbursche Edition - an app for Teverun e-scooters.
+// Laufbursche SoFlow Edition - a companion app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 
@@ -34,7 +34,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -56,13 +55,6 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "lbedition";
     private static final int REQ_PERMS = 4711;
-    private static final int REQ_OTA_FILE = 4712;
-
-    // Picked firmware file, held natively until the user starts the flash (never round-trips through
-    // JS - only its metadata does). Guarded by the main thread (set in onActivityResult, read in the
-    // otaStart bridge). max ~200 KB of hex text.
-    private volatile String otaHexText = null;
-    private volatile String otaFileName = null;
 
     private WebView webView;
     private BleManager ble;
@@ -257,28 +249,6 @@ public class MainActivity extends Activity {
                 Log.e(TAG, "ride live-data wiring failed", t);
             }
         }
-
-        // ── Firmware update (OTA) -> WebView ──
-        @Override
-        public void onOtaProgress(String json) {
-            if (json == null) return;
-            runJs("(function(){try{if(window.__onOtaProgress)window.__onOtaProgress(" + json + ");}catch(e){}})();");
-        }
-
-        @Override
-        public void onOtaLog(String line) {
-            String s = line == null ? "" : line;
-            // Persist OTA log lines to the debug log too (when enabled), so a flash done away from the
-            // PC can be pulled afterwards: adb pull the debug log or export it in-app.
-            try { if (debugLog != null && debugLog.isEnabled()) debugLog.append("[ota] " + s); } catch (Throwable ignored) {}
-            runJs("(function(){try{if(window.__onOtaLog)window.__onOtaLog(" + org.json.JSONObject.quote(s) + ");}catch(e){}})();");
-        }
-
-        @Override
-        public void onOtaState(String json) {
-            if (json == null) return;
-            runJs("(function(){try{if(window.__onOtaState)window.__onOtaState(" + json + ");}catch(e){}})();");
-        }
     };
 
     // ── Runtime permissions ──
@@ -314,39 +284,6 @@ public class MainActivity extends Activity {
                 Log.i(TAG, "perm " + permissions[i] + " -> " + grantResults[i]);
             }
         }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != REQ_OTA_FILE) return;
-        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
-            pushOtaFile("{\"ok\":false,\"cancelled\":true}");
-            return;
-        }
-        Uri uri = data.getData();
-        try {
-            String name = queryDisplayName(uri);
-            byte[] bytes = readAllBytes(uri);
-            // Intel-HEX is ASCII. Decode as Latin-1 so every byte maps to exactly one char and the
-            // line/trailer parsing sees the file unchanged.
-            String text = new String(bytes, StandardCharsets.ISO_8859_1);
-            otaHexText = text;
-            otaFileName = name;
-            // Report parsed metadata (no BLE, no side effects) so the UI can show version/CRC/target.
-            String meta = OtaEngine.inspect(text, name);
-            pushOtaFile(meta);
-        } catch (Throwable t) {
-            Log.e(TAG, "ota file read failed", t);
-            otaHexText = null;
-            otaFileName = null;
-            pushOtaFile("{\"ok\":false,\"error\":\"read failed\"}");
-        }
-    }
-
-    /** Push the picked-file metadata (JSON) to the WebView (window.__onOtaFile). */
-    private void pushOtaFile(String json) {
-        runJs("(function(){try{if(window.__onOtaFile)window.__onOtaFile(" + json + ");}catch(e){}})();");
     }
 
     // ── Update helpers (used by the LB.checkUpdates / downloadAndInstallApk bridge) ──
@@ -479,55 +416,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private String queryDisplayName(Uri uri) {
-        try (android.database.Cursor c = getContentResolver().query(uri, null, null, null, null)) {
-            if (c != null && c.moveToFirst()) {
-                int idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
-                if (idx >= 0) {
-                    String n = c.getString(idx);
-                    if (n != null && !n.isEmpty()) return n;
-                }
-            }
-        } catch (Throwable ignored) {
-        }
-        String last = uri.getLastPathSegment();
-        return last == null ? "firmware.hex" : last;
-    }
-
-    // Firmware files are ~200 KB (a VCU .hex) up to a few MB (a raw ALI chip dump). Cap the read so
-    // an accidentally-picked huge file (the SAF picker accepts any type) cannot OOM the app.
-    private static final int MAX_FIRMWARE_BYTES = 16 * 1024 * 1024;
-
-    private byte[] readAllBytes(Uri uri) throws Exception {
-        try (InputStream in = getContentResolver().openInputStream(uri)) {
-            if (in == null) throw new Exception("no stream");
-            ByteArrayOutputStream out = new ByteArrayOutputStream(131072);
-            byte[] buf = new byte[8192];
-            int r;
-            while ((r = in.read(buf)) != -1) {
-                out.write(buf, 0, r);
-                if (out.size() > MAX_FIRMWARE_BYTES) {
-                    throw new Exception("file too large (over 16 MB) - not a firmware file");
-                }
-            }
-            return out.toByteArray();
-        }
-    }
-
-    /** Minimal JSON string escaper for bridge error messages. */
-    private static String jsonStr(String s) {
-        if (s == null) return "\"\"";
-        StringBuilder b = new StringBuilder("\"");
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c == '"' || c == '\\') b.append('\\').append(c);
-            else if (c == '\n') b.append("\\n");
-            else if (c < 0x20) b.append(String.format("\\u%04x", (int) c));
-            else b.append(c);
-        }
-        return b.append('"').toString();
-    }
-
     @Override
     protected void onDestroy() {
         try {
@@ -641,70 +529,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        @JavascriptInterface
-        public void sendSetting(String json) {
-            try {
-                Log.i(TAG, "LB.sendSetting(" + json + ")");
-                if (ble != null) ble.sendSetting(json);
-            } catch (Throwable t) {
-                Log.e(TAG, "sendSetting bridge failed", t);
-            }
-        }
-
-        @JavascriptInterface
-        public void setMotorMode(int mode) {
-            try {
-                Log.i(TAG, "LB.setMotorMode(" + mode + ")");
-                if (ble != null) ble.setMotorMode(mode);
-            } catch (Throwable t) {
-                Log.e(TAG, "setMotorMode bridge failed", t);
-            }
-        }
-
-        /** Toggle traction control (TCS). Written as a[2]=5, not the generic normal write. */
-        @JavascriptInterface
-        public void setSmart(boolean on) {
-            try {
-                Log.i(TAG, "LB.setSmart(" + on + ")");
-                if (ble != null) ble.setSmart(on);
-            } catch (Throwable t) {
-                Log.e(TAG, "setSmart bridge failed", t);
-            }
-        }
-
-        /** Legacy alias: which is ignored; on=true -> dual, on=false -> rear-only cycle helper. */
-        @JavascriptInterface
-        public void setMotor(int which, boolean on) {
-            try {
-                Log.i(TAG, "LB.setMotor(which=" + which + ", on=" + on + ")");
-                if (ble != null) ble.setMotorMode(on ? 0 : 1);
-            } catch (Throwable t) {
-                Log.e(TAG, "setMotor bridge failed", t);
-            }
-        }
-
-        @JavascriptInterface
-        public void setCustomKey(int value) {
-            try {
-                Log.i(TAG, "LB.setCustomKey(" + value + ")");
-                if (ble != null) ble.setCustomKey(value);
-            } catch (Throwable t) {
-                Log.e(TAG, "setCustomKey bridge failed", t);
-            }
-        }
-
-        /** Set the VCU identity / BLE name via cmd 0x1f (Gate-1 toggle; reversible). Null-safe. */
-        @JavascriptInterface
-        public void setBleName(String name) {
-            try {
-                Log.i(TAG, "LB.setBleName(" + name + ")");
-                if (ble != null) ble.setBleName(name);
-            } catch (Throwable t) {
-                Log.e(TAG, "setBleName bridge failed", t);
-            }
-        }
-
-        /** Set the VCU speed lock via cmd 0x1B (TESTLOCK firmware). true = unlock, false = lock. */
+        /** Speed lock / immobiliser. true = unlock, false = lock. Backs the dashboard triple-tap. */
         @JavascriptInterface
         public void setLock(boolean unlocked) {
             try {
@@ -715,95 +540,91 @@ public class MainActivity extends Activity {
             }
         }
 
-        // ── Firmware update (OTA) ──
-
-        /** Open the system file picker to choose a firmware .hex; result comes back via __onOtaFile. */
+        /** Set the tuning max speed (km/h). No-op on families without a speed command. */
         @JavascriptInterface
-        public void otaPickFile() {
-            Log.i(TAG, "LB.otaPickFile()");
-            runOnUiThread(() -> {
-                try {
-                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                    i.addCategory(Intent.CATEGORY_OPENABLE);
-                    i.setType("*/*");   // .hex has no registered MIME; accept any and parse/validate it
-                    startActivityForResult(i, REQ_OTA_FILE);
-                } catch (Throwable t) {
-                    Log.e(TAG, "otaPickFile failed", t);
-                    pushOtaFile("{\"ok\":false,\"error\":\"no file picker\"}");
-                }
-            });
-        }
-
-        /** Begin flashing the previously picked firmware file. Progress via __onOtaProgress/State/Log. */
-        @JavascriptInterface
-        public void otaStart() {
-            Log.i(TAG, "LB.otaStart()");
+        public void setSpeed(double kmh) {
             try {
-                final String text = otaHexText;
-                final String name = otaFileName;
-                if (text == null || text.isEmpty()) {
-                    runJs("(function(){try{if(window.__onOtaState)window.__onOtaState({state:'failed',message:'Pick a firmware file first'});}catch(e){}})();");
-                    return;
-                }
-                if (ble != null) ble.startOta(text, name);
+                Log.i(TAG, "LB.setSpeed(" + kmh + ")");
+                if (ble != null) ble.setMaxSpeed(kmh);
             } catch (Throwable t) {
-                Log.e(TAG, "otaStart failed", t);
+                Log.e(TAG, "setSpeed bridge failed", t);
             }
         }
 
-        /** Drop the in-memory firmware blob after a flash completes or fails. The picked image only ever
-         *  lives in these two String fields (never written to disk); clearing them means a new flash
-         *  always requires a fresh pick, so no stale image lingers. */
+        /** Ride mode: eco 0, normal 1, sport 2. */
         @JavascriptInterface
-        public void otaClear() {
-            otaHexText = null;
-            otaFileName = null;
-        }
-
-        /** Abort a running flash. The controller stays in bootloader receive-mode (re-flashable).
-         *  Runs on the UI/main thread so the engine's cancel + finish (which touch the main-looper
-         *  timers and push the 'cancelled' state) run on the same thread as the flash itself. */
-        @JavascriptInterface
-        public void otaCancel() {
-            Log.i(TAG, "LB.otaCancel()");
-            runOnUiThread(() -> {
-                try {
-                    if (ble != null) ble.cancelOta();
-                } catch (Throwable t) {
-                    Log.e(TAG, "otaCancel failed", t);
-                }
-            });
-        }
-
-        /** @return true while a firmware flash is in progress. */
-        @JavascriptInterface
-        public boolean isOtaActive() {
+        public void setSpeedMode(int mode) {
             try {
-                return ble != null && ble.isOtaActive();
+                Log.i(TAG, "LB.setSpeedMode(" + mode + ")");
+                if (ble != null) ble.setSpeedMode(mode);
             } catch (Throwable t) {
-                return false;
+                Log.e(TAG, "setSpeedMode bridge failed", t);
             }
         }
 
-        /** @return true when the connected scooter is a ver2 (T2/tetra) platform - it flashes every node
-         *  through the display block with a node-select handshake, so the update page shows a ver2 note. */
+        /** Scooter display unit: true imperial (mph), false metric (km/h). */
         @JavascriptInterface
-        public boolean isVer2() {
-            try { return ble != null && ble.isVer2(); } catch (Throwable t) { return false; }
+        public void setUnit(boolean imperial) {
+            try {
+                Log.i(TAG, "LB.setUnit(" + imperial + ")");
+                if (ble != null) ble.setUnit(imperial);
+            } catch (Throwable t) {
+                Log.e(TAG, "setUnit bridge failed", t);
+            }
         }
 
-        /**
-         * Write ONE gear/assist profile (BLE_PROTOCOL §3.4). {@code json} carries any of
-         * {@code speedLimit, eabsRegen, frontStartLevel, rearStartLevel, frontCurrent,
-         * rearCurrent}; missing fields fall back to the current-gear state. Null/exception-safe.
-         */
+        /** Battery unlock (D7 only; SO4 only from V52). No-op otherwise. */
         @JavascriptInterface
-        public void sendGearSetting(int gear, String json) {
+        public void batteryUnlock() {
             try {
-                Log.i(TAG, "LB.sendGearSetting(gear=" + gear + ", " + json + ")");
-                if (ble != null) ble.sendGearSetting(gear, json);
+                Log.i(TAG, "LB.batteryUnlock()");
+                if (ble != null) ble.batteryUnlock();
             } catch (Throwable t) {
-                Log.e(TAG, "sendGearSetting bridge failed", t);
+                Log.e(TAG, "batteryUnlock bridge failed", t);
+            }
+        }
+
+        /** Front light on/off (so5base). */
+        @JavascriptInterface
+        public void setFrontLight(boolean on) {
+            try {
+                Log.i(TAG, "LB.setFrontLight(" + on + ")");
+                if (ble != null) ble.setFrontLight(on);
+            } catch (Throwable t) {
+                Log.e(TAG, "setFrontLight bridge failed", t);
+            }
+        }
+
+        /** Scooter display dark mode on/off (so5base). */
+        @JavascriptInterface
+        public void setScooterDarkMode(boolean on) {
+            try {
+                Log.i(TAG, "LB.setScooterDarkMode(" + on + ")");
+                if (ble != null) ble.setDarkMode(on);
+            } catch (Throwable t) {
+                Log.e(TAG, "setScooterDarkMode bridge failed", t);
+            }
+        }
+
+        /** Zero-start (kick-start) on/off (so5base). */
+        @JavascriptInterface
+        public void setZeroStart(boolean on) {
+            try {
+                Log.i(TAG, "LB.setZeroStart(" + on + ")");
+                if (ble != null) ble.setZeroStart(on);
+            } catch (Throwable t) {
+                Log.e(TAG, "setZeroStart bridge failed", t);
+            }
+        }
+
+        /** Turn/indicator light (so4 path). */
+        @JavascriptInterface
+        public void setIndicator(boolean on) {
+            try {
+                Log.i(TAG, "LB.setIndicator(" + on + ")");
+                if (ble != null) ble.setIndicator(on);
+            } catch (Throwable t) {
+                Log.e(TAG, "setIndicator bridge failed", t);
             }
         }
 
@@ -931,7 +752,7 @@ public class MainActivity extends Activity {
                 String result = "{\"available\":false}";
                 try {
                     JSONObject rel = new JSONObject(httpGetText(
-                            "https://api.github.com/repos/Laufbursche42/tr-lb-edition/releases/latest"));
+                            "https://api.github.com/repos/Laufbursche42/sf-lb-edition/releases/latest"));
                     String tag = rel.optString("tag_name", "");
                     String latest = tag.startsWith("v") ? tag.substring(1) : tag;
                     String apkUrl = "";
@@ -1027,7 +848,7 @@ public class MainActivity extends Activity {
                     android.content.ClipboardManager cm =
                             (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                     if (cm != null) {
-                        cm.setPrimaryClip(android.content.ClipData.newPlainText("TR-LB", text));
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("SF-LB", text));
                     }
                 } catch (Throwable t) {
                     Log.e(TAG, "copyClipboard failed", t);
@@ -1074,7 +895,7 @@ public class MainActivity extends Activity {
                     Intent send = new Intent(Intent.ACTION_SEND);
                     send.setType("text/plain");
                     send.putExtra(Intent.EXTRA_STREAM, uri);
-                    send.putExtra(Intent.EXTRA_SUBJECT, "TR-LB Edition debug log");
+                    send.putExtra(Intent.EXTRA_SUBJECT, "SF-LB Edition debug log");
                     send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     Intent chooser = Intent.createChooser(send, "Send debug log");
                     chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1301,7 +1122,7 @@ public class MainActivity extends Activity {
     /** Keep the page's name from escaping the Downloads folder or losing its extension. */
     private static String safeGpxName(String raw) {
         String s = raw == null ? "" : raw.trim().replaceAll("[\\\\/:*?\"<>|\\r\\n]", "_");
-        if (s.isEmpty()) s = "teverun";
+        if (s.isEmpty()) s = "soflow";
         if (!s.toLowerCase(Locale.US).endsWith(".gpx")) s = s + ".gpx";
         return s;
     }

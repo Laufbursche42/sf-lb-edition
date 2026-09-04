@@ -1,22 +1,23 @@
 # Laufbursche Edition
 
-An alternative app for Teverun e-scooters.
+An alternative app for SoFlow e-scooters.
 
-> **This is a feasibility study.** It exists to show what a Teverun scooter's Bluetooth protocol makes possible, not to be a finished product. Error-free operation is not promised and there is no warranty of any kind. Whatever you do with it, you do at your own risk. Read the [Disclaimer](#disclaimer--trademarks) before you install it.
+> **This is a feasibility study.** It exists to show what a SoFlow scooter's Bluetooth protocol makes possible, not to be a finished product. Error-free operation is not promised and there is no warranty of any kind. Whatever you do with it, you do at your own risk. Read the [Disclaimer](#disclaimer--trademarks) before you install it.
 
-<!-- Project repository: https://github.com/Laufbursche42/tr-lb-edition -->
-**[Download the latest release](https://github.com/Laufbursche42/tr-lb-edition/releases/latest)**
+<!-- Project repository: https://github.com/Laufbursche42/sf-lb-edition -->
+**[Download the latest release](https://github.com/Laufbursche42/sf-lb-edition/releases/latest)**
 
 ## Table of contents
 
 - [For users](#for-users)
   - [What the app is](#what-the-app-is)
+  - [Supported models](#supported-models)
   - [Features](#features)
     - [Dashboard](#dashboard)
     - ["All values" telemetry](#all-values-telemetry-scroll-down-on-the-main-screen)
     - [Connection](#connection)
-    - [Scooter & IVCU settings](#scooter--ivcu-settings)
-    - [Firmware update](#firmware-update)
+    - [Scooter settings](#scooter-settings)
+    - [Speed unlock (triple-tap)](#speed-unlock-triple-tap)
     - [In-app updates](#in-app-updates)
     - [Info & diagnostics](#info--diagnostics)
     - [Battery info](#battery-info)
@@ -24,7 +25,6 @@ An alternative app for Teverun e-scooters.
     - [Offline bicycle navigation](#offline-bicycle-navigation)
     - [Offline maps](#offline-maps)
     - [Recording, logging & preferences](#recording-logging--preferences)
-  - [Firmware: update and flash](#firmware-update-and-flash)
   - [Screenshots](#screenshots)
   - [Installing the app](#installing-the-app)
   - [Privacy & data protection](#privacy--data-protection)
@@ -38,20 +38,45 @@ An alternative app for Teverun e-scooters.
     - [Release build](#release-build)
     - [Debug vs release](#debug-vs-release)
   - [BLE protocol reference](#ble-protocol-reference)
-    - [1. BLE connection](#1-ble-connection)
-    - [2. Incoming telemetry frames](#2-incoming-telemetry-frames-vcu---phone)
-    - [3. Outgoing commands](#3-outgoing-commands-phone---vcu)
-    - [4. Motor enable / disable](#4-motor-enable--disable-single-vs-dual-drive-mode)
-    - [5. Implementation notes](#5-implementation-notes-for-the-java-layer)
+    - [1. Model families](#1-model-families)
+    - [2. Transports & connection](#2-transports--connection)
+    - [3. Crypto](#3-crypto)
+    - [4. Frame formats](#4-frame-formats)
+    - [5. Commands](#5-commands)
+    - [6. Telemetry](#6-telemetry)
+    - [7. Operation notes](#7-operation-notes)
 - [License](#license)
 
 # For users
 
 ## What the app is
 
-Laufbursche Edition is a standalone, alternative Android app for Teverun / Laufbursche e-scooters. It works completely offline and talks to your scooter directly over Bluetooth LE. There is no Teverun account, no login and no cloud - just install the app, connect to your scooter and you are ready to go.
+Laufbursche Edition is a standalone, alternative Android app for SoFlow e-scooters. It works completely offline and talks to your scooter directly over Bluetooth LE. There is no SoFlow account, no login and no cloud - just install the app, connect to your scooter and you are ready to go.
 
-**Device support.** The dashboard, live telemetry and the scooter settings work with Teverun / Laufbursche scooters generally (Fighter Mini / Pro, Fighter Eleven, Supreme, Blade Mini, GT, Space and the like) - the app reads whatever settings your scooter reports and writes only the single field you change, so it stays safe across models. The **speed unlock (FIN)** and the **firmware update** are specific to the **Fighter Mini Pro eKFV** and are only offered when that scooter is connected. The **Tetra** (multi-motor) is **not supported yet**: its extra motor nodes are not handled, so the app flags it as unsupported and hides the settings when a Tetra is connected.
+The app reads whatever the scooter reports over Bluetooth and only ever writes the single command you trigger, so it stays safe across models. Its purpose is to expose the top-speed setting the SoFlow BLE protocol carries, plus the everyday controls (ride mode, lock, lights) and the live telemetry the scooter streams.
+
+## Supported models
+
+The app classifies the connected scooter from its Bluetooth name (the `SFS...` advertising prefixes, or the plain `SoFlow` / `SOFLOW` name that newer units broadcast) and, where the name is ambiguous, from the GATT service it exposes. The controllers fall into three protocol families - **D7**, **SO3** and **SO6** - and the app picks the right transport, crypto and command set per model.
+
+Known models the protocol covers:
+
+| Model | Family | Speed unlock over BLE |
+|-------|--------|-----------------------|
+| SO4, SO myTIER | D7 | yes |
+| SO X | D7 | yes |
+| SO1, SO2 Air | SO3 | yes |
+| SO2 Air (2nd gen), SO2 Zero, SO2 Grover, SO2+ Grover | D7 | yes |
+| SO3, SO5 | SO3 | yes |
+| SO5 Pro | D7 | yes |
+| SO One, SO One+, SO One Pro | D7 | yes |
+| SO4 Pro GT / GT2, SO4 Pro Core2 | D7 (KingMeter) | yes |
+| SO4 Pro Max, SO4 Pro Max 2 | D7 | yes |
+| SO One Lite, SO One Lite Pro, SO One Prime, SO One Prime Max | D7 | yes |
+| SO6 | SO6 | no (no BLE speed command) |
+| SO4 UL | SO6 | no (no BLE speed command) |
+
+The **SO6** and **SO4 UL** run the SO6 protocol, which carries no over-the-air speed command, so the app offers lock/unlock and telemetry on them but not a top-speed change. Every other model above accepts the top-speed command over Bluetooth. Whether a given controller actually rides faster once the value is written is a device test - the command sets the target, the factory clamp in the firmware may still cap it.
 
 ## Features
 
@@ -59,58 +84,58 @@ Everything below is implemented and shipping in the app.
 
 ### Dashboard
 
-- **Live speed drums** - side-by-side scooter speed and GPS speed.
-- **Hero tiles** - state of charge (SOC), current gear and battery current at a glance.
-- **Dual-motor tiles** - per-motor temperatures, currents and power for the front and rear motors.
-- **Motor-mode quick-toggle** next to the **Motors** heading on the main screen - front, rear, both and traction control (TCS). It reflects the scooter's current mode and is disabled while disconnected.
+- **Live speed drum** - the scooter's own measured speed, side by side with GPS speed.
+- **Hero tiles** - state of charge, current ride mode and pack current at a glance.
+- **Voltage, current and power tiles** read live from the controller.
+- **Lock tile** showing whether the scooter reports itself locked or unlocked.
 
 ### "All values" telemetry (scroll down on the main screen)
 
-- Shows **every value the scooter reports**: pack / MOS / BMS-board temperatures, per-motor currents and temperatures, IVCU status flags, recuperation and more. The battery pack detail (per-cell voltages and temperatures, capacity, cell balance, relays and health) now lives on its own [Battery info](#battery-info) page.
+- Shows **every value the scooter reports** for its family: speed, ride mode, pack voltage, current, power, energy, trip and total distance, battery percentage, fault state, dark-mode state and the controller / display / CPU firmware versions.
 - **Each row has a "?" help popup** explaining what the value means.
 - **Stale values clear when disconnected** so you never read an old number as live.
+- The exact value set depends on the model family - the SO6 controllers, for example, report only voltage, current and power and no speed, mode, battery or distance, and the app shows what that controller actually sends rather than guessing the rest.
 
 ### Connection
 
 - **Bluetooth LE connect** with a Bluetooth-glyph indicator: **green = connected, red = disconnected**.
+- **Broad scan** on the SoFlow advertising names (`SFS...` prefixes plus the plain `SoFlow` / `SOFLOW` name), then model classification once the link is up.
 - **Remembers the last scooter and auto-reconnects.**
 - **"Last device" quick-reconnect** button.
 
-### Scooter & IVCU settings
+### Scooter settings
 
-- **Full settings with an explicit Save button** - nothing is written to the scooter until you press **Save**.
-- **A "?" help popup on EVERY setting.**
-- **Per-gear settings editor** - per-gear speed limit, EABS / recuperation, start levels and currents. On eKFV units the internal gears 2/3/4 are shown as 1/2/3 on the scooter's own display. The IVCU sends only the CURRENTLY active gear to the app, so if a gear's values are missing you have to switch through all gears once on the scooter to load them. The app reads these values live and never stores them on the phone, because a stale gear value must never be shown or written back to the IVCU.
-- **Live 1 s refresh** while the settings screen is open, without clobbering edits you are making in the app or changes made on the scooter's own display.
-- **Motor mode** (dual / rear / front) and **traction control** (TCS).
-- **Manufacturer-locked settings cannot be changed** - the app can only change settings the IVCU actually allows. Any setting the manufacturer has locked in the IVCU cannot be changed from this app or from any other app. This limit does not apply when the IVCU runs custom or open firmware.
-- **Country write-protection** - the app displays all of the settings the scooter's IVCU supports, but the IVCU enforces a write-protection that depends on your country or region. Depending on the country the IVCU will not save (it write-protects) some settings, so some of the functions shown in the app may not be available or changeable in every country - the app still shows them, but the IVCU may refuse to store them. This country write-protection is enforced by the IVCU firmware and does not apply when the IVCU runs custom or open firmware.
+- **A "?" help popup on every setting.**
+- **Top speed** - set the maximum speed the controller aims for, in 0.1 km/h steps, on every model except SO6 and SO4 UL.
+- **Ride mode** - eco / normal / sport, mapped to the right command for the model's family.
+- **Lock / unlock** - immobilise the scooter or release it over Bluetooth.
+- **Lights** - headlight on/off and dark-mode display, on the models whose family exposes them.
+- **Battery unlock** - on the D7 family, release the battery lock.
+- **Units** - switch the scooter's own display between km and miles, where the model supports it.
+- **Live refresh** while the settings screen is open, without clobbering a change you make on the scooter's own display.
+- **The app never guesses a value it did not read.** A setting is offered only when the connected model's family actually supports it; anything the controller does not report is left blank rather than filled with a default.
 
-### Firmware update
+### Speed unlock (triple-tap)
 
-Flash an IVCU firmware (a `.hex` file) to the scooter over Bluetooth, straight from the app - no cloud account and no Teverun login, just a local file you already have. The one thing to know up front: it decides compatibility from the file's **content** (a CRC, the target region and the version in the trailer), not from its **file name**, so a correctly-working file that the usual tooling rejects purely over a rename still flashes. Reached via **Settings -> Firmware update**.
+On every model that carries a BLE speed command, **triple-tap the speed tile** on the main screen to unlock or re-lock the top speed over Bluetooth. Unlocking sends the open top-speed value; re-locking sends the road-legal value back. The tile colour reflects the state the app last set. This is the tuning lever the SoFlow protocol exposes: the app writes the target speed, and whether the controller rides it depends on the factory clamp in its firmware.
 
-Step-by-step in [Firmware: update and flash](#firmware-update-and-flash). Implementation detail is in [Firmware updater (app implementation)](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#firmware-updater-app-implementation).
+The scooter can also be fully **locked or unlocked** (immobiliser) from the settings, which is a separate control from the speed unlock.
 
 ### In-app updates
 
 - **Update banner in the Settings menu** - a banner appears when a newer version of the app is available. Tapping it downloads the APK to your Downloads folder and opens the Android installer, so you confirm the install yourself like any downloaded APK.
 - **App updates** come from the project's GitHub Releases; the check runs at app start. It only reaches the network for that check and the download you tap - see [PRIVACY.md](PRIVACY.md).
 - **"What is new"** opens by itself the first time you run a new version and lists what changed. Closing it counts as read, so it stays out of the way until the next version. The Settings menu reopens it any time.
-- **Firmware is not downloaded** - the app flashes only a `.hex` file you supply yourself, so it never fetches firmware.
 
 ### Info & diagnostics
 
-- **Error reports** view - read out the fault codes the scooter reports.
-- **Info page** showing, read-only and read live from the scooter over Bluetooth: **FIN / Bluetooth name** (the scooter's Bluetooth name is its full FIN), the **frame number** and the IVCU **software** and **hardware** versions. (The app version lives in the "Version Info & Disclaimer" entry, not here.)
+- **Error / fault** view - read out the fault state the scooter reports.
+- **Info page** showing, read-only and read live from the scooter over Bluetooth: the controller, display and CPU firmware versions the scooter reports, plus its Bluetooth name. (The app version lives in the "Version Info & Disclaimer" entry, not here.)
 
 ### Battery info
 
-- **Battery Info page** - a button below Scooter info in the Settings menu that opens a dedicated view of the pack, read live over Bluetooth with nothing sent to the scooter.
-- **Pack summary** - system voltage, current, SOC, SOH, rated capacity, charge cycles, max / min cell voltage, max / min cell temperature and the cell delta.
-- **Per-cell voltage grid** - every battery cell as its own tile, colour-coded by voltage, with the cells the BMS is currently balancing marked.
-- **Battery health check** - reads the live `55 54` fault array and lists any active battery warning (it sends nothing).
-- These battery values were moved off the main screen's "All values" list onto this page, but they are still recorded by the ride log (including every per-cell voltage).
+- **Pack readout** read live over Bluetooth with nothing sent to the scooter: system voltage, pack current and, on the models that report it, power and cumulative energy.
+- The depth of this page depends on the model family - the SoFlow protocol carries pack voltage, current and power, so this page reflects what the connected controller actually streams rather than a fixed template.
 
 ### Screen streaming
 
@@ -141,44 +166,10 @@ Step-by-step in [Firmware: update and flash](#firmware-update-and-flash). Implem
 ### Recording, logging & preferences
 
 - **GPS track recording** with a configurable interval (**1 / 2 / 5 / 10 / 30 s**) and **per-route GPX export**.
-- **Ride log** (**off by default**) - when enabled, it records **all main-screen values once per minute** while you ride, plus the full battery pack detail including every per-cell voltage as its own CSV column (`cell1_mV`..`cellN_mV`) - that battery detail stays in the log even though it now lives on the Battery info page. Recording only starts once you are actually moving (after the scooter's speed first goes above 0), so parking or connecting without riding produces no ride. It runs as a foreground service so it keeps recording with the screen off, keeps **all rides** (delete them individually or in bulk by period) and lets you export each ride as **CSV or JSON** from the Scooter Info page (via the Android share sheet). The exported CSV/JSON can be visualised as graphs with the companion **[Laufbursche Edition Analysis Tool (leat)](https://github.com/Laufbursche42/leat)**.
+- **Ride log** (**off by default**) - when enabled, it records **all main-screen values once per minute** while you ride. Recording only starts once you are actually moving (after the scooter's speed first goes above 0), so parking or connecting without riding produces no ride. It runs as a foreground service so it keeps recording with the screen off, keeps **all rides** (delete them individually or in bulk by period) and lets you export each ride as **CSV or JSON** from the Scooter Info page (via the Android share sheet).
 - **In-app debug logging** - persistent, with a red banner while active and an **export** button. No PC needed.
 - **Full-screen toggle** (when off, the app sits below the Android status bar), **km / mph** units (mph converts both speed and distance - Trip, Odometer and saved-route distances - to miles), **light / dark app theme** and a **"Version Info & Disclaimer"** entry.
 - **A language switch in the Display settings** turns the whole interface, help popups included, English or German. On the first start the app follows your phone's language and your choice sticks after that.
-
-## Firmware: update and flash
-
-If you already have a `.hex` file, skip to step 2 and open **Firmware update** directly.
-
-### Step 1 - build the firmware
-
-Build the `.hex` in your browser with the [Laufbursche Firmware Patcher](https://laufbursche42.github.io/tr-fw/) and save the file on your phone. It asks which build fits your scooter, gives the reason for each one and states what to know before flashing. Keep your own stock image as the recovery file.
-
-### Step 2 - check and flash (Firmware update)
-
-Open **Settings -> Firmware update** and pick the `.hex` file. The update page runs a content check and shows a pass/fail checklist:
-
-- **File integrity** (CRC) - confirms the file is not corrupted. This is the one check with no "flash anyway" override: a file that fails the CRC can never be flashed.
-- **IVCU app region** - it targets the IVCU app, not the bootloader.
-- **IVCU target** - it is an IVCU image, not a battery (BMS) image.
-- **Firmware generation** - the file's version against what is on the scooter now.
-
-If every check passes, **Start** is enabled. If a check fails, Start is disabled and the checklist shows which one; for informed users a "flash anyway" override is offered on every check except the CRC one. Press **Start**, confirm the ~13-minute warning and let it run to the end.
-
-### How the updater checks a file
-
-This is the app-side detail behind the user-facing flasher; the byte-level clamp mechanics live in [Removing the clamp in VCU firmware](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#removing-the-clamp-in-vcu-firmware). Every offset here is specific to the Teverun Fighter Mini Pro eKFV, no other model was examined.
-
-- **Content-based compatibility** - controller firmware files carry a naming convention (`AWIVCU...` / `AWVCU...`) and a flasher that gates on the **file name** alone refuses a perfectly valid image that was merely shortened or renamed. Laufbursche Edition validates the image itself instead and treats the name as an advisory line only. Four checks: a **CRC16** over the image (integrity, never overridable), the target is the **VCU application region** (not the bootloader), the image is a **VCU** target (not a BMS image) and the **trailer version** against the version currently on the scooter. Every check has an explicit "flash anyway" override for informed users except two: the CRC and the app-region check are both refused again when the flash actually starts.
-- **Kept in memory, never on disk** - the picked image lives only in two in-RAM `String` fields (`otaHexText` / `otaFileName`); nothing firmware-related is ever written to the filesystem. Only one image exists at a time and each new pick overwrites it. After a flash completes or fails the app drops it (`otaClear()`) so no stale image lingers; a cancel keeps it so you can restart immediately.
-- **Auto-off cannot be raised over BLE** - a short auto-off (sleep) timer can power the scooter off mid-flash, but the app cannot prevent this. The VCU settings handler copies only `a[2..17]` and drops `a[18]`, where sleepTime lives (verified on `fw_r5419`; every writer hits the same wall, the byte simply never arrives - see [Sleep and power-off timer quirk](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#sleep-and-power-off-timer-quirk)). The flash confirm dialog therefore warns the user in red to raise the auto-off timer in the scooter's own display menu first.
-- **Cross-compatibility (Box C)** - R5.4.19 and ALI D3.4.12 share the Box C flash layout, so either can replace the other - flash R5.4.19 onto an open box to make it eKFV-compliant or ALI onto an eKFV box to open it. Every Box C VCU image (R3 / R5 / D10_4 and the ALI D3 dump) uses flash base `0x08007000`; the older R2 / D2 hardware uses `0x08008000` instead, so an image flashed across that base boundary will not boot - that is the real reason this is Box C only.
-
-### The live speed lock
-
-With a matching firmware on the scooter, triple-tap the VCU speed tile on the main screen to unlock or re-lock the speed over Bluetooth. The tile colour shows the state the scooter reports. What the firmware itself does in each state is described in the [patcher's README](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#the-live-speed-lock).
-
-<p align="center"><img src="screenshots/livetoogle.png" width="260" alt="Live speed lock - triple-tap the speed tile to lock or unlock over Bluetooth"></p>
 
 ## Screenshots
 
@@ -187,21 +178,21 @@ The screenshots are not kept in step with every release, so a screen can look di
 <table>
   <tr>
     <td align="center" width="33%"><img src="screenshots/MainScreen1.jpg" width="240" alt="Dashboard"></td>
-    <td align="center" width="33%"><img src="screenshots/MainScreen2.jpg" width="240" alt="All values: ride and battery"></td>
-    <td align="center" width="33%"><img src="screenshots/MainScreen3.jpg" width="240" alt="All values: temperatures and motors"></td>
+    <td align="center" width="33%"><img src="screenshots/MainScreen2.jpg" width="240" alt="All values: ride"></td>
+    <td align="center" width="33%"><img src="screenshots/MainScreen3.jpg" width="240" alt="All values: power and battery"></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/MainScreen4.jpg" width="240" alt="All values: status flags and locks"></td>
+    <td align="center"><img src="screenshots/MainScreen4.jpg" width="240" alt="All values: status and locks"></td>
     <td align="center"><img src="screenshots/MainScreen5.jpg" width="240" alt="All values: lights and odometer"></td>
     <td align="center"><img src="screenshots/MainScreenLightMode.jpg" width="240" alt="Dashboard in light mode"></td>
   </tr>
   <tr>
     <td align="center"><img src="screenshots/ScooterConnect.jpg" width="240" alt="Connect scooter"></td>
-    <td align="center"><img src="screenshots/ScooterInfo.jpg" width="240" alt="Scooter info (FIN redacted)"></td>
-    <td align="center"><img src="screenshots/ScooterSettings1.jpg" width="240" alt="Per-gear settings"></td>
+    <td align="center"><img src="screenshots/ScooterInfo.jpg" width="240" alt="Scooter info"></td>
+    <td align="center"><img src="screenshots/ScooterSettings1.jpg" width="240" alt="Scooter settings"></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/ScooterSettings2.jpg" width="240" alt="Scooter settings: speed and motor"></td>
+    <td align="center"><img src="screenshots/ScooterSettings2.jpg" width="240" alt="Scooter settings: speed and mode"></td>
     <td align="center"><img src="screenshots/ScooterSettings3.jpg" width="240" alt="Scooter settings: modes"></td>
     <td align="center"><img src="screenshots/SavedRoutes.jpg" width="240" alt="Saved rides"></td>
   </tr>
@@ -217,13 +208,6 @@ The screenshots are not kept in step with every release, so a screen can look di
   </tr>
   <tr>
     <td align="center"><img src="screenshots/POIs.jpg" width="240" alt="Camping and charging POI overlay on the offline map"></td>
-    <td align="center"><img src="screenshots/FirmwareUpdater.jpg" width="240" alt="Firmware update: choose a .hex to flash"></td>
-    <td align="center"><img src="screenshots/FirmwareUpdater2.jpg" width="240" alt="Firmware update: .hex validated, ready to flash"></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/FirmwareUpdater3.jpg" width="240" alt="Firmware update: flash confirmation with Auto-Off warning"></td>
-    <td align="center"><img src="screenshots/FirmwareUpdater4.jpg" width="240" alt="Firmware update in progress"></td>
-    <td align="center"><img src="screenshots/FirmwareUpdater5.jpg" width="240" alt="Firmware update complete"></td>
   </tr>
 </table>
 
@@ -268,7 +252,7 @@ You can also install from a computer over ADB (Android platform-tools). This is 
    - Connect the phone to the computer by USB and confirm the "Allow USB debugging" prompt on the phone.
 2. Install the APK from the computer:
    - `adb install -r Laufbursche-Edition-vX.apk` (the `-r` reinstalls/updates if a previous version is present).
-   - If that fails because a different signature is installed, uninstall the old one first: `adb uninstall com.laufbursche.edition` then `adb install`.
+   - If that fails because a different signature is installed, uninstall the old one first: `adb uninstall com.lb.edition` then `adb install`.
    - On Xiaomi (MIUI/HyperOS) a fresh ADB install of a new app is blocked with `INSTALL_FAILED_USER_RESTRICTED` unless you first enable "Install via USB" in Developer options, which Xiaomi ties to a signed-in Mi account plus an online check (there is no account-free ADB bypass on stock firmware without root). On Xiaomi the file-manager route above is the easier path - only that avoids Xiaomi's ADB gate.
 3. Where to get ADB (Android SDK Platform-Tools) - it is a small standalone download, no full Android Studio needed:
    - Official downloads: https://developer.android.com/tools/releases/platform-tools
@@ -278,7 +262,7 @@ You can also install from a computer over ADB (Android platform-tools). This is 
 
 ## Privacy & data protection
 
-The app collects **nothing** - no accounts, no analytics, no telemetry, no tracking and no ads. Everything stays on your device. It uses the network only on your explicit action, reaching only: your scooter over **Bluetooth LE**; the **Hochschule Esslingen** OpenStreetMap mirror (`ftp-stud.hs-esslingen.de`) for offline **maps**; the **BRouter** server (`brouter.de`) for **routing** data; this project's **GitHub** repo (`github.com/Laufbursche42/tr-lb-edition`) for **POI** data (camping + EV charging) and for the in-app **app-update** check and download; and the **SRT** server URL you configure yourself for screen streaming. Nothing is ever sent to the developer or to any manufacturer backend.
+The app collects **nothing** - no accounts, no analytics, no telemetry, no tracking and no ads. Everything stays on your device. It uses the network only on your explicit action, reaching only: your scooter over **Bluetooth LE**; the **Hochschule Esslingen** OpenStreetMap mirror (`ftp-stud.hs-esslingen.de`) for offline **maps**; the **BRouter** server (`brouter.de`) for **routing** data; this project's **GitHub** repo (`github.com/Laufbursche42/sf-lb-edition`) for **POI** data (camping + EV charging) and for the in-app **app-update** check and download; and the **SRT** server URL you configure yourself for screen streaming. Nothing is ever sent to the developer or to any manufacturer backend.
 
 See [PRIVACY.md](PRIVACY.md) for the full privacy policy.
 
@@ -290,15 +274,15 @@ The app requests only what it needs - see [PERMISSIONS.md](PERMISSIONS.md).
 
 **Feasibility study, no warranty.** Laufbursche Edition is a feasibility study. The software is provided "as is". Nothing here promises that it is free of defects, that it works on your scooter or your phone, that a value it shows is correct or that a feature still works after the next scooter firmware or Android release.
 
-**At your own risk.** You use this app, the settings it writes and its firmware update at your own risk. As far as the law allows, the developer is not liable for damage to the scooter, its controller, its battery or any other part, for lost data, for injury or for any other loss that comes out of using this software. Writing settings or flashing firmware can leave a scooter unusable and can void its warranty. Keeping to road traffic law stays your job: a scooter set up outside its approved configuration does not belong on public roads.
+**At your own risk.** You use this app and the settings it writes at your own risk. As far as the law allows, the developer is not liable for damage to the scooter, its controller, its battery or any other part, for lost data, for injury or for any other loss that comes out of using this software. Writing settings can leave a scooter unusable and can void its warranty. Raising the top speed removes the road approval (in Germany the ABE lapses) and a scooter set up outside its approved configuration does not belong on public roads. Keeping to road traffic law stays your job.
 
-This is an independent, community project. It is not an official Teverun app and the developer ("Laufbursche") is not affiliated with, endorsed by or connected to Teverun. "Teverun" and other product names are trademarks of their respective owners; the name is used here only descriptively to indicate the scooters this app works with. See [TRADEMARKS.md](TRADEMARKS.md) for details.
+This is an independent, community project. It is not an official SoFlow app and the developer ("Laufbursche") is not affiliated with, endorsed by or connected to SoFlow. "SoFlow" and other product names are trademarks of their respective owners; the name is used here only descriptively to indicate the scooters this app works with. See [TRADEMARKS.md](TRADEMARKS.md) for details.
 
 # For developers
 
 ## Architecture
 
-A native Java `Activity` hosts a `WebView` dashboard (`assets/dashboard/telemetry.html`) bridged to native code via a `@JavascriptInterface` object named `LB`. Native `BleManager`, `FrameParser`, `CommandBuilder` and `SettingsState` implement the UART-over-BLE VCU protocol (see the "BLE protocol reference" section below). Screen streaming lives in the `com.lb.srt` module. Offline navigation uses **Mapsforge** for maps and **BRouter** for routing, with a foreground-service downloader for on-demand map and routing-segment data.
+A native Java `Activity` hosts a `WebView` dashboard (`assets/dashboard/telemetry.html`) bridged to native code via a `@JavascriptInterface` object named `LB`. Native BLE code implements the SoFlow protocol (see the "BLE protocol reference" section below): model classification, the three transports (Nordic UART, KingMeter, SO6), AES framing and the command and telemetry decoders. Screen streaming lives in the `com.lb.srt` module. Offline navigation uses **Mapsforge** for maps and **BRouter** for routing, with a foreground-service downloader for on-demand map and routing-segment data.
 
 ## Prerequisites
 
@@ -370,463 +354,123 @@ Debug builds are only for local development and testing (fast iteration while de
 
 ## BLE protocol reference
 
-The UART-over-BLE VCU wire protocol - frame layout, command set and settings model - is documented inline below. This documents the UART-over-BLE protocol of the Teverun VCU as observed on the radio link and validated against a Teverun Fighter Mini Pro (eKFV). It covers the frames and commands that appeared on the link; the firmware may support further frames that never showed up there, other models may differ and fields are marked where they stay uncertain.
+The SoFlow BLE wire protocol - model families, transports, crypto, frame layout, command set and telemetry - is documented inline below. It is a written record of what the app implements, based on the tested reference behaviour; fields are marked where they stay uncertain. Numbers are unsigned bytes masked with `& 0xFF`; multi-byte fields are big-endian where noted.
 
-### Transport summary
+### 1. Model families
 
-Proprietary UART-over-BLE, ISSC / Microchip Transparent UART profile. Not OBD/OBD2. Every application frame is exactly 20 bytes: a 1-byte sync/header, a 1-byte command id, 17 payload bytes and a trailing 1-byte CRC-8. Multi-byte numeric fields are big-endian, unsigned; signedness is emulated with fixed offsets (current -1000, temperature -40).
+Controllers fall into three families. The family decides the frame layout, the transport and how (and whether) frames are encrypted.
 
----
+| Family | Start byte | Framing | Notes |
+|--------|-----------|---------|-------|
+| **D7** | `0xD7` outgoing | one-byte opcodes, additive checksum | the common case; a KingMeter variant answers with `0xD5` |
+| **SO3** | `0xD7` outgoing | like D7, but byte 3 is a rolling secret, never encrypted | |
+| **SO6** | none | two-byte command, the whole frame is AES | no over-the-air speed command |
 
-### 1. BLE connection
+Within D7 a `variant` distinguishes the older **so4** frame handling from the **so5base** (So5ProBase) handling.
 
-#### 1.1 UUIDs
+**Classification.** The app matches the Bluetooth advertising name against a fixed, order-sensitive list of `SFS...` prefixes (for example `SFSO4UL` must be tested before `SFSO4`, and `SFS2K7` / `SFS2K1` before `SFS2K`). Newer units broadcast the plain name `SoFlow`; when the name does not classify, the app falls back to the exposed GATT service - the SO6 service means SO6, the KingMeter service means the SO One Pro path, otherwise it defaults to the Nordic So5ProBase path. The scan filter always also accepts `SoFlow` and `SOFLOW`.
 
-| Role | UUID |
-|------|------|
-| Service | any primary service whose UUID (uppercased) `startsWith("0000FF")` or `startsWith("495353")` |
-| Notify (VCU -> phone) | `49535343-1e4d-4bd9-ba61-23c647249616` |
-| Write (phone -> VCU) | `49535343-aca3-481c-91ec-d85e28a60318` |
+### 2. Transports & connection
 
-The scooter this app targets uses the ISSC Transparent UART service (`49535343-...`). The canonical 16-bit-style base for that service is `49535343-fe7d-4ae5-8fa9-9fafd205e455` (only the prefix `495353...` is matched in code - do not hard-code the full service UUID; discover it).
+Three GATT transports carry the frames. The app resolves the expected service for the classified model and otherwise probes them in the order Nordic -> KingMeter -> SO6, remembering which one worked.
 
-Characteristic selection: on a `495353...` service use the two ISSC characteristic UUIDs listed
-above. On a `0000FFxx` service take the characteristic that advertises the NOTIFY property for
-telemetry and the one that advertises WRITE for commands, because the order they are handed out
-in is not reliable.
+| Transport | Service | Write | Notify |
+|-----------|---------|-------|--------|
+| Nordic UART | `6e400001-b5a3-f393-e0a9-e50e24dcca9e` | `6e400002-...` | `6e400003-...` |
+| KingMeter | `43480001-f001-4b49-4e47-204d45544552` | `43480002-...` | `43480003-...` |
+| SO6 | `60000001-0000-1000-8000-00805f9b34fb` | `60000003-...` | `60000002-...` |
 
-So: if the service is `495353...`, use the two hard-coded characteristic UUIDs above. Otherwise (a `0000FFxx` service) pick the characteristic that advertises the `notify` property as notify and the one that advertises `write` as write.
+> SO6 swaps the roles: its write characteristic is `...0003` and its notify is `...0002`, the reverse of the other two.
 
-> A second, older service exists as a fallback for some older or other units: the Microchip RN487x data service, matched by a service UUID containing `0003CDD0` with characteristics `0003CDD2` (write) and `0003CDD1` (notify). It is not the active telemetry path; the live path is the ISSC service described above.
+After connecting the app runs a per-family handshake (a status nudge and, on the D7 family, a mode/enable frame) and then the controller streams telemetry unsolicited.
 
-Connection identifiers worth persisting: `deviceId`, `name`, `serviceId`, `notifyId` and `writeId`.
+### 3. Crypto
 
-#### 1.2 Scan / device identification
+AES-128 in ECB with **zero padding** (not PKCS7): pad the plaintext up to a multiple of 16 with zero bytes, encrypt block by block. When decrypting, only whole 16-byte blocks are processed and any remainder is ignored.
 
-Scan filter: accept a discovered device whose advertised name or local name starts with `XY`,
-`T` or `BT04`. The single-character `T` is deliberately broad, since every Teverun identity
-string begins with it. This is a scan filter only, it classifies nothing.
+Two keys:
 
-The scan accepts any device whose name or local name starts with one of the literal prefixes `XY`, `T` or `BT04`. The single-character `T` prefix is deliberately broad: every Teverun model name begins with `T` (`T1...`, `T2...`, `TDE...`, `TAT...` and so on), so matching `T` catches all of them. This is only the scan filter - it does not classify the model.
+- **Key A** (D7 family): `30572F52364B3F473050415811632D2B`
+- **Key B** (SO6): `20572F52364B3F473050415811632D2B`
 
-Model / feature identification from the BLE advertised name happens after the GATT link is up and only sets client-side feature flags (for example the gear range and whether it is a v2 platform). It is not needed to communicate with the VCU.
+Test vector, plaintext `D7 07 A9 00 00 C8 78` (a 20 km/h speed frame):
 
-The classification hinges on a single question: does the identity string start with `T2`?
+- Key A -> `69 57 0A C6 1E 3B 0F 01 9A BF C5 D6 BF AC 0A 7E`
+- Key B -> `CD EF A3 3F 97 25 C3 24 57 EC F4 80 C5 35 A2 8A`
 
-- Names starting with `T2` are the ver2 platform.
-- Every other `T`-prefixed name (`T1...`, `TDE...`, `TAT...`, ...) belongs to the older T1 class. `TDE` is a T1-class model precisely because it does not start with `T2` (the name is `TDE`, not `T2DE`) and the same holds for `TAT`. `T2` is therefore the single discriminator between the two platforms, not one option among several parallel model prefixes.
+Whether a given frame is encrypted depends on the model's policy: **never** (SO1, SO2 Air, SO3, SO5 - always plaintext), **always** (SO X, the SO2 family, SO5 Pro, the SO One family, using key A; SO6 and SO4 UL using key B) or **fw52** (SO4 and SO myTIER encrypt only once the controller has reported a protocol version of 5.2 or newer). Incoming frames are decrypted only on SO6; D7 and SO3 replies are always plaintext.
 
-| Identity prefix | ver2 | Gear range | Notes |
-|-----------------|------|------------|-------|
-| `T2...` | yes | 0-5 | the ver2 platform, which also offers traction control (TCS) |
-| `T1...` | no | 0-5 | the ECU variant; `T1IL...` is its Israeli form |
-| `TDE...` or `TAT...` | no | 2-4 | eKFV units. The scooter's own display shows these as 1-3 |
-| anything else | no | 0-5 | |
+### 4. Frame formats
 
-> The gear index travels in `55 71` t[3] and that frame is the only source for it. A client should
-> follow what the VCU reports rather than a table, which is why this one carries no more than the
-> range to expect.
-
-The characters after the prefix carry a cosmetic model name for display. Only the first three
-characters matter for talking to the VCU, because they carry the regional marker the firmware acts
-on. Everything after that is decoration and this app does not depend on it.
-
-> The advertised name is more than a label: it is the VCU's device-identity string, which is the scooter's FIN. It is stored in the VCU's I2C EEPROM config block (persisted), mirrored to RAM at boot and changeable at runtime over BLE with command 0x1f (Section 3.6) - no firmware flash, persisted to EEPROM, reversible. Its first three characters gate the firmware speed clamp: a name starting with `TDE` is the restricted eKFV marker (see the [Firmware](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#firmware-reverse-engineering) section). Robust name resolution: on a non-bonded LE connection the advertised name is often empty, so the app also reads the GAP Device Name characteristic (service `0x1800`, characteristic `0x2A00`) right after connecting, plumbs the known name through its `connect(addr, name)` path and never persists an empty name.
-
-#### 1.3 Connect, MTU, notifications
-
-Connect, then wait a moment (about 1.5 s) before discovering services: subscribing too early loses
-the first notifications on some Android stacks. Reconnect when the link drops.
-
-- **MTU:** frames are 20 bytes, so the default ATT MTU of 23 carries one frame per packet and no
-  negotiation is needed.
-- **Notifications, not indications:** enable notify locally and write `01 00` to the CCCD `0x2902`.
-- **Keep-alive:** the VCU streams telemetry unsolicited once it has been greeted. Send the
-  handshake frame after connecting and repeat it about every 6.5 s; without it the stream stops.
-  There is no per-frame polling command.
-
-#### 2.1 Receive pipeline
-
-A single BLE notification may carry several 20-byte frames one after the other, so split the
-buffer every 20 bytes before doing anything else. Accept a frame only when it is exactly 20 bytes
-long and its CRC-8 over bytes `[0..18]` equals byte `[19]`; drop it otherwise, silently. Then
-dispatch on byte `[0]`, the sync byte `0x55`, plus byte `[1]`, the frame id.
-
-A 16-bit value spans two bytes, high byte first.
-
-#### 2.2 How a packed byte is read
-
-Three packings appear in the frames below. The tables refer to them by these names.
-
-| Packing | Layout |
-|---------|--------|
-| bit array | one flag per bit, listed LSB-first: index `[0]` = bit 0 ... index `[7]` = bit 7 |
-| nibble pair | `[high nibble, low nibble]` = `[bits 7..4, bits 3..0]` |
-| timer byte | sleep timer = `byte & 0x07`, power-off timer = `(byte >> 3) & 0x1F` |
-
-#### 2.3 Version / identity frames
-
-| Frame | Field(s) | Bytes -> value | Field name |
-|-------|----------|----------------|------------|
-| `55 41` | Battery serial | `t[2..16]` (15 bytes) ASCII, trimmed; prefix `"AW"` if missing | `batCode` |
-| `55 42` | VCU frame number | `t[2..18]` (17 bytes) ASCII | `frameNum` |
-| `55 43` | VCU SW / HW | if `t[2]>0`: `swVer = t[2].t[3].t[4]` (decimal). Traction control is available if `3 <= t[3] <= 10`. if `t[6]>0`: `hwVer = t[6].t[7].t[8]` | `swVer`, `hwVer` |
-| `55 44` | Display / Battery / LC fw | `t[2]` = display product type, `t[3]` = display product code, `t[4].t[5].t[6]` = display SW; `t[8]/t[9]`+`t[10..12]` = battery; `t[14]/t[15]`+`t[16..18]` = LC. (`FF FF FF` -> `-.-.-`) | - |
-| `55 45` | Main / secondary ctrl | `t[2]/t[3]`+`t[4..6]` = rear main controller version; `t[8]/t[9]`+`t[10..12]` = front main controller version | - |
-| `55 4D` | Extra controllers (4-motor) | `t[2]/t[3]`+`t[4..6]` = second rear controller version; `t[8]/t[9]`+`t[10..12]` = second front controller version | - |
-
-> The scooter's identity string (its FIN, used as the BLE advertised name) is not one of these telemetry frames. It is read from the advertised name or the GAP Device Name characteristic (Section 1.2) and can be changed with command 0x1f (Section 3.6). Its first three characters (`TDE` on an eKFV unit) gate the firmware speed clamp - see the [Firmware](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#firmware-reverse-engineering) section.
-
-#### 2.4 Live telemetry frames
-
-`raw` below is the unsigned value of the byte or byte pair named in the first column.
-
-##### `55 52` - Battery voltage / current / SOC / temperatures
-
-| Bytes | Formula | Field name | Unit |
-|-------|---------|------------|------|
-| `t[2]+t[3]` | `raw * 0.1` | `packVoltage` (measured pack voltage) | V |
-| `t[4]+t[5]` | `raw * 0.1` | `poleVoltage` | V |
-| `t[6]+t[7]` | `raw * 0.1 - 1000` | pack current; < 0 = regeneration | A |
-| `t[8]` | `raw` | `SOC` | % |
-| `t[9]` | `raw * 0.01 * 100` (= `raw`) | `soh` | % |
-| `t[10]...t[16]` | `raw - 40` | battery temps 1-7 | C |
-| `t[17]` | `raw - 40` | max cell temp | C |
-| `t[18]` | `raw - 40` | min cell temp | C |
-
-##### `55 53` - BMS relays / capacity / cell voltages
-
-| Bytes | Formula | Field name | Unit |
-|-------|---------|------------|------|
-| `t[2]` | `raw` | `relay1` | bool |
-| `t[3]` | `raw`; also a bit array of the pack status when `!= ff` | `relay2` | bool |
-| `t[4]` | `raw` | `relay3`; also `charMode` | - |
-| `t[5]` | `raw` | `chrMosState` | - |
-| `t[6]` | `raw` | `dischrMosState` | - |
-| `t[7]` | bit array | `balState0` (cell balancing, one bit per cell) | - |
-| `t[8]+t[9]` | `raw` (T1 class) | capacity | Ah |
-| `t[10]+t[11]` | `raw` (ver2) | capacity | Ah |
-| `t[12]+t[13]` | `raw` | `chargeCounter` | cycles |
-| `t[14]` | `raw` | cell count | - |
-| `t[15]+t[16]` | `raw` | max cell voltage | mV |
-| `t[17]+t[18]` | `raw` | min cell voltage | mV |
-
-##### `55 54` - Error codes / charge status
-
-| Bytes | Meaning |
-|-------|---------|
-| `t[2..18]` | fault array, 17 entries: the position in the array is the fault type and the byte value is its severity. `0` means no fault; anything above `3` still counts as `3`. |
-| `t[17]` | `chargeStatus` (charge-image index) |
-
-The app rolls the array up into one warning level: any severity above `2` (except at index 16) gives `2`; otherwise index 0 or index 2 above severity `1` gives `1`; otherwise `0`.
-
-##### `55 71` - Main control: gear / limits / system status
-
-| Bytes | Formula | Field name | Unit |
-|-------|---------|------------|------|
-| `t[3]` | `raw` | `gear` | 1-5 |
-| `t[4]` | bit array | `rControlStatus` | - |
-| `t[5]` | `raw` | `motorPolePairs` | - |
-| `t[6]` | `raw * 0.1` | `wheel` (wheel size, internal unit) | - |
-| `t[7]` | `raw` | `protectionTemp` | C |
-| `t[8]` | nibble pair | assist byte 1: low nibble = `frontStartLevel` | - |
-| `t[9]` | nibble pair | assist byte 2: high nibble = `eabsRegen`, low nibble = `rearStartLevel` | - |
-| `t[10]` | `raw` | per-gear `speedLimit` | km/h |
-| `t[11]` | `raw` | main `speedLimit` | km/h |
-| `t[12]` | `raw` | `frontCurrent` | - |
-| `t[13]` | `raw` | `rearCurrent` | - |
-| `t[15]` | `raw` | `packVoltage` (nominal, the configured pack size) | V |
-| `t[16]` | bit array | `fControlStatus` | - |
-| `t[17]` | bit array | `systemStatus` (see below) | - |
-| `t[18]` | timer byte | `sleepTime` = `t[18]&7`, `prTime` = `(t[18]>>3)&31` | - |
-
-Status bits in `t[17]`, LSB-first: `[0]` `ecoMode`, `[1]` `unitMiles` (miles instead of kilometres), `[2]` `antiTheft`, `[4]` `tractionControl`, `[5]` reverse gear, `[6]` a hardware flag set on eKFV units, `[7]` monitor mode.
-
-This frame reports only the CURRENTLY active gear (`t[3]`) together with that gear's per-gear/assist values (`t[8]`-`t[13]`). There is no bulk read of all gears, so to populate every gear's values in the editor the scooter has to be switched through each gear once (the app caches them per session in memory only, never on disk). On eKFV (TDE) units the internal gears 2/3/4 map to 1/2/3 on the scooter display.
-
-`rControlStatus` bits (`t[4]`, LSB-first): cruise level = `(bit2 << 1) | bit1`, `[3]`=ABS, `[6]`=`startMode` (launch).
-
-##### `55 72` - Motor: current / temp / ECU status / raw speed
-
-| Bytes | Formula | Field name | Unit |
-|-------|---------|------------|------|
-| `t[2]` | bit array | `fEcuStatus1` | - |
-| `t[3]` | bit array | `fEcuStatus2`; `[3]` = `dualMotor` | - |
-| `t[4]+t[5]` | `raw * 0.1` | `frontMotorCurrent` | A |
-| `t[9]` | `raw` (kept only if `>0`) | `frontMotorTemp` | C |
-| `t[10]` | bit array | `ecuStatus1` | - |
-| `t[11]` | bit array | `ecuStatus2`; `[3]` = `rearMotorOn`, `[4]`=headlight, `[5]`/`[6]`=turn signals | - |
-| `t[12]+t[13]` | `raw * 0.1` | `rearMotorCurrent` | A |
-| `t[15]+t[16]` | `raw` | `speedRaw` | raw |
-| `t[17]` | `raw` (kept only if `>0`) | `rearMotorTemp` | C |
-| `t[18]` | bit array (if `!= ff`) | `systemStatus3` | - |
-
-`ecuStatus1` bits: `[0]`=brake fault, `[2]`=warning type2 (tail-light), `[3]`=warning, `[4]`=warning2, `[7]`=park (P). `ecuStatus2` bits: `[0]`=cruise active, `[3]`=`rearMotorOn`, `[7]`=park (P).
-
-##### `55 73` - Ride: avg/max speed / distance / energy
-
-| Bytes | Formula | Field name | Unit |
-|-------|---------|------------|------|
-| `t[2]+t[3]` | `raw * 0.1` | `avgSpeed` | km/h |
-| `t[4]+t[5]` | `raw * 0.1` | `maxSpeed` | km/h |
-| `t[6]+t[7]` | `raw * 0.1` | `singleMile` (trip) | km |
-| `t[8]+t[9]+t[10]` | `raw` (3 bytes, BE) | `totalMile` (odometer) | km |
-| `t[11]+t[12]` | `raw * 0.1` | `enFeedBack` (cumulative regen) | unit unverified |
-| `t[16]` | bit array (if `!= ff`) | `systemStatus2`: `[0]`=battery lock, `[1]`=GPS lock; `(bit7<<1)\|bit6` = power level | - |
-| `t[17]` | `raw` | `customKey` (current custom-key function) | - |
-| `t[18]` | bit array (if `!= ff`) | `[3]`=power mode, `[4]`=light sensor, `[5]`=voice, anti-theft level = `(bit7<<1)\|bit6` | - |
-
-##### `55 79` - 4-motor control status (Tetra)
-
-`t[4]` and `t[16]` are bit arrays: the control status of the second rear motor and of the second front motor.
-
-##### `55 7A` - 4-motor rear/front (Tetra)
-
-| Bytes | Formula | Meaning | Unit |
-|-------|---------|---------|------|
-| `t[2]` | bit array | second front motor: controller status | - |
-| `t[4]+t[5]` | `raw * 0.1` | second front motor: current | A |
-| `t[9]` | `raw` (if `>0`) | second front motor: temperature | C |
-| `t[10]` | bit array | second rear motor: controller status | - |
-| `t[12]+t[13]` | `raw * 0.1` | second rear motor: current | A |
-| `t[17]` | `raw` (if `>0`) | second rear motor: temperature | C |
-
-#### 2.5 Derived values
-
-Road speed, from the raw speed value and the wheel size:
+**D7** (`buildFrameD7`):
 
 ```
-speed_kmh = 287 * wheel / speedRaw            // wheel = 55 71 t[6]*0.1
-speed_mph = speed_kmh / 1.6093439
-if (speedRaw >= 3000 || speed <= 0.5) speed = 0
+body     = [LEN, OPCODE, BYTE3, payload...]
+LEN      = payload.length + 5
+BYTE3    = 0x00 (D7) or the rolling secret (SO3)
+CHECKSUM = sum(body) & 0xff        // the 0xD7 start byte is not counted
+frame    = [0xD7, body..., CHECKSUM]
 ```
 
-The speed is carried in mph when the unit is set to miles, otherwise in km/h. Any cap a client puts on top of that is its own doing; the frame carries the value the VCU measured.
+Example, 20 km/h: `D7 07 A9 00 00 C8 78`. KingMeter replies start with `0xD5` instead of `0xD7` (GT2 / Core2); the receive parser accepts `0xD7` or `0xD5` and drops anything else. Outgoing frames always start `0xD7`.
 
-Power:
-
-```
-single motor: power_kW = rearMotorCurrent * packVoltage / 1000
-dual motor:   power_kW = (rearMotorCurrent + frontMotorCurrent) * packVoltage / 1000
-```
-
-Live regeneration: from `55 52` current = `t[6]+t[7]` * 0.1 - 1000; `current < 0` => regen, `|current|` = fed-back current [A].
-
-#### 2.6 Field names used in this app
-
-These are the names Laufbursche Edition gives the decoded values. They are our labels for the bytes described above, nothing the scooter ever sends: the link carries numbers, not names.
-
-Ride and drive: `speed`, `speedRaw`, `avgSpeed`, `maxSpeed`, `power`, `gear`, `speedLimit`, `singleMile`, `totalMile`, `enFeedBack`, `customKey`.
-
-Motors: `frontMotorCurrent`, `rearMotorCurrent`, `frontMotorTemp`, `rearMotorTemp`, `dualMotor`, `rearMotorOn`.
-
-Battery: `SOC`, `soh`, `packVoltage`, `poleVoltage`, `chargeCounter`, plus the pack temperatures, the per-cell voltages and the capacity, which feed the Battery info page.
-
-Status bit arrays: `systemStatus[]`, `ecuStatus1[]`, `ecuStatus2[]`, `rControlStatus[]` and `fControlStatus[]`.
-
-GPS position, GPS speed and the BLE signal strength come from the phone, not from the VCU frames.
-
----
-
-### 3. Outgoing commands (phone -> VCU)
-
-#### 3.1 Frame format & CRC
-
-Every command is a 20-byte frame:
+**SO3** is the same as D7, except `BYTE3` is a rolling secret recomputed from three bytes of each status frame:
 
 ```
-[0]  0xAA (170)  header/sync
-[1]  cmdId
-[2..18]  17 payload bytes (default 0xFF)
-[19] CRC-8
+t = (b15 ^ b3) ^ (b16 ^ b3)
+t = ((t + 0xCE) & 0xff) ^ 0xB2
+t = ((t + 0xA5) & 0xff) ^ 0xCA
+t = ((t + (b3 & 0x0F)) & 0xff) ^ 0x2B
+t = ((t + 0x33) & 0xff) ^ 0x1D
+return t & 0x7F
 ```
 
-CRC-8:
-
-- Polynomial `0x07`, init `0x00`, MSB-first, no input or output reflection, no final XOR. That is
-  the classic CRC-8/ATM, so any ready-made implementation of it fits.
-- Computed over the first 19 bytes `[0..18]`, result placed in byte `[19]`.
-- The same computation terminates an outgoing frame and validates an incoming one.
-
-Send path: build the 20-byte frame, compute the CRC into byte `[19]` and write all 20 bytes in a
-single GATT write. Retry a handful of times on failure and serialize concurrent writes. The write
-characteristic supports both with-response and without-response writes; this app uses with-response
-for settings and without-response during a firmware flash, where pacing matters more than
-confirmation.
-
-#### 3.2 Frame layout for control commands
-
-Every command frame is 20 bytes. Byte `[0]` is the start marker `0xAA`, byte `[1]` is the command
-id, bytes `[2..18]` default to `0xFF` and only the fields a command actually uses are filled in,
-byte `[19]` is the CRC-8. The VCU treats anything left at `0xFF` as "no change", which is what
-makes a one-field write possible without resending the rest.
-
-#### 3.3 Command id map
-
-| cmdId (dec / hex) | Purpose | Key payload |
-|-------------------|---------|-------------|
-| 1 / 0x01 | handshake / keep-alive (every 6.5 s) | `[2]=16 (0x10)`, `[3]=0`, `[4..7]` stay at `255` |
-| 2 / 0x02 | deep sleep | `[11]=1` |
-| 3 / 0x03 | charge mode | `[16]` = mode |
-| 8 / 0x08 | LED on/off, RGB, mode | `[2]`=on, `[3]`=mode, `[4..6]`=RGB, `[7]` |
-| 24 / 0x18 | full settings write (see Section 3.4) | whole frame |
-| 26 / 0x1A | custom-key function | `[6]` = key id (Section 3.5) |
-| 28 / 0x1C | RTC time sync | `[2]`=year%100, `[3]`=month (1-12), `[4]`=day, `[5]`=hour, `[6]`=min, `[7]`=sec |
-| 31 / 0x1F | set BLE name / VCU identity (see Section 3.6) | `[2..17]` = 16 ASCII name bytes |
-
-The handshake therefore serializes to: `AA 01 10 00 FF FF FF FF FF ... FF <CRC>`.
-
-#### 3.4 The full settings write (cmd 0x18)
-
-The frame carries a write mode and a gear index. It starts as `0xAA 0x18` followed by seventeen `0xFF` bytes; then:
-
-| Index | Value | Meaning |
-|-------|-------|---------|
-| `a[0]` | `170` (0xAA) | header |
-| `a[1]` | `24` (0x18) | cmdId |
-| `a[2]` | write mode | `0` normal, `2` immediate (used by the motor toggle and by charge mode). In mode `2` the gear index goes into `a[3]`. |
-| `a[3]` | gear (TDE: gear 4 -> 5) | current gear. In mode `2` it holds the gear index being written |
-| `a[4]` | control bits | rControlStatus byte - see bit map below |
-| `a[5]` | `motorPolePairs` | |
-| `a[6]` | `wheel * 10` | wheel size |
-| `a[7]` | `protectionTemp` | |
-| `a[8]` | nibble pair | assist byte 1: high nibble = `eabsRegen`, low nibble = `frontStartLevel` |
-| `a[9]` | nibble pair | assist byte 2: high nibble = `eabsRegen`, low nibble = `rearStartLevel` |
-| `a[10]` | per-gear `speedLimit` | speed limit of the gear being written |
-| `a[11]` | main `speedLimit` | |
-| `a[12]` | `frontCurrent` | front current limit |
-| `a[13]` | `rearCurrent` | rear current limit |
-| `a[14]` | voltage code (from `packVoltage`) | see voltage-code table below |
-| `a[15]` | `packVoltage` | pack nominal voltage (36/48/52/60/72/84) |
-| `a[16]` | flag bits | flag byte - see bit map below |
-| `a[17]` | control bits with bit 7 = `dualMotor` | fControlStatus byte |
-| `a[18]` | `(prTime << 3) \| sleepTime` | sleep / power-off timer |
-| `a[19]` | CRC-8 | over `[0..18]` |
-
-`a[14]` voltage code, derived from `packVoltage`:
-
-| `packVoltage` | code |
-|----------|------|
-| 36 | 30 |
-| 48 | 39 |
-| 52 | 42 |
-| 60 | 48 |
-| 72 | 60 |
-| 84 | 69 |
-
-`a[16]` flag byte, LSB-first:
-
-| Field | Bit | Mask |
-|-------|-----|------|
-| `ecoMode` | 0 | `0x01` |
-| `unitMiles` (miles instead of kilometres) | 1 | `0x02` |
-| `antiTheft` | 2 | `0x04` |
-| `tractionControl` | 4 | `0x10` |
-
-`a[4]` / `a[17]` control bytes, LSB-first:
-
-| Field | Bit | Notes |
-|-------|-----|-------|
-| cruise | 0, 1, 2 | automatic -> bits 0 and 1 set; manual -> bit 2 set; off -> none of them |
-| ABS | 3 | |
-| `startMode` | 6 | launch mode |
-| `rearMotorOn` | 7 | in `a[4]` only |
-| `dualMotor` | 7 | in `a[17]` only |
-
-> Bit 0 is the least significant bit of the byte in both control bytes and in the flag byte. The two assist nibbles are the other way round: high nibble first.
-
-Multi-frame behaviour: on a unit that is not the ECU variant the write is repeated once per gear profile, gear index 1 to 5, roughly 200 ms apart. Changing a single setting needs only one frame, sent with the gear index that setting belongs to.
-
-#### 3.5 Custom-key function values
-
-Byte `[6]` of command 0x1A selects what the scooter's physical custom key does:
-
-| Value | Function |
-|-------|----------|
-| 1 | motor mode |
-| 2 | kick to start |
-| 3 | cruise control, automatic |
-| 4 | speed limit |
-| 5 | scooter lock |
-| 6 | traction control |
-| 7 | lights on / off |
-| 8 | light mode |
-| 9 | boost |
-| 10 | cruise control, manual |
-| 11 | EABS regeneration |
-
-Assign a function to the physical custom key with:
+**SO6** (`buildFrameSO6`):
 
 ```
-cmd 0x1A with [6] = N                          // N from the table
-// -> AA 1A FF FF FF FF <N> FF FF ... FF <CRC>
+frame = [GROUP, SUB, payload.length, payload...]    // then the whole frame is AES with key B
 ```
 
-The current assignment is reported back in `55 73` `t[17]` (`customKey`).
+No start byte, no checksum, no trailing token. On receive, decrypt first, then read `[group, sub, plen, payload...]`.
 
-#### 3.6 Identity / device-name change (cmd 0x1f)
+**Speed payload:** `v = round(kmh * 10); payload = [(v >> 8) & 0xff, v & 0xff]` (big-endian, 0.1 km/h steps).
 
-The BLE advertised name is the VCU's device-identity string - the scooter's FIN - held in the VCU I2C EEPROM config block and mirrored to RAM (Section 1.2). Command 0x1f rewrites it at runtime. The frame is the usual 20 bytes:
+### 5. Commands
 
-```
-[0]      0xAA        header / sync
-[1]      0x1F        cmdId
-[2..17]  16 bytes    new identity, ASCII (padded / truncated to 16)
-[18]     0xFF        unused
-[19]     CRC-8       over [0..18]
-```
+For D7/SO3 the ack key is `op:OPCODE`; for SO6 it is `so6:group:sub`.
 
-The VCU writes the new identity to EEPROM, so it survives a reboot; it needs no firmware flash and is fully reversible by sending the original name back. The app exposes this as `setDeviceName` / `setBleName`, surfaced as the "Change identity" row in Scooter Info, where the full FIN is editable with a Set button. The app never persists an empty name.
+- **Max speed** - opcode `0xA9`, payload = speed payload. Offered only on models with a BLE speed command (all but SO6 and SO4 UL). This is the tuning lever: `km/h * 10` big-endian, with no clamp applied in the frame builder.
+- **Ride mode** (eco 0 / normal 1 / sport 2) - SO3: `0xA4 [0x00, mode]`; older SO4: `0xA0 [modeByte0, 0x00]`; otherwise `0xA3 [mode]`.
+- **Unlock** - SO6: `{05,01}` with PIN `303030303030` where required, otherwise empty; SO3: `0xA2 [00,00]`; older SO4: `0xA0 [modeByte0, 0x00]`; otherwise `0xA0 [0x00]`.
+- **Lock** - SO6: `{05,0C} [0x01]`; SO3: `0xA2 [00,02]`; older SO4: `0xA0 [modeByte0, 0x01]`; otherwise `0xA0 [0x01]`.
+- **Battery unlock** (D7 only) - SO4 (only from V52): `0xD5 [0x01]`; so5base: `0xD5 [0x00]`.
+- **Headlight** (so5base) `0xA2 [on]`; **dark mode** (so5base) `0xD6 [on ? 0x00 : 0x01]` (inverted); **zero-start** (so5base) `0xA5 [on]`.
+- **Units** - SO3: `0xAB [00, imperial ? 02 : 00]`; otherwise `0xA7 [imperial]`. Not offered on SO4.
+- **Live-data nudge** - D7/SO4: `0x1D []`; SO3: `0xA0 [00,02]`; SO6: `{05,46} [0x01]`.
 
-The first three characters of this identity gate the eKFV speed clamp: a name starting with `TDE` is the restricted eKFV marker, while the firmware factory default `AWPE-VCU-220212` is unrestricted. Changing the identity flips Gate 1 of the speed clamp but not Gate 2 (the display), so a name change alone does not raise the top speed. See the [Firmware](https://github.com/Laufbursche42/tr-fw/blob/main/README.md#firmware-reverse-engineering) section for the full picture.
+The device-name command is deliberately not implemented - writing it can throw the scooter out of the manufacturer app.
 
----
+### 6. Telemetry
 
-### 4. Motor enable / disable (single vs dual, drive mode)
+Frames arrive with the family's start byte; D7/SO4 and SO5ProBase carry live data in the `0x1D` frame, SO3 in `0x1D` (plus a `0x2D` status frame), SO6 in the `{05,46}` reply.
 
-The motor-mode toggle cycles the drive mode and then writes the full settings frame in mode 2:
+- **SO4 `0x1D`:** status byte (bit 0 headlight, bits 1-3 mode, bit 4 unit, bit 7 locked); speed, voltage and current each as a 0.1-scaled big-endian pair; a fault byte; the protocol version nibble (byte 12, which also selects whether AES is active); display and CPU version bytes; trip and total distance; battery percentage.
+- **SO5ProBase `0x1D`:** the same shape with length guards - status, speed, voltage, current, a four-byte fault field, protocol / display / CPU versions, trip and total distance, battery percentage, a ride-duration triple and a dark-mode byte (0 = on), each present only when the frame is long enough.
+- **SO3 `0x1D`:** status, speed, voltage, current and (when long enough) power and energy. Bytes 3, 15 and 16 feed the rolling secret. A separate `0x2D` frame carries the firmware nibbles, trip and total distance.
+- **SO6 `{05,46}`:** after decryption, voltage (0.1-scaled, confirmed), current and power; further fields are uncertain. SO6 reports no speed, mode, battery, lock, firmware or distance.
 
-```
-current (rearMotorOn, dualMotor)             next state
-----------------------------------------     ----------
-dual  (rearMotorOn=1, dualMotor=1)    ->     rear-only  (rearMotorOn=1, dualMotor=0)
-rear-only                             ->     front-only (rearMotorOn=0, dualMotor=1)
-front-only                            ->     dual       (rearMotorOn=1, dualMotor=1)
-then: settings write, mode 2                 // cmd 0x18
-```
+Speed, voltage, current, power and energy are read as unsigned big-endian pairs scaled by 0.1 unless noted.
 
-On the wire (write, cmd 0x18):
+### 7. Operation notes
 
-- `a[4]` bit 7 = `rearMotorOn` (rear motor active)
-- `a[17]` bit 7 = `dualMotor` (dual / front motor active)
-
-Read-back (cmd 0x72):
-
-- `dualMotor` = `fEcuStatus2[3]` = bit 3 of `t[3]`
-- `rearMotorOn` = `ecuStatus2[3]` = bit 3 of `t[11]`
-
-> Caution - verify on device. The write encodes these two flags in bit 7 of control bytes `a[4]` / `a[17]`, whereas the read-back decodes them from bit 3 of different status bytes in the `55 72` frame. They are distinct bytes in distinct frames, so there is no direct contradiction, but the exact VCU-side bit position for commanding single vs. dual motor should be confirmed against a live VCU. There is no dedicated "motor" opcode - motor mode is only ever changed through the full settings write (cmd 0x18) and the custom-key motor function (value 1, Section 3.5) merely maps the hardware button to this same toggle.
-
-`motorPolePairs` (`a[5]` out / `55 71` `t[5]` in) is a motor parameter, not an enable flag.
-
----
-
-### 5. Implementation notes (for the Java layer)
-
-- Endianness: all multi-byte numeric fields are big-endian (`hex[n] + hex[n+1]` in stream order, high byte first). `55 73 totalMile` is a 3-byte BE value (`t[8]+t[9]+t[10]`).
-- Signedness: every raw value is treated as unsigned; negative results come from fixed offsets - current `raw*0.1 - 1000`, all temperatures `raw - 40`. There are no two's-complement fields.
-- Byte representation: index the raw `byte[]` directly and mask with `& 0xFF`. Frame = `byte[20]`.
-- Frame gating: only accept a 20-byte frame whose CRC-8 (poly `0x07`, init `0x00`, MSB-first) over bytes `[0..18]` equals byte `[19]`. Drop otherwise. A single BLE notification may contain several concatenated 20-byte frames - split every 20 bytes before validating.
-- Dispatch: incoming header byte `[0] = 0x55`; command in `[1]`. Outgoing header `[0] = 0xAA`; command in `[1]`; CRC in `[19]`.
-- Bit order: every status byte is read and written LSB-first (array index 0 = bit 0). The assist nibbles are the exception, high nibble first.
-- Notifications, not indications: enable local notify + write CCCD `0x2902` = `0x01 0x00`.
-- Startup sequence: connect -> discover services (pick primary `0000FF...` / `495353...`) -> discover characteristics (notify/write per Section 1.1) -> enable notifications (CCCD) -> send the handshake frame and repeat every ~6.5 s. Telemetry then streams unsolicited; no per-frame request is needed.
-- Writes: send the complete 20-byte frame in a single GATT write; retry a few times on failure. Serialize concurrent writes; the multi-frame settings write wants roughly 200 ms between frames.
-- Uncertain items (flagged above): (a) exact VCU bit for single/dual-motor commanding - see Section 4; (b) `enFeedBack` physical unit - unverified; (c) preferred write type (with vs. without response) - the default is with-response.
+- **Write queue.** Serialise every write: each frame goes out only after the previous one plus a ~250 ms settle, even on failure - the controller drops frames that arrive too fast. The handshake frames go through the same queue. Prefer write-without-response.
+- **Ack window.** Arm the command's ack key before sending and wait up to ~3000 ms for the first matching echo. An echo within the window means the command was accepted (not proof the value is actually being ridden). There is no app-level retry.
+- **Connect reset.** On each connect, clear the local speed-unlock flag, the init-sent flag, the firmware major/minor and the SO3 secret. Outgoing frames are always `0xD7`; incoming are `0xD7` or `0xD5`.
+- **Tuning caveat.** The max-speed command writes `km/h * 10` big-endian with no cap in the builder. Whether the controller rides above its factory clamp is a per-device test, not a guarantee.
 
 ## License
 
-**What it covers and what it does not.** The licence covers what is in this repository: the Laufbursche Edition app, its build files and this documentation. It does **not** cover the scooter's Bluetooth protocol nor the manufacturer's firmware. Neither of those is ours, so neither is ours to license. Nothing here gives you any right in them. The protocol reference above is a written record of what was observed on the wire, so that the app can be understood, checked and maintained. Describing an interface is not the same as owning it. A description grants nothing. "Teverun" and the scooter firmware belong to their respective owner, see [Disclaimer & Trademarks](#disclaimer--trademarks).
+**What it covers and what it does not.** The licence covers what is in this repository: the Laufbursche Edition app, its build files and this documentation. It does **not** cover the scooter's Bluetooth protocol nor the manufacturer's firmware. Neither of those is ours, so neither is ours to license. Nothing here gives you any right in them. The protocol reference above is a written record of what the app implements, so that it can be understood, checked and maintained. Describing an interface is not the same as owning it. A description grants nothing. "SoFlow" and the scooter firmware belong to their respective owner, see [Disclaimer & Trademarks](#disclaimer--trademarks).
 
 This project is source-available under the **PolyForm Noncommercial License 1.0.0** plus the Additional Terms in the `license.md` file. In plain language:
 
@@ -839,3 +483,5 @@ See the [`license.md`](license.md) file for the full Additional Terms and the co
 This is **source-available, not OSI "open source"**, by design: the noncommercial restriction means it does not meet the Open Source Definition and that is intentional. It is **not** a pure open-source project in the OSI sense - the source is made **public** so that anyone can inspect it, see exactly what the app does and modify it for their own **private** use.
 
 Once you **publish** your own version (distribute a fork), you must observe the license terms: rename the app by replacing "Laufbursche" with your own developer name or pseudonym while keeping the word "Edition" (for example, "Falcon Edition") and never reuse the name "Laufbursche Edition" or the "Laufbursche Edition" logo, use your **own** name and your **own** logo, keep the origin notice in the app's **Version Info & Disclaimer** screen and keep it **noncommercial** unless you have the author's written permission.
+</content>
+</invoke>

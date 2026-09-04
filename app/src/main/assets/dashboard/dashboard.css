@@ -917,3 +917,7 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
   background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
 }
 .range-ctrl { width: 100%; accent-color: var(--btnfill); height: 28px; cursor: pointer; }
+
+/* SoFlow edition: hide Teverun-only UI that the SoFlow protocol does not feed
+   (dual-motor tiles, motor-mode / drive-mode quick toggles, per-gear values). */
+#motor-area, #motor-quick, #drive-quick, .sf-hide { display: none !important; }

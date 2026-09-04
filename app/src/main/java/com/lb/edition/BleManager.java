@@ -1,4 +1,4 @@
-// Laufbursche Edition - an app for Teverun e-scooters.
+// Laufbursche SoFlow Edition - a companion app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 
@@ -23,20 +23,26 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.lb.edition.Models.Family;
+import com.lb.edition.Models.Proto;
+import com.lb.edition.Models.Transport;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayDeque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Native BLE layer for the Teverun VCU (UART-over-BLE). The connection flow the VCU answers to:
- * scan by name prefix, connect GATT, discover the primary
- * 0000FF.. / 495353.. service, pick notify/write characteristics, enable notifications (local +
- * CCCD), then send connectCode(0) once and every 6.5 s to start/sustain the telemetry stream.
+ * Native BLE layer for SoFlow scooters. Connection flow: scan by name prefix (SFS/QINGZ/SoFlow),
+ * classify by advertised name, connect GATT, resolve the transport service (Nordic UART, KingMeter
+ * or SO6, in that fallback order), pick its write/notify characteristics, enable notifications, then
+ * run the per-family post-connect handshake (spec 5.8). Outgoing frames are encrypted per the model
+ * policy at send time; SO6 incoming frames are decrypted by the parser. There is no firmware OTA on
+ * SoFlow, so no flashing path exists here.
  *
  * All public entry points are null/exception-safe so nothing ever throws across the JS bridge.
  */
@@ -45,34 +51,29 @@ final class BleManager {
 
     private static final String TAG = "lbble";
 
-    // CCCD descriptor
     private static final UUID CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-    // Hard-coded ISSC Transparent-UART characteristics (used when the service is 495353..)
-    private static final String ISSC_NOTIFY = "49535343-1e4d-4bd9-ba61-23c647249616";
-    private static final String ISSC_WRITE  = "49535343-aca3-481c-91ec-d85e28a60318";
-    // Generic Access service + Device Name characteristic: the reliable post-connect source of the
-    // BLE name / FIN (the advertised name and BluetoothDevice.getName() are often null on LE).
+    // Generic Access service + Device Name: the reliable post-connect source of the BLE name.
     private static final UUID GAP_SERVICE     = UUID.fromString("00001800-0000-1000-8000-00805f9b34fb");
     private static final UUID GAP_DEVICE_NAME = UUID.fromString("00002a00-0000-1000-8000-00805f9b34fb");
 
-    private static final String[] NAME_PREFIXES = {"XY", "T", "BT04"};
+    // Broad SoFlow scan filter (spec 1.5): every model prefix begins SFS, plus QINGZ (SO3) and the
+    // plain "SoFlow"/"SOFLOW" clear name newer units advertise.
+    private static final String[] NAME_PREFIXES = {"SFS", "QINGZ", "SoFlow", "SOFLOW"};
+    // Transport resolve order when the model does not pin one, or its expected service is absent.
+    private static final Transport[] TRANSPORT_ORDER = {Transport.NORDIC, Transport.KINGMETER, Transport.SO6};
 
-    private static final long CONNECT_CODE_INTERVAL_MS = 6500;
     private static final long DISCOVER_DELAY_MS = 1500;   // the module needs ~1.5 s after connect
-    private static final long WRITE_GAP_MS = 200;         // the module keeps up at ~200 ms per frame
-    private static final long RECONNECT_BASE_MS = 3000;    // exponential-backoff base delay
-    private static final long RECONNECT_MAX_MS = 30000;    // exponential-backoff cap
+    private static final long WRITE_SETTLE_MS = 250;      // spec 7.1: space frames 250 ms apart
+    private static final long ACK_TIMEOUT_MS = 3000;      // spec 7.2: ack window
+    private static final long SO4_LINK_TIMEOUT_MS = 2500; // spec 5.8: SO4 version-wait fallback
+    private static final long RECONNECT_BASE_MS = 3000;
+    private static final long RECONNECT_MAX_MS = 30000;
     private static final long PUSH_INTERVAL_MS = 500;     // live-data push ~2x/s
 
     interface Listener {
         void onScanResults(String jsonArray);
         void onState(String json);
         void onLiveData(String json);
-        // Firmware-update (OTA) callbacks. json fields: progress {percent,packet,count,phase};
-        // state {state,message}. Log is a plain line. All are null/exception-safe on the far side.
-        void onOtaProgress(String json);
-        void onOtaLog(String line);
-        void onOtaState(String json);
     }
 
     private final Context appCtx;
@@ -92,23 +93,25 @@ final class BleManager {
     private volatile BluetoothGattCharacteristic writeChar;
     private volatile boolean notifyReady = false;
     private volatile boolean connected = false;
-    // Guards the one-shot data-characteristic setup: the GAP-name read runs first and calls
-    // setupCharacteristics() on completion, with a timeout fallback - this stops it running twice.
     private volatile boolean charsSetupDone = false;
 
     private String desiredAddress;
     private String deviceName = "";
 
-    // Auto-reconnect backoff: current delay, doubles per failed attempt (base..cap), reset on connect.
+    // Active model + transport, resolved on connect (name first, service as fallback for "SoFlow").
+    private volatile Proto activeProto;
+    private volatile Transport usedTransport;
+    // SO4 sends the init frame once the firmware version (byte 12) is known; guards the one-shot.
+    private volatile boolean initSent = false;
+
     private volatile long reconnectDelay = RECONNECT_BASE_MS;
 
-    // write serialisation
-    private final ArrayDeque<byte[]> writeQueue = new ArrayDeque<>();
+    // write serialisation (spec 7.1)
+    private final ArrayDeque<CommandBuilder.Frame> writeQueue = new ArrayDeque<>();
     private boolean writing = false;
 
-    // Firmware-update engine. Non-null and running while a flash is in progress; during that time
-    // notifications and write-completions are routed to it and the normal keep-alive / push are paused.
-    private volatile OtaEngine ota;
+    // ack tracking (spec 7.2): ackKey -> timeout runnable
+    private final Map<String, Runnable> pendingAcks = new HashMap<>();
 
     BleManager(Context ctx, Listener listener) {
         this.appCtx = ctx.getApplicationContext();
@@ -230,15 +233,10 @@ final class BleManager {
 
     // ── Connect / disconnect ──
 
-    /**
-     * Connect and seed the BLE name the caller already knows (e.g. from the scan list or the
-     * remembered scooter), so the FIN / Bluetooth name shows immediately even when the LE stack
-     * returns a null {@code getName()} on reconnect. The GAP-name read still runs and refreshes it.
-     */
+    /** Connect and seed the already-known BLE name so classification/display work immediately. */
     void connect(String address, String name) {
         if (name != null && !name.trim().isEmpty()) {
             deviceName = name.trim();
-            parser.isVer2 = deviceName.startsWith("T2");
             parser.btName = deviceName;
         }
         connect(address);
@@ -249,7 +247,6 @@ final class BleManager {
             if (address == null || address.trim().isEmpty() || adapter == null) return;
             desiredAddress = address.trim();
             stopScan();
-            // record any name we already discovered for this address
             synchronized (found) {
                 ScanEntry e = found.get(desiredAddress);
                 if (e != null && e.name != null) deviceName = e.name;
@@ -259,10 +256,12 @@ final class BleManager {
             if (deviceName == null || deviceName.isEmpty()) {
                 try { String n = dev.getName(); if (n != null) deviceName = n; } catch (Throwable ignored) {}
             }
-            parser.isVer2 = deviceName != null && deviceName.startsWith("T2");
-            // Expose the BLE name to the dashboard as soon as it is known (forms the FIN prefix).
             parser.btName = deviceName == null ? "" : deviceName;
-            Log.i(TAG, "connect() -> " + desiredAddress + " name=" + deviceName);
+            // Classify by advertised name now (spec 1.4). "SoFlow"/"SOFLOW" clear names give null and
+            // are resolved from the GATT service after discovery (spec 1.5).
+            classifyByName();
+            Log.i(TAG, "connect() -> " + desiredAddress + " name=" + deviceName
+                    + " proto=" + (activeProto == null ? "(by service)" : activeProto.id));
             pushState("connecting");
             gatt = dev.connectGatt(appCtx, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
         } catch (Throwable t) {
@@ -270,9 +269,13 @@ final class BleManager {
         }
     }
 
+    private void classifyByName() {
+        String id = Models.classifyByName(deviceName);
+        activeProto = (id != null) ? Models.get(id) : null;   // null -> resolve from service later
+    }
+
     void disconnect() {
         desiredAddress = null;   // user-initiated: no auto-reconnect
-        stopKeepAlive();
         stopPush();
         try {
             if (gatt != null) gatt.disconnect();
@@ -305,12 +308,13 @@ final class BleManager {
     /** Reconnect to the remembered scooter. No-ops if already connected/busy or nothing is stored. */
     void connectLast() {
         try {
-            if (connected || desiredAddress != null) return;   // self-guard: already connected/busy
+            if (connected || desiredAddress != null) return;
             SharedPreferences sp = appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE);
             String addr = sp.getString("last_device_addr", "");
+            String name = sp.getString("last_device_name", "");
             if (addr != null && !addr.isEmpty()) {
                 Log.i(TAG, "connectLast() -> " + addr);
-                connect(addr);
+                connect(addr, name);
             }
         } catch (Throwable t) {
             Log.e(TAG, "connectLast failed", t);
@@ -326,8 +330,9 @@ final class BleManager {
             notifyChar = null;
             writeChar = null;
             notifyReady = false;
-            charsSetupDone = false;   // next connection re-runs the GAP-name read + characteristic setup
+            charsSetupDone = false;
             synchronized (writeQueue) { writeQueue.clear(); writing = false; }
+            clearAcks();
         }
     }
 
@@ -340,7 +345,6 @@ final class BleManager {
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 Log.i(TAG, "GATT connected");
                 pushState("discovering");
-                // The module reports an incomplete service list when queried right after connect.
                 main.postDelayed(() -> {
                     try { if (gatt != null) gatt.discoverServices(); } catch (Throwable ignored) {}
                 }, DISCOVER_DELAY_MS);
@@ -348,16 +352,13 @@ final class BleManager {
                 Log.i(TAG, "GATT disconnected status=" + status);
                 connected = false;
                 notifyReady = false;
-                stopKeepAlive();
                 stopPush();
+                main.removeCallbacks(so4LinkTimeout);
                 closeGatt();
                 pushState("disconnected");
-                // reconnect unless the user asked to disconnect, using exponential backoff so a
-                // failing link does not hammer the stack with repeated GATT status 133/147 errors.
                 if (desiredAddress != null) {
                     long delay = reconnectDelay;
                     Log.i(TAG, "scheduling reconnect in " + delay + " ms (backoff)");
-                    // Back off further for the next attempt (capped); a successful connect resets this.
                     reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_MAX_MS);
                     main.postDelayed(() -> {
                         if (desiredAddress != null) connect(desiredAddress);
@@ -370,12 +371,7 @@ final class BleManager {
         public void onServicesDiscovered(BluetoothGatt g, int status) {
             try {
                 Log.i(TAG, "onServicesDiscovered status=" + status + " count=" + (g == null ? 0 : g.getServices().size()));
-                // The advertised name often arrives empty on connect - resolve it now that the GATT
-                // is up so the info page shows the Bluetooth name / FIN (see ensureDeviceName).
                 ensureDeviceName(g);
-                // Read the GAP Device Name (0x2A00) for an authoritative BLE name / FIN, THEN set up
-                // the data characteristics. Reading first keeps only one GATT op in flight (no clash
-                // with the CCCD write). If no read could be started, set up characteristics now.
                 if (!readGapDeviceName(g)) {
                     setupCharacteristics(g);
                 }
@@ -386,37 +382,14 @@ final class BleManager {
 
         @Override
         public void onDescriptorWrite(BluetoothGatt g, BluetoothGattDescriptor descriptor, int status) {
-            // CCCD written: notifications live. Start the handshake / keep-alive and pushes.
             Log.i(TAG, "CCCD write status=" + status);
-            notifyReady = true;
-            connected = true;
-            reconnectDelay = RECONNECT_BASE_MS;   // successful connect: reset auto-reconnect backoff
-            // Last chance to resolve the BLE name before it is persisted below (feeds btName / FIN).
-            ensureDeviceName(g);
-            // Remember this scooter so we can auto-reconnect next time the app opens. Only overwrite
-            // the remembered name when we actually resolved one, so a transient empty getName() does
-            // not wipe a previously-good FIN (which would leave the saved-device row showing no name).
-            try {
-                SharedPreferences.Editor ed = appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE).edit()
-                        .putString("last_device_addr", desiredAddress);
-                if (deviceName != null && !deviceName.isEmpty()) {
-                    ed.putString("last_device_name", deviceName);
-                }
-                ed.apply();
-            } catch (Throwable ignored) {}
-            pushState("connected");
-            startPush();
-            startKeepAlive();   // sends connectCode(0) immediately, then every 6.5 s
-            drainWriteQueue();
+            onNotifyReady(g);
         }
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic c, int status) {
-            // During a flash the OTA engine owns the write pump (its own queue + pacing).
-            OtaEngine o = ota;
-            if (o != null && o.isRunning()) { o.onWriteComplete(); return; }
             synchronized (writeQueue) { writing = false; }
-            main.postDelayed(BleManager.this::drainWriteQueue, WRITE_GAP_MS);
+            main.postDelayed(BleManager.this::drainWriteQueue, WRITE_SETTLE_MS);
         }
 
         @Override
@@ -427,9 +400,7 @@ final class BleManager {
                     try { n = c.getStringValue(0); } catch (Throwable ignored) {}
                     if (n != null) n = n.trim();
                     if (n != null && !n.isEmpty()) {
-                        // Authoritative name from the device: publish and persist (feeds btName / FIN).
                         deviceName = n;
-                        parser.isVer2 = deviceName.startsWith("T2");
                         parser.btName = deviceName;
                         try {
                             appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE).edit()
@@ -441,7 +412,6 @@ final class BleManager {
             } catch (Throwable t) {
                 Log.e(TAG, "onCharacteristicRead failed", t);
             } finally {
-                // The GAP-name read completed (or errored): now bring up the data characteristics.
                 setupCharacteristics(g);
             }
         }
@@ -450,14 +420,11 @@ final class BleManager {
         public void onCharacteristicChanged(BluetoothGatt g, BluetoothGattCharacteristic c) {
             try {
                 byte[] v = c.getValue();
-                if (v != null) {
-                    // During a flash, OTA responses (0xcc frames) go to the engine, not the telemetry
-                    // parser. The VCU stops streaming 0x55 telemetry once it enters the bootloader.
-                    OtaEngine o = ota;
-                    if (o != null && o.isRunning()) { o.onNotify(v); return; }
-                    parser.onNotify(v);
-                    if (frameCount++ % 50 == 0) Log.i(TAG, "rx frames=" + frameCount + " last=" + v.length + "b");
-                }
+                if (v == null) return;
+                String[] acks = parser.onNotify(v);         // decodes telemetry + SO6 decrypt
+                if (acks != null) for (String key : acks) resolveAck(key);
+                maybeSendSo4Init();                          // SO4: fire init once the version is known
+                if (frameCount++ % 50 == 0) Log.i(TAG, "rx frames=" + frameCount + " last=" + v.length + "b");
             } catch (Throwable t) {
                 Log.e(TAG, "onCharacteristicChanged failed", t);
             }
@@ -470,18 +437,37 @@ final class BleManager {
         }
     };
 
+    /** CCCD written (or forced): notifications live. Reset state and run the family handshake. */
+    private void onNotifyReady(BluetoothGatt g) {
+        notifyReady = true;
+        connected = true;
+        reconnectDelay = RECONNECT_BASE_MS;
+        settings.resetOnConnect();
+        parser.reset();
+        initSent = false;
+        clearAcks();
+        ensureDeviceName(g);
+        try {
+            SharedPreferences.Editor ed = appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE).edit()
+                    .putString("last_device_addr", desiredAddress);
+            if (deviceName != null && !deviceName.isEmpty()) ed.putString("last_device_name", deviceName);
+            ed.apply();
+        } catch (Throwable ignored) {}
+        parser.setProto(activeProto);
+        pushState("connected");
+        startPush();
+        drainWriteQueue();
+        afterConnect();
+    }
+
     /**
-     * Make the BLE device name robust. The advertised name frequently arrives EMPTY at connect
-     * time (so the info page shows no FIN / Bluetooth name). Once the GATT is up we can usually
-     * resolve it: try the live {@code gatt.getDevice().getName()}, then fall back to the remembered
-     * {@code last_device_name} pref. Whenever a non-empty name becomes known we publish it to the
-     * parser (which feeds the JSON {@code btName} that forms the FIN prefix) and persist it so a
-     * later reconnect - where the name may again be empty - still shows the scooter's name.
+     * Resolve the BLE device name. The advertised name frequently arrives empty at connect time; once
+     * the GATT is up we can usually read it from the live device or the remembered pref, publish it to
+     * the parser (feeds JSON btName) and persist it.
      */
     private void ensureDeviceName(BluetoothGatt g) {
         try {
             if (deviceName == null || deviceName.isEmpty()) {
-                // 1) the live GATT device (the name is often only resolvable after connecting)
                 if (g != null && g.getDevice() != null) {
                     try {
                         String n = g.getDevice().getName();
@@ -490,7 +476,6 @@ final class BleManager {
                 }
             }
             if (deviceName == null || deviceName.isEmpty()) {
-                // 2) the remembered name from the last successful connect
                 try {
                     String n = appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE)
                             .getString("last_device_name", "");
@@ -498,8 +483,6 @@ final class BleManager {
                 } catch (Throwable ignored) {}
             }
             if (deviceName != null && !deviceName.isEmpty()) {
-                // Publish to the dashboard (btName forms the FIN prefix) and persist for next time.
-                parser.isVer2 = deviceName.startsWith("T2");
                 parser.btName = deviceName;
                 try {
                     appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE).edit()
@@ -511,13 +494,6 @@ final class BleManager {
         }
     }
 
-    /**
-     * Start an async read of the GAP Device Name characteristic (0x1800 / 0x2A00). Returns true if
-     * a read was initiated - in that case {@link #onCharacteristicRead} will pick up the name and
-     * then call {@link #setupCharacteristics}; a timeout fallback guarantees setup still runs if the
-     * read callback never fires. Returns false if the characteristic is unavailable / the read could
-     * not be started, so the caller proceeds with characteristic setup directly.
-     */
     private boolean readGapDeviceName(BluetoothGatt g) {
         try {
             if (g == null) return false;
@@ -526,7 +502,6 @@ final class BleManager {
             BluetoothGattCharacteristic c = gap.getCharacteristic(GAP_DEVICE_NAME);
             if (c == null) return false;
             if (!g.readCharacteristic(c)) return false;
-            // Fallback: if the read never returns, bring up the data characteristics anyway.
             main.postDelayed(() -> { if (!charsSetupDone) setupCharacteristics(g); }, 1200);
             return true;
         } catch (Throwable t) {
@@ -538,80 +513,55 @@ final class BleManager {
     private void setupCharacteristics(BluetoothGatt g) {
         if (g == null) return;
         synchronized (this) {
-            if (charsSetupDone) return;   // one-shot: the GAP-name read and its fallback both call in
+            if (charsSetupDone) return;
             charsSetupDone = true;
         }
-        BluetoothGattService svc = pickService(g);
+        BluetoothGattService svc = resolveService(g);
         if (svc == null) {
-            Log.w(TAG, "no matching service");
+            Log.w(TAG, "no known SoFlow transport service found");
             pushState("no-service");
             return;
         }
-        String svcUuid = svc.getUuid().toString().toUpperCase(Locale.US);
-        notifyChar = null;
-        writeChar = null;
-
-        if (svcUuid.startsWith("495353")) {
-            // ISSC Transparent UART: hard-coded characteristic UUIDs.
-            notifyChar = svc.getCharacteristic(UUID.fromString(ISSC_NOTIFY));
-            writeChar = svc.getCharacteristic(UUID.fromString(ISSC_WRITE));
-        } else {
-            // 0000FFxx family: pick by property rather than by a fixed UUID, because the module
-            // hands them out in no reliable order: iterate ALL characteristics and
-            // keep the LAST one carrying the notify property as the notify char and the LAST
-            // write-only (write property, no notify) characteristic as the write char. A
-            // characteristic that can notify AND write is used for notifications only.
-            // Using the LAST match (not the first) is essential on units that expose more than one
-            // notify characteristic where the real telemetry/settings stream, the 55 71 settings
-            // frame included, sits on a later characteristic; the first delivers only some frames.
-            BluetoothGattCharacteristic anyWritable = null;   // fallback if no plain-write char exists
-            for (BluetoothGattCharacteristic c : svc.getCharacteristics()) {
-                int props = c.getProperties();
-                boolean notify = (props & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0;
-                boolean write = (props & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0;
-                boolean writeNr = (props & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0;
-                if (notify) {
-                    notifyChar = c;                 // last notify char wins
-                } else if (write) {
-                    writeChar = c;                  // last write-only char wins
-                }
-                if (write || writeNr) anyWritable = c;
-            }
-            if (writeChar == null) writeChar = anyWritable;   // only if no plain-write char was found
+        // "SoFlow" clear name gave no model: classify from the resolved transport (spec 1.5).
+        if (activeProto == null) {
+            String id = Models.protoFromTransport(usedTransport);
+            activeProto = Models.get(id);
+            Log.i(TAG, "classified from " + usedTransport.name() + " service -> " + id);
         }
+        parser.setProto(activeProto);
 
+        notifyChar = svc.getCharacteristic(UUID.fromString(usedTransport.notify));
+        writeChar = svc.getCharacteristic(UUID.fromString(usedTransport.write));
         if (notifyChar == null || writeChar == null) {
-            Log.w(TAG, "notify/write characteristic missing (notify=" + notifyChar + " write=" + writeChar + ")");
+            Log.w(TAG, "notify/write characteristic missing on " + usedTransport.name());
             pushState("no-char");
             return;
         }
-        Log.i(TAG, "service=" + svcUuid + " notify=" + notifyChar.getUuid() + " write=" + writeChar.getUuid());
+        Log.i(TAG, "transport=" + usedTransport.name() + " service=" + usedTransport.service
+                + " notify=" + notifyChar.getUuid() + " write=" + writeChar.getUuid());
         enableNotifications(g);
     }
 
-    private BluetoothGattService pickService(BluetoothGatt g) {
-        // Scan ALL services rather than trusting one advertised UUID. Keep the
-        // LAST primary service whose UUID starts with 0000FF.. or 495353.. Using the last
-        // match (not the first) matters on units that expose more than one matching service, where
-        // the real telemetry/settings service is the later one; picking the first yielded only a
-        // subset of frames (e.g. battery but no 55 71 settings frame). Prefer a primary service but
-        // fall back to the last match of any type so a device that reports its data service as
-        // non-primary still connects.
-        BluetoothGattService chosen = null;         // last matching service of any type
-        BluetoothGattService chosenPrimary = null;  // last matching PRIMARY service
-        for (BluetoothGattService svc : g.getServices()) {
-            String u = svc.getUuid().toString().toUpperCase(Locale.US);
-            // UUID string form: 0000FFxx-.... or 49535343-.... - match on the leading hex.
-            String compact = u.replace("-", "");
-            boolean matches = compact.startsWith("0000FF") || compact.startsWith("495353");
-            boolean primary = svc.getType() == BluetoothGattService.SERVICE_TYPE_PRIMARY;
-            Log.i(TAG, "discovered service: " + u + " matches=" + matches + " primary=" + primary);
-            if (matches) {
-                chosen = svc;
-                if (primary) chosenPrimary = svc;
+    /**
+     * Resolve the GATT service: try the classified model's expected transport first, then fall back
+     * through nordic -> kingmeter -> so6 (spec 2). Remembers which transport won in {@link #usedTransport}.
+     */
+    private BluetoothGattService resolveService(BluetoothGatt g) {
+        Transport want = activeProto != null ? activeProto.transport : null;
+        if (want != null) {
+            BluetoothGattService svc = g.getService(UUID.fromString(want.service));
+            if (svc != null) { usedTransport = want; return svc; }
+        }
+        for (Transport cand : TRANSPORT_ORDER) {
+            if (cand == want) continue;
+            BluetoothGattService svc = g.getService(UUID.fromString(cand.service));
+            if (svc != null) {
+                usedTransport = cand;
+                if (want != null) Log.i(TAG, "note: expected " + want.name() + " service absent, using " + cand.name());
+                return svc;
             }
         }
-        return chosenPrimary != null ? chosenPrimary : chosen; // only the documented primary services
+        return null;
     }
 
     private void enableNotifications(BluetoothGatt g) {
@@ -622,50 +572,56 @@ final class BleManager {
                 cccd.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                 boolean ok = g.writeDescriptor(cccd);
                 Log.i(TAG, "writeDescriptor(CCCD) initiated=" + ok);
-                if (!ok) {
-                    // Could not write CCCD; proceed anyway so the stream may still start.
-                    main.post(this::forceReady);
-                }
+                if (!ok) main.post(() -> onNotifyReady(g));
             } else {
                 Log.w(TAG, "CCCD descriptor missing; proceeding");
-                main.post(this::forceReady);
+                main.post(() -> onNotifyReady(g));
             }
         } catch (Throwable t) {
             Log.e(TAG, "enableNotifications failed", t);
-            main.post(this::forceReady);
+            main.post(() -> onNotifyReady(g));
         }
     }
 
-    private void forceReady() {
-        notifyReady = true;
-        connected = true;
-        reconnectDelay = RECONNECT_BASE_MS;   // successful connect: reset auto-reconnect backoff
-        ensureDeviceName(gatt);               // resolve the BLE name (btName / FIN) if still empty
-        pushState("connected");
-        startPush();
-        startKeepAlive();
-        drainWriteQueue();
+    // ── Post-connect handshake (spec 5.8) ──
+
+    private void afterConnect() {
+        try {
+            Proto p = activeProto;
+            if (p == null) return;
+            for (CommandBuilder.Frame f : CommandBuilder.afterConnect(p, settings)) enqueue(f);
+            // SO4 encryption depends on firmware: send the init frame only once byte 12 reveals the
+            // version. Arm a fallback so a unit that never pushes a version still ends up "connected".
+            if (p.family == Family.D7 && "so4".equals(p.variant)) {
+                pushState("linking");
+                main.removeCallbacks(so4LinkTimeout);
+                main.postDelayed(so4LinkTimeout, SO4_LINK_TIMEOUT_MS);
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "afterConnect failed", t);
+        }
     }
 
-    // ── Keep-alive (connect code every 6.5 s) ──
+    /** SO4 only: fire the version-gated init frame once, when the firmware version becomes known. */
+    private void maybeSendSo4Init() {
+        Proto p = activeProto;
+        if (p == null || initSent) return;
+        if (!(p.family == Family.D7 && "so4".equals(p.variant))) return;
+        if (settings.fwMajor == null) return;
+        initSent = true;
+        main.removeCallbacks(so4LinkTimeout);
+        enqueue(CommandBuilder.so4InitAfterVersion(p, settings));
+        pushState("connected");
+    }
 
-    private final Runnable keepAlive = new Runnable() {
+    private final Runnable so4LinkTimeout = new Runnable() {
         @Override
         public void run() {
-            if (!notifyReady) return;
-            enqueueWrite(CommandBuilder.connectCode(0));
-            main.postDelayed(this, CONNECT_CODE_INTERVAL_MS);
+            if (!connected || initSent) return;
+            Log.i(TAG, "SO4 version-wait timed out; proceeding plaintext");
+            pushState("connected");
         }
     };
-
-    private void startKeepAlive() {
-        main.removeCallbacks(keepAlive);
-        main.post(keepAlive);   // send once now, then repeat
-    }
-
-    private void stopKeepAlive() {
-        main.removeCallbacks(keepAlive);
-    }
 
     // ── Live-data push (~2x/s) ──
 
@@ -678,7 +634,6 @@ final class BleManager {
             } catch (Throwable t) {
                 Log.e(TAG, "push failed", t);
             }
-            // opportunistic RSSI refresh
             try { if (gatt != null) gatt.readRemoteRssi(); } catch (Throwable ignored) {}
             main.postDelayed(this, PUSH_INTERVAL_MS);
         }
@@ -693,17 +648,17 @@ final class BleManager {
         main.removeCallbacks(pushTask);
     }
 
-    // ── Write queue (serialised GATT writes) ──
+    // ── Write queue (serialised GATT writes, spec 7.1) ──
 
-    private void enqueueWrite(byte[] frame) {
-        if (frame == null) return;
+    private void enqueue(CommandBuilder.Frame frame) {
+        if (frame == null || frame.bytes == null) return;
         synchronized (writeQueue) { writeQueue.add(frame); }
         drainWriteQueue();
     }
 
     private void drainWriteQueue() {
         if (!notifyReady) return;
-        byte[] frame;
+        CommandBuilder.Frame frame;
         synchronized (writeQueue) {
             if (writing) return;
             frame = writeQueue.poll();
@@ -711,24 +666,36 @@ final class BleManager {
             writing = true;
         }
         boolean started = doWrite(frame);
-        if (!started) {
+        if (started) {
+            if (frame.ackKey != null) armAck(frame.ackKey);
+        } else {
             synchronized (writeQueue) { writing = false; }
-            main.postDelayed(this::drainWriteQueue, WRITE_GAP_MS);
+            main.postDelayed(this::drainWriteQueue, WRITE_SETTLE_MS);
         }
     }
 
-    private boolean doWrite(byte[] frame) {
+    /** Encrypt per model policy (spec 3.4) and write. Prefers WRITE_TYPE_NO_RESPONSE (spec 7.1). */
+    private boolean doWrite(CommandBuilder.Frame frame) {
         try {
             BluetoothGatt g = gatt;
             BluetoothGattCharacteristic wc = writeChar;
-            if (g == null || wc == null) return false;
-            int props = wc.getProperties();
-            if ((props & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
-                wc.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-            } else if ((props & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
-                wc.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            if (g == null || wc == null || frame.bytes == null) return false;
+            byte[] out = frame.bytes;
+            Proto p = activeProto;
+            if (p != null && Models.encActive(p, settings)) {
+                byte[] key = Models.encKey(p);
+                if (key != null && Crypto.OK) {
+                    byte[] enc = Crypto.encrypt(out, key);
+                    if (enc != null) out = enc;
+                }
             }
-            wc.setValue(frame);
+            int props = wc.getProperties();
+            if ((props & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
+                wc.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            } else if ((props & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
+                wc.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+            }
+            wc.setValue(out);
             return g.writeCharacteristic(wc);
         } catch (Throwable t) {
             Log.e(TAG, "doWrite failed", t);
@@ -736,262 +703,110 @@ final class BleManager {
         }
     }
 
-    /**
-     * OTA characteristic write - forces WRITE_TYPE_NO_RESPONSE (falling back to default only if the
-     * characteristic cannot do no-response). The VCU bootloader flashes with no-response writes just
-     * write-with-response is NOT sustained by the bootloader's minimal ATT
-     * stack across a whole flash (after a few hundred writes it stops ACKing and a with-response
-     * pump stalls waiting for the completion callback). No-response is fire-and-forget at the ATT
-     * layer, which is what the bootloader expects.
-     */
-    private boolean doWriteOta(byte[] frame) {
-        try {
-            BluetoothGatt g = gatt;
-            BluetoothGattCharacteristic wc = writeChar;
-            if (g == null || wc == null || frame == null) return false;
-            int props = wc.getProperties();
-            if ((props & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
-                wc.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-            } else {
-                wc.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-            }
-            wc.setValue(frame);
-            return g.writeCharacteristic(wc);
-        } catch (Throwable t) {
-            Log.e(TAG, "doWriteOta failed", t);
-            return false;
+    // ── Ack tracking (spec 7.2) ──
+
+    private void armAck(String key) {
+        if (key == null) return;
+        Runnable prev = pendingAcks.remove(key);
+        if (prev != null) main.removeCallbacks(prev);
+        Runnable timeout = () -> {
+            pendingAcks.remove(key);
+            Log.i(TAG, "no confirmation for " + key + " within " + ACK_TIMEOUT_MS + "ms");
+        };
+        pendingAcks.put(key, timeout);
+        main.postDelayed(timeout, ACK_TIMEOUT_MS);
+    }
+
+    private void resolveAck(String key) {
+        if (key == null) return;
+        Runnable timeout = pendingAcks.remove(key);
+        if (timeout != null) {
+            main.removeCallbacks(timeout);
+            Log.i(TAG, "confirmed: " + key);
         }
+    }
+
+    private void clearAcks() {
+        for (Runnable r : pendingAcks.values()) main.removeCallbacks(r);
+        pendingAcks.clear();
     }
 
     // ── High-level commands (from the JS bridge) ──
 
-    /**
-     * A full 0x18 settings write serialises the ENTIRE maintained state, so it is only safe once the
-     * scooter's real config has been read from a 55 71 frame. Before that, every field the user did
-     * not explicitly change is a SettingsState default (wheel / pack voltage / pole-pairs and zero
-     * current limits); writing those to the VCU would mis-configure the controller. Refuse the write
-     * until the first 55 71 arrived. In practice that frame lands within ~1 s of connecting, so this
-     * only guards the genuinely unsafe cases (a toggle before the read or a unit that never reports).
-     */
-    private boolean settingsReady() {
-        if (settings.received71) return true;
-        Log.w(TAG, "settings write refused: scooter config not read yet (waiting for 55 71)");
-        return false;
+    private void send(CommandBuilder.Frame f) {
+        if (f == null) return;   // command unsupported on the active model
+        enqueue(f);
     }
 
-    void sendSetting(String json) {
-        if (!settingsReady()) return;
-        try {
-            JSONObject o = (json == null || json.trim().isEmpty()) ? null : new JSONObject(json);
-            settings.merge(o);
-            // Write mode a[2], the value the VCU handler dispatches on: anti-theft = 8,
-            // traction control = 5, every other setting = 2. With n=0 the VCU silently ignores the
-            // change (same class of bug as the traction-control toggle).
-            int mode = 2;
-            if (o != null) {
-                if (o.has("antiTheft")) mode = 8;
-                else if (o.has("tractionControl")) mode = 5;
-            }
-            // ONE write, to the active gear only. Wheel and cruise are GLOBAL in the controller
-            // (0x2000029D and 0x200002D1, one byte each, not per gear), so one frame carrying the
-            // active gear's own values applies them. Writing every gear would push cached per-gear
-            // values back into gears the user never touched.
-            enqueueWrite(CommandBuilder.writeSettings(settings, mode, settings.gear & 0xFF));
-        } catch (Throwable t) {
-            Log.e(TAG, "sendSetting failed", t);
-        }
-    }
-
-
-    /** mode: 0 = dual, 1 = rear-only, 2 = front-only (BLE_PROTOCOL §4). */
-    void setMotorMode(int mode) {
-        if (!settingsReady()) return;
-        try {
-            switch (mode) {
-                case 1: settings.rearMotorOn = 1; settings.dualMotor = 0; break;  // rear-only
-                case 2: settings.rearMotorOn = 0; settings.dualMotor = 1; break;  // front-only
-                case 0:
-                default: settings.rearMotorOn = 1; settings.dualMotor = 1; break; // dual
-            }
-            enqueueWrite(CommandBuilder.writeSettings(settings, 2, 1));   // n=2 immediate
-        } catch (Throwable t) {
-            Log.e(TAG, "setMotorMode failed", t);
-        }
-    }
-
-    /**
-     * Traction-control (TCS) toggle. The VCU only applies it when the frame carries a[2]=5, not the
-     * generic a[2]=2 of {@link #sendSetting}, so it gets its own write mode. Null/exception-safe.
-     */
-    void setSmart(boolean on) {
-        if (!settingsReady()) return;
-        try {
-            settings.tractionControl = on;
-            enqueueWrite(CommandBuilder.writeSettings(settings, 5, 1));   // n=5 (traction control)
-        } catch (Throwable t) {
-            Log.e(TAG, "setSmart failed", t);
-        }
-    }
-
-    void setCustomKey(int value) {
-        try {
-            enqueueWrite(CommandBuilder.setCustomKey(value));
-        } catch (Throwable t) {
-            Log.e(TAG, "setCustomKey failed", t);
-        }
-    }
-
-    /**
-     * Set the VCU identity / BLE advertised name via cmd 0x1f. Non-destructive and reversible: the
-     * VCU persists the new identity to its EEPROM and renames its BLE module (the link may briefly
-     * drop; auto-reconnect by MAC restores it). The identity's first three characters gate the eKFV
-     * speed clamp - see CommandBuilder.setDeviceName and the project firmware notes. Null-safe.
-     */
-    void setBleName(String name) {
-        try {
-            if (name == null) return;
-            enqueueWrite(CommandBuilder.setDeviceName(name));
-        } catch (Throwable t) {
-            Log.e(TAG, "setBleName failed", t);
-        }
-    }
-
-    /**
-     * Set the VCU speed lock directly via cmd 0x1B (TESTLOCK firmware), instead of renaming the FIN.
-     * {@code unlocked} = true unlocks (val 1), false locks (val 0). The real lock state comes back
-     * streamed in 55 71 t[2] (parsed into {@code vcuUnlock}). Null/exception-safe.
-     */
+    /** Speed lock: true unlocks (immobiliser off), false locks. */
     void setLock(boolean unlocked) {
+        Proto p = activeProto;
+        if (p == null) return;
         try {
-            enqueueWrite(CommandBuilder.setLockState(unlocked));
+            settings.speedUnlocked = unlocked;
+            send(unlocked ? CommandBuilder.unlock(p, settings) : CommandBuilder.lock(p, settings));
         } catch (Throwable t) {
             Log.e(TAG, "setLock failed", t);
         }
     }
 
-    /**
-     * Write ONE gear/assist profile (cmd 0x18, BLE_PROTOCOL §3.4). {@code json} may carry any of
-     * {@code speedLimit, eabsRegen, frontStartLevel, rearStartLevel, frontCurrent, rearCurrent};
-     * missing fields fall back to the maintained current-gear state. Other config bytes stay current.
-     */
-    void sendGearSetting(int gear, String json) {
-        if (!settingsReady()) return;
-        try {
-            JSONObject o = (json == null || json.trim().isEmpty()) ? null : new JSONObject(json);
-            enqueueWrite(settings.gearFrame(gear, o));
-        } catch (Throwable t) {
-            Log.e(TAG, "sendGearSetting failed", t);
-        }
+    /** Set the tuning max speed (km/h). No-op on families without a speed command (SO6/SO4 UL). */
+    void setMaxSpeed(double kmh) {
+        Proto p = activeProto;
+        if (p == null) return;
+        try { send(CommandBuilder.setMaxSpeed(p, settings, kmh)); }
+        catch (Throwable t) { Log.e(TAG, "setMaxSpeed failed", t); }
     }
 
-    // ── Firmware update (OTA) ──
-
-    /** @return true while a firmware flash is in progress (JS/UI guards on this). */
-    boolean isOtaActive() {
-        OtaEngine o = ota;
-        return o != null && o.isRunning();
+    /** Ride mode: eco 0, normal 1, sport 2. */
+    void setSpeedMode(int mode) {
+        Proto p = activeProto;
+        if (p == null) return;
+        try { send(CommandBuilder.setSpeedMode(p, settings, mode)); }
+        catch (Throwable t) { Log.e(TAG, "setSpeedMode failed", t); }
     }
 
-    /**
-     * Begin flashing {@code hexText} (raw Intel-HEX file text; {@code fileName} only selects the
-     * VCU/BMS target). Pauses the keep-alive and live-push for the whole flash so nothing injects a
-     * 0xAA command into the OTA stream, hands the write/notify path to {@link OtaEngine} and lets
-     * any in-flight normal write drain first. Null/exception-safe. Requires a live connection.
-     */
-    void startOta(final String hexText, final String fileName) {
-        try {
-            if (isOtaActive()) return;
-            if (!connected || !notifyReady) {
-                if (listener != null) {
-                    listener.onOtaState("{\"state\":\"failed\",\"message\":\"Connect the scooter first\"}");
-                }
-                return;
-            }
-            stopKeepAlive();
-            stopPush();
-            synchronized (writeQueue) { writeQueue.clear(); writing = false; }
-            final OtaEngine engine = new OtaEngine(otaHost);
-            ota = engine;
-            // A ver2 (T2/tetra) device takes every node through the display block (START id
-            // 0x07 0x80) after a 06 e2 node-select handshake. The flag comes from the BLE name.
-            final boolean ver2 = parser != null && parser.isVer2;
-            // Let any in-flight normal write complete on the normal path before the engine takes over
-            // (isRunning() stays false until start()); then begin.
-            main.postDelayed(() -> { if (ota == engine) engine.start(hexText, fileName, ver2); }, 300);
-        } catch (Throwable t) {
-            Log.e(TAG, "startOta failed", t);
-        }
+    /** Display unit: true imperial (mph), false metric (km/h). */
+    void setUnit(boolean imperial) {
+        Proto p = activeProto;
+        if (p == null) return;
+        try { send(CommandBuilder.setUnit(p, settings, imperial)); }
+        catch (Throwable t) { Log.e(TAG, "setUnit failed", t); }
     }
 
-    /** @return true when the connected device advertises the ver2 (T2/tetra) platform name. */
-    boolean isVer2() { return parser != null && parser.isVer2; }
-
-    /** User-initiated abort of a running flash. The bootloader stays in receive-mode (re-flashable). */
-    void cancelOta() {
-        try {
-            OtaEngine o = ota;
-            if (o != null) o.cancel();
-        } catch (Throwable t) {
-            Log.e(TAG, "cancelOta failed", t);
-        }
+    /** Battery unlock (D7 only; SO4 only from V52). No-op otherwise. */
+    void batteryUnlock() {
+        Proto p = activeProto;
+        if (p == null) return;
+        try { send(CommandBuilder.batteryUnlock(p, settings)); }
+        catch (Throwable t) { Log.e(TAG, "batteryUnlock failed", t); }
     }
 
-    private final OtaEngine.Host otaHost = new OtaEngine.Host() {
-        @Override
-        public boolean writeFrame(byte[] frame) {
-            return doWriteOta(frame);   // OTA path: write WITHOUT response
-        }
+    /** Front light on/off (so5base). */
+    void setFrontLight(boolean on) {
+        try { send(CommandBuilder.frontLight(on)); }
+        catch (Throwable t) { Log.e(TAG, "setFrontLight failed", t); }
+    }
 
-        @Override
-        public void setHighPriority(boolean high) {
-            try {
-                BluetoothGatt g = gatt;
-                if (g != null) {
-                    g.requestConnectionPriority(high
-                            ? BluetoothGatt.CONNECTION_PRIORITY_HIGH
-                            : BluetoothGatt.CONNECTION_PRIORITY_BALANCED);
-                }
-            } catch (Throwable ignored) {}
-        }
+    /** Dark mode on/off (so5base). */
+    void setDarkMode(boolean on) {
+        try { send(CommandBuilder.darkMode(on)); }
+        catch (Throwable t) { Log.e(TAG, "setDarkMode failed", t); }
+    }
 
-        @Override
-        public void progress(int percent, int packet, int count, String phase) {
-            try {
-                JSONObject o = new JSONObject();
-                o.put("percent", percent);
-                o.put("packet", packet);
-                o.put("count", count);
-                o.put("phase", phase == null ? "" : phase);
-                if (listener != null) listener.onOtaProgress(o.toString());
-            } catch (Throwable ignored) {}
-        }
+    /** Zero-start on/off (so5base). */
+    void setZeroStart(boolean on) {
+        try { send(CommandBuilder.zeroStart(on)); }
+        catch (Throwable t) { Log.e(TAG, "setZeroStart failed", t); }
+    }
 
-        @Override
-        public void log(String line) {
-            try { if (listener != null) listener.onOtaLog(line == null ? "" : line); } catch (Throwable ignored) {}
-        }
-
-        @Override
-        public void state(String state, String message) {
-            try {
-                JSONObject o = new JSONObject();
-                o.put("state", state == null ? "" : state);
-                o.put("message", message == null ? "" : message);
-                if (listener != null) listener.onOtaState(o.toString());
-            } catch (Throwable ignored) {}
-        }
-
-        @Override
-        public void finished(boolean success) {
-            ota = null;
-            // Resume normal traffic if the link is still up. On success the VCU reboots and the link
-            // drops -> auto-reconnect restarts the keep-alive / push by itself.
-            if (connected && notifyReady) {
-                startKeepAlive();
-                startPush();
-            }
-        }
-    };
+    /** Turn/indicator light (so4 path). */
+    void setIndicator(boolean on) {
+        Proto p = activeProto;
+        if (p == null) return;
+        try { send(CommandBuilder.indicator(p, settings, on)); }
+        catch (Throwable t) { Log.e(TAG, "setIndicator failed", t); }
+    }
 
     // ── State reporting ──
 
@@ -1002,6 +817,8 @@ final class BleManager {
             o.put("name", deviceName == null ? "" : deviceName);
             o.put("address", desiredAddress == null ? "" : desiredAddress);
             o.put("status", status == null ? "" : status);
+            Proto p = activeProto;
+            if (p != null) { o.put("model", p.name); o.put("family", p.family.name()); }
             if (listener != null) listener.onState(o.toString());
         } catch (Throwable t) {
             Log.e(TAG, "pushState failed", t);

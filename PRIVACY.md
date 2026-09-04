@@ -32,9 +32,9 @@ When you tap download or route into an area you do not yet have data for, the ap
 
 - offline vector maps from the Hochschule Esslingen mirror of download.mapsforge.org - base URL https://ftp-stud.hs-esslingen.de/pub/Mirrors/download.mapsforge.org/maps/v5/europe/ with a country map file appended (for example germany.map).
 - bicycle-routing segments from the BRouter project server - base URL https://brouter.de/brouter/segments4/ with a 5x5-degree tile file appended (for example E5_N45.rd5).
-- offline POI databases (camping and EV-charging points, built from OpenStreetMap data) from this project's GitHub Releases - base URL https://github.com/Laufbursche42/tr-lb-edition/releases/ with a country POI file appended (for example germany.poi). This is served by GitHub, so GitHub sees your IP and the requested file path when you download POI data.
+- offline POI databases (camping and EV-charging points, built from OpenStreetMap data) from this project's GitHub Releases - base URL https://github.com/Laufbursche42/sf-lb-edition/releases/ with a country POI file appended (for example germany.poi). This is served by GitHub, so GitHub sees your IP and the requested file path when you download POI data.
 
-These are public OpenStreetMap-based sources. This happens only on your explicit action - the app never downloads any of them on its own. Those servers (Hochschule Esslingen, BRouter and GitHub) can see your IP address and the requested file path (which country or tile you fetch). The app keeps this to a minimum: it sends a neutral fixed User-Agent (`TR-LB-Edition`), no cookies, no account and no tracking parameters. All this traffic uses HTTPS; the app uses no cleartext HTTP.
+These are public OpenStreetMap-based sources. This happens only on your explicit action - the app never downloads any of them on its own. Those servers (Hochschule Esslingen, BRouter and GitHub) can see your IP address and the requested file path (which country or tile you fetch). The app keeps this to a minimum: it sends a neutral fixed User-Agent (`SF-LB-Edition`), no cookies, no account and no tracking parameters. All this traffic uses HTTPS; the app uses no cleartext HTTP.
 
 ### 3. SRT screen streaming (only to your own server)
 
@@ -44,10 +44,10 @@ Screen streaming goes only to the server URL you configure yourself - typically 
 
 The app can tell you when a newer version of the app itself is available and download it. For this it contacts GitHub and nothing else:
 
-- the latest app release from this project's GitHub API - https://api.github.com/repos/Laufbursche42/tr-lb-edition/releases/latest - checked once when the app starts.
+- the latest app release from this project's GitHub API - https://api.github.com/repos/Laufbursche42/sf-lb-edition/releases/latest - checked once when the app starts.
 - the app-update APK from this project's GitHub Releases, only when you tap Download.
 
-These are plain HTTPS GET requests. GitHub can see your IP address and the requested file path (which release you fetch), the same as any download - nothing else. No scooter data, no telemetry, no settings, no identity and no personal data are ever sent. The version check sends only the request itself; the APK download happens only when you tap it. The app uses a neutral fixed User-Agent, no cookies, no account and no tracking parameters. Installing a downloaded app update is handled by the Android package installer and the "install unknown apps" permission (see [PERMISSIONS.md](PERMISSIONS.md)). Scooter firmware is NOT downloaded - the app ships the stock firmware and the in-app patcher builds the Laufbursche firmware locally.
+These are plain HTTPS GET requests. GitHub can see your IP address and the requested file path (which release you fetch), the same as any download - nothing else. No scooter data, no telemetry, no settings, no identity and no personal data are ever sent. The version check sends only the request itself; the APK download happens only when you tap it. The app uses a neutral fixed User-Agent, no cookies, no account and no tracking parameters. Installing a downloaded app update is handled by the Android package installer and the "install unknown apps" permission (see [PERMISSIONS.md](PERMISSIONS.md)). No scooter firmware is downloaded or flashed by this app.
 
 ## No developer or manufacturer backend
 

@@ -1,4 +1,4 @@
-// Laufbursche Edition - an app for Teverun e-scooters.
+// Laufbursche Edition - an app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 
@@ -77,7 +77,7 @@ final class NavDownloader {
         c.setReadTimeout(60000);
         c.setInstanceFollowRedirects(true);
         // Neutral User-Agent - override Android's default (which leaks device model + OS version).
-        c.setRequestProperty("User-Agent", "TR-LB-Edition");
+        c.setRequestProperty("User-Agent", "SF-LB-Edition");
         c.setRequestProperty("Accept-Encoding", "identity"); // keep Content-Length meaningful
         if (have > 0) {
             c.setRequestProperty("Range", "bytes=" + have + "-");

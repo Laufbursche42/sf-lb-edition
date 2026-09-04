@@ -1,4 +1,4 @@
-// Laufbursche Edition - an app for Teverun e-scooters.
+// Laufbursche Edition - an app for SoFlow e-scooters.
 // Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 // Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 
@@ -26,7 +26,7 @@ import java.util.Locale;
  * <p>When enabled it records this process's own native logs (every {@code Log.*} call, including the
  * {@code lbble}/{@code lbedition} BLE tags) by running {@code logcat --pid=<self>} on a background
  * thread and appending each line to a rotating file at
- * {@code getExternalFilesDir("logs")/tr-lb-debug.log}. JS-forwarded lines (from {@code LB.log(...)})
+ * {@code getExternalFilesDir("logs")/sf-lb-debug.log}. JS-forwarded lines (from {@code LB.log(...)})
  * are appended via {@link #append(String)} with a timestamp and a {@code JS:} prefix.
  *
  * <p>The enabled state is persisted in {@link android.content.SharedPreferences} under the key
@@ -41,7 +41,7 @@ public final class DebugLog {
     private static final String PREFS = "lb_prefs";
     private static final String KEY_DEBUG = "lb_debug";
     private static final String LOG_DIR = "logs";
-    private static final String LOG_FILE = "tr-lb-debug.log";
+    private static final String LOG_FILE = "sf-lb-debug.log";
     private static final long MAX_BYTES = 2L * 1024 * 1024; // ~2 MB cap
 
     private final Context ctx;
