@@ -290,7 +290,7 @@ public class MainActivity extends Activity {
 
     /** Enqueue the APK download into the public Downloads folder via DownloadManager (visible file +
      *  progress notification) then opens the installer once it completes. Runs on the UI thread. */
-    private static final String APK_UPDATE_NAME = "laufbursche-edition-update.apk";
+    private static final String APK_UPDATE_NAME = "sf-lb-edition-update.apk";
 
     private void startApkDownload(String url) {
         try {

@@ -6,6 +6,6 @@ This is free, source-available software provided "as is" without any warranty of
 
 ### Privacy
 
-Laufbursche Edition is offline-first: it collects nothing and sends no telemetry to the authors or to SoFlow. It talks only to your scooter over Bluetooth and - only on your explicit action - to the OpenStreetMap / BRouter servers for offline map downloads or to the SRT server you configure. Full details: [PRIVACY.md](https://github.com/Laufbursche42/tr-lb-edition/blob/main/PRIVACY.md).
+Laufbursche Edition is offline-first: it collects nothing and sends no telemetry to the authors or to SoFlow. It talks only to your scooter over Bluetooth and - only on your explicit action - to the OpenStreetMap / BRouter servers for offline map downloads or to the SRT server you configure. Full details: [PRIVACY.md](https://github.com/Laufbursche42/sf-lb-edition/blob/main/PRIVACY.md).
 
-For all details on what the app does and how it works, see the [README](https://github.com/Laufbursche42/tr-lb-edition/blob/main/README.md).
+For all details on what the app does and how it works, see the [README](https://github.com/Laufbursche42/sf-lb-edition/blob/main/README.md).

@@ -58,7 +58,7 @@ public class MapDownloadActivity extends Activity {
 
     /** Per-country POI databases (camping + EV charging) on this project's GitHub Releases. */
     static final String POI_BASE_URL =
-            "https://github.com/Laufbursche42/tr-lb-edition/releases/download/poi/";
+            "https://github.com/Laufbursche42/sf-lb-edition/releases/download/poi/";
 
     /** {display name, file base (== mirror filename without .map), approx download size}. */
     private static final String[][] COUNTRIES = {

@@ -217,7 +217,7 @@ There are two ways to install the app. The normal one is a plain sideload from a
 
 ### Normal install (file manager)
 
-Copy the `Laufbursche-Edition-vX.apk` file to your phone and open it in a file manager to install it. No PC and no cables are needed - offline maps are downloaded inside the app.
+Copy the `sf-lb-edition-vX.apk` file to your phone and open it in a file manager to install it. No PC and no cables are needed - offline maps are downloaded inside the app.
 
 **Allow "install unknown apps" (Android 8 and newer).** Because the app does not come from the Play Store, Android must be allowed to install it. The first time you tap the downloaded APK, Android will ask you to let the app you opened it with (your file manager or browser) "install unknown apps" - enable that then tap the APK again to install. Alternatively you can pre-enable it under **Settings -> Apps -> [your file manager] -> Install unknown apps -> Allow**. This is only needed for the file-manager install path; the ADB path below does not need it.
 
@@ -251,7 +251,7 @@ You can also install from a computer over ADB (Android platform-tools). This is 
    - Open Settings -> System -> Developer options and turn on "USB debugging".
    - Connect the phone to the computer by USB and confirm the "Allow USB debugging" prompt on the phone.
 2. Install the APK from the computer:
-   - `adb install -r Laufbursche-Edition-vX.apk` (the `-r` reinstalls/updates if a previous version is present).
+   - `adb install -r sf-lb-edition-vX.apk` (the `-r` reinstalls/updates if a previous version is present).
    - If that fails because a different signature is installed, uninstall the old one first: `adb uninstall com.lb.edition` then `adb install`.
    - On Xiaomi (MIUI/HyperOS) a fresh ADB install of a new app is blocked with `INSTALL_FAILED_USER_RESTRICTED` unless you first enable "Install via USB" in Developer options, which Xiaomi ties to a signed-in Mi account plus an online check (there is no account-free ADB bypass on stock firmware without root). On Xiaomi the file-manager route above is the easier path - only that avoids Xiaomi's ADB gate.
 3. Where to get ADB (Android SDK Platform-Tools) - it is a small standalone download, no full Android Studio needed:

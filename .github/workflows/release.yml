@@ -102,7 +102,7 @@ jobs:
         if: steps.exists.outputs.exists == 'false'
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk "dist/Laufbursche-Edition-${{ steps.ver.outputs.tag }}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "dist/sf-lb-edition-${{ steps.ver.outputs.tag }}.apk"
 
       - name: Build release notes (changelog + disclaimer + phoning-home footer)
         if: steps.exists.outputs.exists == 'false'
@@ -120,5 +120,5 @@ jobs:
           gh release create "${{ steps.ver.outputs.tag }}" dist/*.apk \
             --repo "${{ github.repository }}" \
             --target "${{ github.sha }}" \
-            --title "Laufbursche Edition ${{ steps.ver.outputs.tag }}" \
+            --title "sf-lb-edition ${{ steps.ver.outputs.tag }}" \
             --notes-file "$RUNNER_TEMP/release-notes.md"
