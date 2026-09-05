@@ -68,6 +68,7 @@ final class BleManager {
     private static final long SO4_LINK_TIMEOUT_MS = 2500; // spec 5.8: SO4 version-wait fallback
     private static final long RECONNECT_BASE_MS = 3000;
     private static final long RECONNECT_MAX_MS = 30000;
+    private static final int  MTU_TARGET = 247;           // fit a full telemetry frame in one notification
     private static final long PUSH_INTERVAL_MS = 500;     // live-data push ~2x/s
 
     interface Listener {
@@ -353,6 +354,35 @@ final class BleManager {
     // ── GATT callback ──
 
     private long frameCount = 0;
+
+    // Reassembly buffer for D7/SO3 frames split across notifications when the MTU is small (spec 6:
+    // the SoOne realtime frame is 27 bytes, larger than the default 20-byte notification payload).
+    private byte[] rxBuf = null;
+
+    /**
+     * Stitch a D7/SO3 notification back into a whole frame. A chunk starting with 0xD7/0xD5 begins a
+     * new frame; anything else is a continuation and is appended. SO6 frames are AES full blocks and
+     * pass through untouched. The decoders re-read the growing buffer each chunk (length-guarded), so
+     * fields at the tail (battery, darkMode) appear once the last chunk arrives.
+     */
+    private byte[] reassemble(byte[] v) {
+        Models.Proto p = parser.proto;
+        if (p != null && p.family == Models.Family.SO6) return v;   // AES full frames: no reassembly
+        if (v.length == 0) return v;
+        int b0 = v[0] & 0xFF;
+        if (b0 == 0xD7 || b0 == 0xD5) {
+            rxBuf = v.clone();                                       // frame start
+        } else if (rxBuf != null && rxBuf.length < 64) {
+            byte[] merged = new byte[rxBuf.length + v.length];
+            System.arraycopy(rxBuf, 0, merged, 0, rxBuf.length);
+            System.arraycopy(v, 0, merged, rxBuf.length, v.length);
+            rxBuf = merged;                                          // continuation
+        } else {
+            rxBuf = v.clone();
+        }
+        return rxBuf;
+    }
+
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt g, int status, int newState) {
@@ -360,12 +390,18 @@ final class BleManager {
                 Log.i(TAG, "GATT connected");
                 pushState("discovering");
                 main.postDelayed(() -> {
-                    try { if (gatt != null) gatt.discoverServices(); } catch (Throwable ignored) {}
+                    // Raise the MTU first so a full (up to 27-byte) telemetry frame arrives in one
+                    // notification; discovery then runs from onMtuChanged. Fall back to direct discovery
+                    // if the request cannot be issued.
+                    boolean asked = false;
+                    try { asked = (gatt != null) && gatt.requestMtu(MTU_TARGET); } catch (Throwable ignored) {}
+                    if (!asked) { try { if (gatt != null) gatt.discoverServices(); } catch (Throwable ignored) {} }
                 }, DISCOVER_DELAY_MS);
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 Log.i(TAG, "GATT disconnected status=" + status);
                 connected = false;
                 notifyReady = false;
+                rxBuf = null;
                 stopPush();
                 main.removeCallbacks(so4LinkTimeout);
                 closeGatt();
@@ -379,6 +415,12 @@ final class BleManager {
                     }, delay);
                 }
             }
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt g, int mtu, int status) {
+            Log.i(TAG, "MTU changed to " + mtu + " status=" + status);
+            try { if (g != null) g.discoverServices(); } catch (Throwable ignored) {}
         }
 
         @Override
@@ -435,7 +477,8 @@ final class BleManager {
             try {
                 byte[] v = c.getValue();
                 if (v == null) return;
-                String[] acks = parser.onNotify(v);         // decodes telemetry + SO6 decrypt
+                byte[] frame = reassemble(v);               // stitch MTU-split D7/SO3 frames back together
+                String[] acks = parser.onNotify(frame);     // decodes telemetry + SO6 decrypt
                 if (acks != null) for (String key : acks) resolveAck(key);
                 maybeSendSo4Init();                          // SO4: fire init once the version is known
                 if (frameCount++ % 50 == 0) Log.i(TAG, "rx frames=" + frameCount + " last=" + v.length + "b");

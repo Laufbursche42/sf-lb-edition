@@ -1106,6 +1106,7 @@ function parseBLE(raw) {
       totalKm:  num(d.totalKm),
       error:    (typeof d.error === 'number' ? d.error : (parseInt(d.error) || 0)),
       errorHex: (d.errorHex != null ? ('' + d.errorHex) : ''),
+      errorNames: (d.errorNames != null ? ('' + d.errorNames) : ''),
       model:    (d.model != null ? ('' + d.model) : ''),
       btName:   (d.btName != null ? ('' + d.btName) : ''),
       rssi:     num(d.rssi),
@@ -1419,7 +1420,7 @@ function updateBLEUI(data) {
   setTxt('tl-power', Math.round(data.power));
   setTxt('tl-trip', convDist(data.tripKm).toFixed(1));
   setTxt('tl-total', Math.round(convDist(data.totalKm)));
-  const errStr = data.error ? (data.errorHex || String(data.error)) : t('msg.error.ok');
+  const errStr = data.error ? (errorLabel(data.errorNames) || String(data.error)) : t('msg.error.ok');
   setTxt('tl-error', errStr);
   const teEl = document.getElementById('tl-error'); if (teEl) teEl.style.color = data.error ? 'var(--danger)' : '';
   const lk = (data.locked === true) ? t('msg.lock.locked') : (data.locked === false) ? t('msg.lock.open') : '-';
@@ -1438,6 +1439,13 @@ function updateBLEUI(data) {
 
   // All values (SoFlow streams no cell/BMS arrays, so this stays empty).
   renderAllValues(data);
+}
+
+// Map the controller's fault categories (CSV of brake/controller/motor/... from errorNames) to
+// localized labels. Empty when there is no active fault.
+function errorLabel(csv) {
+  if (!csv) return '';
+  return csv.split(',').map(function (k) { return t('err.cat.' + k.trim()); }).join(', ');
 }
 
 // Map the SoFlow modeText (eco/normal/sport) to a localized label; unknown text passes through.
@@ -1615,17 +1623,24 @@ function onGPSSuccess(pos) {
   // Prefer the GPS Doppler speed (coords.speed) - most accurate source. Some devices/WebViews
   // never report it; fall back to distance/time from the previous fix so the readout still
   // tracks reality instead of dropping to 0.
+  const acc = (coords.accuracy != null && coords.accuracy >= 0) ? coords.accuracy : 9999; // metres
   let spd;
   if (coords.speed != null && coords.speed >= 0) {
     spd = coords.speed * 3.6; // m/s -> km/h
   } else if (state.gpsPos && state.gpsPos.lat != null) {
     const dts = (ts - state.gpsPos.ts) / 1000; // seconds since last fix
-    spd = (dts > 0.2 && dts < 5)
-      ? haversine(state.gpsPos.lat, state.gpsPos.lon, lat, lon) / (dts / 3600) // km / h
-      : (state.gpsPos.speed || 0);
+    if (dts > 0.2 && dts < 5) {
+      const movedM = haversine(state.gpsPos.lat, state.gpsPos.lon, lat, lon) * 1000; // metres
+      // Movement smaller than the position accuracy is GPS noise while standing still, not travel.
+      spd = (movedM > Math.max(acc, 5)) ? (movedM / 1000) / (dts / 3600) : 0; // km/h
+    } else {
+      spd = (state.gpsPos.speed || 0);
+    }
   } else {
     spd = 0;
   }
+  // Standstill clamp: a scooter that is not moving must read 0, never a phantom GPS crawl.
+  if (spd < 2) spd = 0;
 
   state.gpsPos = { lat, lon, alt, speed: spd, ts };
 
@@ -2579,12 +2594,15 @@ function collectErrors() {
   const items = [];
   const code = (typeof d.error === 'number') ? d.error : parseInt(d.error, 10);
   if (code && !isNaN(code)) {
-    const shown = d.errorHex || String(code);
-    items.push({
-      kind: 'fault',
-      title: tf('msg2.error.soflow.title', { code: shown }),
-      sub: t('msg2.error.soflow.unknown')
-    });
+    const names = (d.errorNames || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (names.length) {
+      // One row per active fault category, named as the manufacturer app names them.
+      names.forEach(function (k) {
+        items.push({ kind: 'fault', title: t('err.cat.' + k), sub: t('msg2.error.soflow.unknown') });
+      });
+    } else {
+      items.push({ kind: 'fault', title: tf('msg2.error.soflow.title', { code: String(code) }), sub: t('msg2.error.soflow.unknown') });
+    }
   }
   return items;
 }

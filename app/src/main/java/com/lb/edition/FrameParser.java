@@ -38,7 +38,7 @@ final class FrameParser {
     private double tripKm = Double.NaN, totalKm = Double.NaN;
     private int battery = -1, mode = -1, error = -1;
     private int locked = -1, headlight = -1, imperial = -1, darkMode = -1;   // tri-state: -1 unknown
-    private String errorHex = "";
+    private String errorHex = "", errorNames = "";
     private String fw = "", fwDisplay = "", fwCpu = "";
 
     FrameParser(SettingsState settings) {
@@ -53,7 +53,7 @@ final class FrameParser {
         speed = voltage = current = power = tripKm = totalKm = Double.NaN;
         battery = mode = error = -1;
         locked = headlight = imperial = darkMode = -1;
-        errorHex = fw = fwDisplay = fwCpu = "";
+        errorHex = errorNames = fw = fwDisplay = fwCpu = "";
     }
 
     /**
@@ -122,7 +122,8 @@ final class FrameParser {
         speed = u16(b, 5) / 10.0;
         voltage = u16(b, 7) / 10.0;
         current = u16(b, 9) / 10.0;
-        error = b[11] & 0xFF;
+        errorHex = String.format("%02X", b[11] & 0xFF);
+        setErrorFromMask(b[11] & 0xFF);   // SO4: single error byte, bits 0-5 (spec 6.1 / ErrorParser.fromByte)
         fwDisplay = (b[13] >> 4) + "." + (b[13] & 0x0F);
         fwCpu = (b[14] >> 4) + "." + (b[14] & 0x0F);
         tripKm = u16(b, 15) / 10.0;
@@ -142,11 +143,11 @@ final class FrameParser {
         voltage = u16(b, 7) / 10.0;
         current = u16(b, 9) / 10.0;
         if (b.length >= 15) {
-            StringBuilder eh = new StringBuilder();
-            boolean ok = true;
-            for (int i = 11; i < 15; i++) { if (b[i] != 0) ok = false; eh.append(String.format("%02X", b[i] & 0xFF)); }
-            errorHex = eh.toString();
-            error = ok ? 0 : 1;
+            // errors is a 32-bit little-endian field (b11 = low byte). ErrorParser.fromBytes only maps
+            // bits 0-5 to real faults; higher bits are not errors (spec 6.2 / ErrorParser.fromBytes).
+            int val = (b[11] & 0xFF) | ((b[12] & 0xFF) << 8) | ((b[13] & 0xFF) << 16) | ((b[14] & 0xFF) << 24);
+            errorHex = String.format("%02X%02X%02X%02X", b[11] & 0xFF, b[12] & 0xFF, b[13] & 0xFF, b[14] & 0xFF);
+            setErrorFromMask(val);
         }
         if (b.length >= 18) {
             fw = (b[15] >> 4) + "." + (b[15] & 0x0F);
@@ -202,6 +203,24 @@ final class FrameParser {
 
     // ── helpers ──
 
+    /** Fault categories the controller reports, bit 0..5 (ErrorParser: brake/controller/motor/... ). */
+    private static final String[] ERROR_NAMES = {"brake", "controller", "motor", "communication", "alarm", "transfer"};
+
+    /**
+     * Decode the raw error field. Only bits 0-5 are real faults (per ErrorParser); any higher bit is
+     * not an error. error = the 6-bit fault code (0 = no fault); errorNames = CSV of active categories.
+     */
+    private void setErrorFromMask(int mask) {
+        int faults = mask & 0x3F;
+        error = faults;
+        if (faults == 0) { errorNames = ""; return; }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < ERROR_NAMES.length; i++) {
+            if ((faults & (1 << i)) != 0) { if (sb.length() > 0) sb.append(','); sb.append(ERROR_NAMES[i]); }
+        }
+        errorNames = sb.toString();
+    }
+
     private static int[] toInts(byte[] v) {
         int[] b = new int[v.length];
         for (int i = 0; i < v.length; i++) b[i] = v[i] & 0xFF;
@@ -227,6 +246,7 @@ final class FrameParser {
             putTri(o, "darkMode", darkMode);
             putI(o, "error", error);
             if (!errorHex.isEmpty()) o.put("errorHex", errorHex);
+            if (!errorNames.isEmpty()) o.put("errorNames", errorNames);
             if (!fw.isEmpty()) o.put("fw", fw);
             if (settings.fwMajor != null) o.put("fwMajor", settings.fwMajor);
             if (settings.fwMinor != null) o.put("fwMinor", settings.fwMinor);
