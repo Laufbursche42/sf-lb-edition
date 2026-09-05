@@ -99,6 +99,7 @@ final class BleManager {
     private String desiredAddress;
     private String deviceName = "";
     private volatile String forcedProtoId;   // manual model override; null = auto classify by name/service
+    private volatile boolean autoGeneric;    // true = a generic "SoFlow" name, resolved only by transport
 
     // Active model + transport, resolved on connect (name first, service as fallback for "SoFlow").
     private volatile Proto activeProto;
@@ -118,6 +119,9 @@ final class BleManager {
     BleManager(Context ctx, Listener listener) {
         this.appCtx = ctx.getApplicationContext();
         this.listener = listener;
+        // Restore a manual model override from a previous session: a generic-"SoFlow" unit cannot be
+        // told apart by name, so the user's pick must survive a restart.
+        this.forcedProtoId = appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE).getString("forced_model", null);
         try {
             BluetoothManager bm = (BluetoothManager) appCtx.getSystemService(Context.BLUETOOTH_SERVICE);
             if (bm != null) adapter = bm.getAdapter();
@@ -272,6 +276,7 @@ final class BleManager {
     }
 
     private void classifyByName() {
+        autoGeneric = false;
         if (forcedProtoId != null) { activeProto = Models.resolve(forcedProtoId); return; }   // manual override
         String id = Models.classifyByName(deviceName);
         activeProto = (id != null) ? Models.get(id) : null;   // null -> resolve from service later
@@ -280,6 +285,9 @@ final class BleManager {
     /** Manual model override for a wrong auto-detection. null/"auto" restores name-based classification. */
     void setForcedModel(String id) {
         forcedProtoId = (id == null || id.isEmpty() || "auto".equals(id)) ? null : id;
+        SharedPreferences.Editor ed = appCtx.getSharedPreferences("lb", Context.MODE_PRIVATE).edit();
+        if (forcedProtoId == null) ed.remove("forced_model"); else ed.putString("forced_model", forcedProtoId);
+        ed.apply();
         String addr = desiredAddress;
         if (addr != null && adapter != null) {   // reconnect so the chosen transport and crypto apply
             try { closeGatt(); } catch (Throwable ignored) {}
@@ -583,6 +591,7 @@ final class BleManager {
         if (activeProto == null) {
             String id = Models.protoFromTransport(usedTransport);
             activeProto = Models.get(id);
+            autoGeneric = true;   // name gave nothing: this is a best-effort family guess, not the model
             Log.i(TAG, "classified from " + usedTransport.name() + " service -> " + id);
         }
         parser.setProto(activeProto);
@@ -876,7 +885,9 @@ final class BleManager {
             o.put("status", status == null ? "" : status);
             Proto p = activeProto;
             if (p != null) {
-                o.put("model", p.name);
+                // A generic "SoFlow" advertising name maps to no specific model, so show the neutral
+                // name instead of asserting a wrong one (e.g. "SO One"); the protocol is unaffected.
+                o.put("model", autoGeneric ? "SoFlow" : p.name);
                 o.put("family", p.family.name());
                 // Per-model capabilities so the dashboard shows only the settings this model supports.
                 boolean so5base = (p.family == Family.D7 && "so5base".equals(p.variant));
