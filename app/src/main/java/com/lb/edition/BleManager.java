@@ -890,6 +890,20 @@ final class BleManager {
                 caps.put("zeroStart", so5base);
                 caps.put("unit", so5base || p.family == Family.SO3);
                 caps.put("indicator", "so4".equals(p.variant));
+                // Telemetry-value caps: show a live tile only where the value is proven (decompiled
+                // manufacturer app, per-model matrix). voltage is parsed by every family; current is
+                // parsed but shown on no user-facing screen (dev/admin only) -> never a tile; power and
+                // energy are frame-parsed only by SO3; total/error/lock come from the D7/SO3 frames and
+                // are absent on SO6. trip is intentionally not shown: the reference app never surfaces it
+                // (both mileage labels bind the total), so there is no trip tile at all.
+                boolean d7 = (p.family == Family.D7);
+                caps.put("voltage", true);
+                caps.put("current", false);
+                caps.put("power", p.family == Family.SO3);
+                caps.put("energy", p.family == Family.SO3);
+                caps.put("total", p.family != Family.SO6);
+                caps.put("error", d7);
+                caps.put("lock", d7);
                 o.put("caps", caps);
             }
             if (listener != null) listener.onState(o.toString());

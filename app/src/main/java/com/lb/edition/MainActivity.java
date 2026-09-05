@@ -151,6 +151,10 @@ public class MainActivity extends Activity {
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
+        // Pin text to 100 %: the dashboard is a fixed cockpit layout, so the system font-size / display-
+        // size setting (e.g. Samsung "huge" fonts) must NOT scale the WebView text - otherwise values
+        // balloon and tiles get pushed out of view. Layout sizing stays under the page's own control.
+        s.setTextZoom(100);
 
         // Pin the privileged WebView (it holds the LB firmware/BLE bridge) to the bundled dashboard.
         // Any attempt to navigate it elsewhere is cancelled, so no remote or attacker page can ever

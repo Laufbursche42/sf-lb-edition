@@ -18,8 +18,6 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-<!-- Debug-mode banner: visible only while native debug logging is recording. -->
-<div class="debug-banner" id="debug-banner" data-i18n="dash.debug.banner">&#9888; DEBUG MODE ON: recording logs</div>
 <div id="app">
 
   <!-- ── Topbar ─────────────────────────────────────── -->
@@ -35,6 +33,9 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       <button class="icon-btn" id="btn-settings" aria-label="Settings" data-i18n-aria="dash.topbar.settings" data-i18n="dash.topbar.settings.icon">&#9881;</button>
     </div>
   </div>
+
+  <!-- Debug-mode stripe: a thin red line directly UNDER the icon bar while native logging records. -->
+  <div class="debug-banner" id="debug-banner" data-i18n="dash.debug.banner">&#9888; DEBUG MODE ON: recording logs</div>
 
   <!-- ── Scrollable Content ─────────────────────────── -->
   <div id="scroller">
@@ -59,17 +60,13 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
     <!-- Hero Metrics -->
     <div id="hero-row">
-      <div class="hero-cell">
+      <div class="hero-cell" data-tcap="battery">
         <div class="hc-val" id="soc-val">-</div>
         <div class="hc-unit" data-i18n="dash.hero.battery.unit">Battery %</div>
       </div>
-      <div class="hero-cell">
+      <div class="hero-cell" data-tcap="mode">
         <div class="hc-val" id="mode-val">-</div>
         <div class="hc-unit" data-i18n="dash.hero.mode.label">Mode</div>
-      </div>
-      <div class="hero-cell">
-        <div class="hc-val" id="current-val">-</div>
-        <div class="hc-unit" data-i18n="dash.hero.current.unit">A Current</div>
       </div>
     </div>
 
@@ -79,40 +76,40 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div class="section-hdr sub-hdr">
       <span data-i18n="dash.tele.section">Live values</span>
     </div>
-    <div id="motor-area">
-      <div id="motor-row">
-        <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.tele.volt.title">VOLTAGE</div>
-          <div class="mc-main"><span id="tl-volt">-</span></div>
-          <div class="mc-unit" data-i18n="dash.tele.volt.unit">V</div>
-        </div>
-        <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.tele.power.title">POWER</div>
-          <div class="mc-main"><span id="tl-power">-</span></div>
-          <div class="mc-unit" data-i18n="dash.tele.power.unit">W</div>
-        </div>
-        <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.tele.trip.title">TRIP</div>
-          <div class="mc-main"><span id="tl-trip">-</span></div>
-          <div class="mc-unit" data-i18n="dash.tele.trip.unit">km</div>
-        </div>
+    <div id="motor-row">
+      <div class="motor-cell" data-tcap="voltage">
+        <div class="mc-title" data-i18n="dash.tele.volt.title">VOLTAGE</div>
+        <div class="mc-main"><span id="tl-volt">-</span></div>
+        <div class="mc-unit" data-i18n="dash.tele.volt.unit">V</div>
       </div>
-      <div id="motor-row-2">
-        <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.tele.total.title">TOTAL</div>
-          <div class="mc-main"><span id="tl-total">-</span></div>
-          <div class="mc-unit" data-i18n="dash.tele.total.unit">km</div>
-        </div>
-        <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.tele.error.title">ERROR</div>
-          <div class="mc-main"><span id="tl-error">-</span></div>
-          <div class="mc-unit" data-i18n="dash.tele.error.unit">code</div>
-        </div>
-        <div class="motor-cell">
-          <div class="mc-title" data-i18n="dash.tele.lock.title">LOCK</div>
-          <div class="mc-main"><span id="tl-lock">-</span></div>
-          <div class="mc-unit" data-i18n="dash.tele.lock.unit">state</div>
-        </div>
+      <div class="motor-cell" data-tcap="total">
+        <div class="mc-title" data-i18n="dash.tele.total.title">TOTAL</div>
+        <div class="mc-main"><span id="tl-total">-</span></div>
+        <div class="mc-unit" data-i18n="dash.tele.total.unit">km</div>
+      </div>
+    </div>
+    <div id="motor-row-2">
+      <div class="motor-cell" data-tcap="power">
+        <div class="mc-title" data-i18n="dash.tele.power.title">POWER</div>
+        <div class="mc-main"><span id="tl-power">-</span></div>
+        <div class="mc-unit" data-i18n="dash.tele.power.unit">W</div>
+      </div>
+      <div class="motor-cell" data-tcap="energy">
+        <div class="mc-title" data-i18n="dash.tele.energy.title">ENERGY</div>
+        <div class="mc-main"><span id="tl-energy">-</span></div>
+        <div class="mc-unit" data-i18n="dash.tele.energy.unit">Wh</div>
+      </div>
+    </div>
+    <div id="motor-row-3">
+      <div class="motor-cell" data-tcap="error">
+        <div class="mc-title" data-i18n="dash.tele.error.title">ERROR</div>
+        <div class="mc-main"><span id="tl-error">-</span></div>
+        <div class="mc-unit" data-i18n="dash.tele.error.unit">code</div>
+      </div>
+      <div class="motor-cell" data-tcap="lock">
+        <div class="mc-title" data-i18n="dash.tele.lock.title">LOCK</div>
+        <div class="mc-main"><span id="tl-lock">-</span></div>
+        <div class="mc-unit" data-i18n="dash.tele.lock.unit">state</div>
       </div>
     </div>
 
@@ -137,10 +134,10 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
       <div class="dg-row">
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.voltage">Voltage</span><button type="button" class="set-help" data-set-help="dg-volt" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-volt">-</span></div>
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.total">Total</span><span class="dg-value" id="dg-total">-</span></div>
+        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.current">Current</span><span class="dg-value" id="dg-current">-</span></div>
       </div>
       <div class="dg-row">
-        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.trip">Trip</span><span class="dg-value" id="dg-single">-</span></div>
+        <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.total">Total</span><span class="dg-value" id="dg-total">-</span></div>
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.rssi">RSSI</span><button type="button" class="set-help" data-set-help="dg-rssi" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-rssi">-</span></div>
       </div>
       <div class="dg-row one-col">
@@ -1098,6 +1095,7 @@ function parseBLE(raw) {
       voltage:  num(d.voltage),
       current:  num(d.current),
       power:    num(d.power),
+      energy:   num(d.energy),
       battery:  (typeof d.battery === 'number' ? d.battery : (parseInt(d.battery) || 0)),
       mode:     (typeof d.mode === 'number' ? d.mode : -1),
       modeText: (d.modeText != null ? ('' + d.modeText) : ''),
@@ -1356,9 +1354,9 @@ function updateBLEUI(data) {
   document.querySelector('.ble-drum .sd-unit').textContent = speedUnit();
   document.querySelector('.gps-drum .sd-unit').textContent = speedUnitGPS();
 
-  const DASH = ['ble-speed','soc-val','mode-val','current-val','dg-avg','dg-max',
-    'dg-volt','dg-total','dg-single','dg-rssi','dg-err',
-    'tl-volt','tl-power','tl-trip','tl-total','tl-error','tl-lock'];
+  const DASH = ['ble-speed','soc-val','mode-val','dg-current','dg-avg','dg-max',
+    'dg-volt','dg-total','dg-rssi','dg-err',
+    'tl-volt','tl-power','tl-energy','tl-total','tl-error','tl-lock'];
 
   if (!data) {
     DASH.forEach(id => setTxt(id, '-'));
@@ -1406,19 +1404,11 @@ function updateBLEUI(data) {
   // Hero: battery %, ride mode, pack current.
   setTxt('soc-val', Math.round(data.battery));
   setTxt('mode-val', data.modeText ? modeLabel(data.modeText) : (data.mode >= 0 ? String(data.mode) : '-'));
-  // Signed from the rider's point of view: pack draw reads negative and red, recuperation positive.
-  const cur = data.current;
-  const curEl = document.getElementById('current-val');
-  if (curEl) {
-    const shown = -cur;
-    curEl.textContent = shown > 0 ? `+${shown.toFixed(1)}` : shown.toFixed(1);
-    curEl.style.color = cur > 0 ? 'var(--danger)' : cur < 0 ? 'var(--good)' : 'var(--text)';
-  }
 
   // Live tiles: voltage, power, trip / total, error, lock.
   setTxt('tl-volt', data.voltage.toFixed(1));
   setTxt('tl-power', Math.round(data.power));
-  setTxt('tl-trip', convDist(data.tripKm).toFixed(1));
+  setTxt('tl-energy', isNaN(data.energy) ? '-' : Math.round(data.energy));
   setTxt('tl-total', Math.round(convDist(data.totalKm)));
   const errStr = data.error ? (errorLabel(data.errorNames) || String(data.error)) : t('msg.error.ok');
   setTxt('tl-error', errStr);
@@ -1429,8 +1419,8 @@ function updateBLEUI(data) {
 
   // Grid.
   setTxt('dg-volt', `${data.voltage.toFixed(1)} V`);
+  setTxt('dg-current', isNaN(data.current) ? '-' : `${data.current.toFixed(1)} A`);
   setTxt('dg-total', `${Math.round(convDist(data.totalKm))} ${distUnit()}`);
-  setTxt('dg-single', `${convDist(data.tripKm).toFixed(1)} ${distUnit()}`);
   setTxt('dg-rssi', `${data.rssi} dBm`);
   const rssiEl = document.getElementById('dg-rssi');
   if (rssiEl) rssiEl.style.color = data.rssi < -85 ? 'var(--danger)' : data.rssi < -70 ? 'var(--warn)' : 'var(--good)';
@@ -2499,6 +2489,12 @@ function applyCaps() {
   document.querySelectorAll('#drive-quick .dq-btn[data-cap]').forEach(btn => {
     btn.classList.toggle('is-hidden', _connectedState && !capOn(btn.getAttribute('data-cap')));
   });
+  // Telemetry tiles: show only the values the connected model actually reports. Never invent a value
+  // a scooter does not send (e.g. current/power on the display-based models). Full set shown until
+  // connected, then trimmed to the model.
+  document.querySelectorAll('[data-tcap]').forEach(el => {
+    el.classList.toggle('is-hidden', _connectedState && !capOn(el.getAttribute('data-tcap')));
+  });
 }
 
 function liveRaw() {
@@ -3243,8 +3239,14 @@ function reflectDriveQuick() {
    on the right value. */
 
 const FOLD_MIN_SCALE = 0.55;   // below this the labels stop being readable, so allow a scroll instead
-const FOLD_MAX_SCALE = 2.6;    // scale up enough that the fold always reaches the bottom edge
+const FOLD_MAX_SCALE = 1.35;   // the font MAY grow to fill a tall screen, but only up to this cap
+                               // (effective max value size ~= 32px CSS * 1.35). Beyond the cap the
+                               // leftover height is shared out as row spacing (space-between), so text
+                               // never balloons the way the old 2.6 cap let it.
 const FOLD_BOTTOM_GAP = 10;    // breathing room between the last button row and the screen edge
+const FOLD_BASE_GAP = 10;      // the CSS --gap: the minimum row gap
+const FOLD_MAX_GAP = 34;       // the row gap never grows past this: tiles scale to fill, the leftover
+                               // tops up the gap only to here, so gaps stay a defined size not a void
 
 let _foldScale = 0;            // last applied factor, 0 = never fitted
 
@@ -3260,29 +3262,33 @@ function fitFold() {
   const avail = scroller.clientHeight - parseFloat(cs.paddingTop || '0') - FOLD_BOTTOM_GAP;
   if (!(avail > 0)) return;
 
-  // offsetHeight is the LAYOUT height and ignores the transform, so the factor can be recomputed
-  // without first removing the one already applied.
+  // Measure the natural content height at the base row gap, then derive the scale factor. Scaling up
+  // is allowed (tiles grow to fill) but capped at FOLD_MAX_SCALE so the font never balloons.
   let scale = _foldScale || 1;
+  let natural = 0;
   for (let pass = 0; pass < 2; pass++) {
     inner.style.width = (100 / scale) + '%';
-    const natural = inner.offsetHeight;
+    inner.style.rowGap = FOLD_BASE_GAP + 'px';
+    natural = inner.offsetHeight;
     if (!(natural > 0)) return;
     scale = Math.max(FOLD_MIN_SCALE, Math.min(FOLD_MAX_SCALE, avail / natural));
   }
 
-  // Already there: rewriting the same values would resize the observed children again, and a
-  // factor that lands either side of a text-wrap boundary could then oscillate forever.
-  if (Math.abs(scale - _foldScale) < 0.005) {
-    inner.style.width = (100 / _foldScale) + '%';
-    return;
-  }
   _foldScale = scale;
   inner.style.width = (100 / scale) + '%';
   inner.style.transform = 'scale(' + scale + ')';
-  // Never shorter than the screen: when the factor runs into the upper cap the scaled block
-  // stops short of the bottom edge, and the next section's heading would peek in. Claiming the
-  // full height keeps everything after the fold below the edge either way.
-  fold.style.height = Math.round(Math.max(avail, inner.offsetHeight * scale)) + 'px';
+  // After scaling the tiles, top up the row gap to fill the leftover height - but only up to
+  // FOLD_MAX_GAP, so on a very tall screen the gaps stay a defined size instead of opening into a
+  // void. Count only the visible rows (hidden tiles are not flex items).
+  let visible = 0;
+  for (let i = 0; i < inner.children.length; i++) {
+    if (inner.children[i].offsetParent !== null) visible++;
+  }
+  const boundaries = Math.max(1, visible - 1);
+  const leftover = Math.max(0, (avail / scale) - natural);          // unscaled px still to fill
+  const gap = Math.min(FOLD_MAX_GAP, FOLD_BASE_GAP + leftover / boundaries);
+  inner.style.rowGap = gap + 'px';
+  fold.style.height = Math.round(avail) + 'px';
 }
 
 /* Re-fit whenever the viewport or the fold's own content changes (a gear tag appearing, a

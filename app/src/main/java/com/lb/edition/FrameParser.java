@@ -35,6 +35,7 @@ final class FrameParser {
 
     // ── decoded live model (NaN / -1 / "" mean "not seen yet") ──
     private double speed = Double.NaN, voltage = Double.NaN, current = Double.NaN, power = Double.NaN;
+    private double energy = Double.NaN;
     private double tripKm = Double.NaN, totalKm = Double.NaN;
     private int battery = -1, mode = -1, error = -1;
     private int locked = -1, headlight = -1, imperial = -1, darkMode = -1;   // tri-state: -1 unknown
@@ -50,7 +51,7 @@ final class FrameParser {
 
     /** Clear the decoded model (fresh connect). */
     synchronized void reset() {
-        speed = voltage = current = power = tripKm = totalKm = Double.NaN;
+        speed = voltage = current = power = energy = tripKm = totalKm = Double.NaN;
         battery = mode = error = -1;
         locked = headlight = imperial = darkMode = -1;
         errorHex = errorNames = fw = fwDisplay = fwCpu = "";
@@ -168,7 +169,7 @@ final class FrameParser {
         speed = u16(b, 5) / 10.0;
         voltage = u16(b, 7) / 10.0;
         current = u16(b, 9) / 10.0;
-        if (b.length >= 15) power = u16(b, 11) / 10.0;   // b[13..14] energy: not surfaced
+        if (b.length >= 15) { power = u16(b, 11) / 10.0; energy = u16(b, 13) / 10.0; }   // SO3 only
     }
 
     /** SO3 status2 0x2D (spec 6.3): firmware plus trip/total. */
@@ -238,6 +239,7 @@ final class FrameParser {
             putD(o, "voltage", voltage);
             putD(o, "current", current);
             if (!Double.isNaN(power)) o.put("power", round2(power));
+            if (!Double.isNaN(energy)) o.put("energy", round1(energy));
             putI(o, "battery", battery);
             if (mode >= 0) { o.put("mode", mode); o.put("modeText", mode < MODE_NAMES.length ? MODE_NAMES[mode] : ("Mode " + mode)); }
             putTri(o, "locked", locked);

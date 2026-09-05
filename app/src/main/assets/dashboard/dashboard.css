@@ -134,6 +134,8 @@ html, body {
 #fold { overflow: hidden; }
 #fold-inner {
   display: flex; flex-direction: column; gap: var(--gap);
+  /* fitFold() grows the tiles to fill the screen and then tops up the row gap to fill the rest, but
+     only up to a capped value (FOLD_MAX_GAP) so the gaps never open into large voids. */
   transform-origin: top left; width: 100%;
 }
 #fold-inner > * { flex-shrink: 0; }
@@ -163,20 +165,26 @@ html, body {
 }
 
 /* ── Hero Metrics ──────────────────────────────────────────── */
-/* Hero cells and motor cells are the same kind of tile row, so they share one grid. */
-#hero-row, #motor-row, #motor-row-2 {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
+/* Hero cells and motor cells are the same kind of tile row. Flex (not a fixed 3-col grid) so cells
+   a given model does not report can be hidden per capability and the rest reflow to fill the row. */
+#hero-row, #motor-row, #motor-row-2, #motor-row-3 {
+  display: flex;
   gap: var(--gap);
 }
 .hero-cell {
+  flex: 1; min-width: 0;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 12px 8px 10px;
   display: flex; flex-direction: column; align-items: center;
 }
+/* One uniform value size for every tile (hero and motor), hard-capped at 32px so no display or
+   font-scale setting can blow a value up. Words (mode "Normal", an error name) and numbers share
+   the same size; anything too wide is clipped with an ellipsis rather than resized per tile. */
 .hero-cell .hc-val {
-  font-size: clamp(28px, 9vw, 38px); font-weight: var(--fw-heavy);
-  line-height: 1; letter-spacing: -.01em;
+  font-size: clamp(20px, 6.5vw, 32px); font-weight: var(--fw-heavy);
+  line-height: 1.05; letter-spacing: -.01em;
   font-variant-numeric: tabular-nums;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .hero-cell .hc-unit {
   font-size: var(--fs-md); color: var(--label); margin-top: 3px; white-space: nowrap;
@@ -413,22 +421,23 @@ html, body {
 }
 
 /* ── Motors ─────────────────────────────────────────────────── */
-/* #motor-row takes the three-column tile grid shared with #hero-row. */
+/* #motor-row shares the flex tile row with #hero-row (see there). */
 .motor-cell {
+  flex: 1; min-width: 0;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 10px 8px;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
 }
 .mc-title { font-size: var(--fs-sm); font-weight: var(--fw-bold); color: var(--label); letter-spacing: .06em; }
 .mc-main {
-  font-size: clamp(22px, 7vw, 30px); font-weight: var(--fw-heavy); line-height: 1.05;
+  font-size: clamp(20px, 6.5vw, 32px); font-weight: var(--fw-heavy); line-height: 1.05;
   color: var(--value); font-variant-numeric: tabular-nums;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* Own line under the value, centred like the title and the value above it. */
 .mc-unit { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--label); }
 
 /* Two stacked tile rows: temperatures and power above, currents below. */
-#motor-area { display: flex; flex-direction: column; gap: var(--gap); }
 /* Motor-mode quick toggle: its own full-width row under the motor tiles, four equal buttons,
    same shape as the drive-mode row below it. */
 #motor-quick { display: flex; gap: var(--gap); container-type: inline-size; }
@@ -889,11 +898,13 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
   border: 1px solid var(--border); background: var(--bg); color: var(--text);
   font-family: monospace; font-size: var(--fs-md);
 }
+/* A thin red stripe that sits IN FLOW directly below the icon bar (never over it, never large).
+   flex-shrink:0 keeps its slim height; it only takes space while debug logging is active. */
 .debug-banner.debug-banner {
-  display: none; position: fixed; top: 0; left: 0; right: 0;
-  background: #c0392b; color: #fff; text-align: center; z-index: 9999;
-  font-size: var(--fs-sm); font-weight: var(--fw-bold); padding: 4px 8px;
-  letter-spacing: .3px;
+  display: none; flex-shrink: 0;
+  background: #c0392b; color: #fff; text-align: center;
+  font-size: 10px; font-weight: var(--fw-bold); line-height: 1.3; padding: 1px 8px;
+  letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ── Language switch and the what-is-new modal ─────────────────────────────── */
