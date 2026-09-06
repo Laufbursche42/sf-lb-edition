@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.6
+
+- Unlock and Lock (and the triple-tap on the speed tile) now only set the single speed value and no longer switch the ride mode. Comfort and Sport both reach the open speed, Eco stays firmware-limited, and you pick the ride mode yourself. This reverts the 1.0.5 behaviour that forced the sport gear: the scooter exposes a single speed value over Bluetooth, so forcing sport only cost range because Comfort reaches the same top speed with a gentler power delivery.
+
 ## 1.0.0
 
 First release of the SoFlow edition, built on the Laufbursche Edition WebView dashboard.

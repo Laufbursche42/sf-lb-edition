@@ -20,12 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>The main screen fits on one screen.</b> Speed, battery, mode and the live values scale to fill the height. The function switches sit at the bottom, so nothing you read while riding needs a scroll; the detail sections come up with a swipe.",
-      "<b>Speed limit by triple-tap.</b> Tap the speed tile three times to switch the scooter between your open value and the eKFV value. Both values are set on the Scooter settings page.",
-      "<b>Function switches on the main screen.</b> Front light, zero-start, dark mode and the immobilizer are one tap each; only the ones your model supports appear.",
-      "<b>Settings, battery info and error reports.</b> Ride mode, lights and the speed values live on the Scooter settings page. Battery and active faults have their own pages, and the firmware versions are under Scooter info.",
-      "<b>Pick your model if detection is wrong.</b> A model dropdown in the menu overrides the auto-detected model and reconnects.",
-      "<b>Display settings.</b> Under Display you can set the tile colour, the background and one brightness slider that dims the text and every coloured value together, kept separately for dark and light mode.",
+      "<b>Unlock leaves the gear alone.</b> Unlock and Lock (and the triple-tap on the speed tile) now only set the single speed value and no longer switch the ride mode. Comfort and Sport both reach the open speed, Eco stays firmware-limited. You pick the ride mode yourself: Comfort is gentler and goes further, Sport pulls harder.",
     ],
 
     'disclaimer.points': [
@@ -88,7 +83,7 @@ window.I18N = {
     "msg.error.ok": "OK",
     "msg.lock.locked": "Locked", "msg.lock.open": "Open",
     "scooter.speed.section.title": "Speed",
-    "scooter.speed.intro": "Unlock switches to the sport gear and raises its limiter to the open value; Lock switches to sport and sets it back to the road-legal value. eco and normal stay untouched. The triple-tap gesture on the main screen does the same.",
+    "scooter.speed.intro": "Unlock raises the limiter to the open value; Lock sets it back to the road-legal value. The triple-tap gesture on the main screen switches between the same two values.",
     "scooter.speed.open.label": "Open (km/h)", "scooter.speed.open.sub": "Speed sent by Unlock",
     "scooter.speed.ekfv.label": "eKFV (km/h)", "scooter.speed.ekfv.sub": "Road-legal limit, sent by Lock",
     "scooter.speed.legal": "<b>Private ground only.</b> Unlocking makes the scooter run faster than approved. That voids the operating permit and the insurance cover; it is not allowed on public roads.",
@@ -732,12 +727,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Der Hauptbildschirm passt auf einen Bildschirm.</b> Geschwindigkeit, Akku, Modus und die Live-Werte füllen die Höhe. Die Funktionsschalter sitzen unten, damit du während der Fahrt nichts scrollen musst; die Detail-Abschnitte kommen mit einem Wisch hoch.",
-      "<b>Drossel per Dreifach-Tipp.</b> Tippe die Speed-Kachel dreimal an, dann wechselt der Scooter zwischen deinem offenen Wert und dem eKFV-Wert. Beide Werte stellst du in den Scooter-Einstellungen ein.",
-      "<b>Funktionsschalter auf dem Hauptbildschirm.</b> Frontlicht, Zero-Start, Dunkelmodus und die Wegfahrsperre sind je ein Tipp. Es erscheinen nur die, die dein Modell kann.",
-      "<b>Einstellungen, Batterie-Info und Fehlerberichte.</b> Fahrmodus, Licht und die Speed-Werte liegen in den Scooter-Einstellungen. Akku und aktive Fehler haben eigene Seiten. Die Firmware-Versionen stehen unter Scooter-Info.",
-      "<b>Modell selbst wählen, falls die Erkennung daneben liegt.</b> Ein Modell-Dropdown im Menü überschreibt das automatisch erkannte Modell und verbindet neu.",
-      "<b>Anzeige-Einstellungen.</b> Unter Display kannst du Kachelfarbe, Hintergrund und einen Helligkeitsregler einstellen, der Text und alle farbigen Werte gemeinsam dimmt, getrennt für dunklen und hellen Modus.",
+      "<b>Entsperren lässt den Gang in Ruhe.</b> Entsperren und Sperren (auch der Dreifach-Tipp auf der Speed-Kachel) setzen jetzt nur noch den einen Geschwindigkeitswert und schalten den Fahrmodus nicht mehr um. Comfort und Sport erreichen beide die offene Geschwindigkeit, Eco bleibt firmwareseitig gedrosselt. Den Fahrmodus wählst du selbst: Comfort fährt sanfter und weiter, Sport zieht härter.",
     ],
 
     'disclaimer.points': [
@@ -800,7 +790,7 @@ window.I18N = {
     "msg.error.ok": "OK",
     "msg.lock.locked": "Gesperrt", "msg.lock.open": "Offen",
     "scooter.speed.section.title": "Geschwindigkeit",
-    "scooter.speed.intro": "Entsperren schaltet in den Sportgang und hebt dessen Drossel auf den offenen Wert; Sperren schaltet in den Sportgang und setzt sie zurück auf den straßenzugelassenen Wert. eco und normal bleiben unangetastet. Die Dreifach-Tipp-Geste im Hauptschirm macht dasselbe.",
+    "scooter.speed.intro": "Entsperren hebt die Drossel auf den offenen Wert; Sperren setzt sie zurück auf den straßenzugelassenen Wert. Die Dreifach-Tipp-Geste im Hauptschirm schaltet zwischen denselben zwei Werten um.",
     "scooter.speed.open.label": "Offen (km/h)", "scooter.speed.open.sub": "Vom Entsperren gesendete Geschwindigkeit",
     "scooter.speed.ekfv.label": "eKFV (km/h)", "scooter.speed.ekfv.sub": "Straßenzugelassenes Limit, vom Sperren gesendet",
     "scooter.speed.legal": "<b>Nur auf privatem Grund.</b> Mit dem Entsperren fährt der Scooter schneller als zugelassen. Damit erlischt die Betriebserlaubnis und der Versicherungsschutz; auf öffentlichen Wegen ist das nicht erlaubt.",
