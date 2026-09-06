@@ -2729,8 +2729,15 @@ function sendSpeedRelease(open) {
   if (typeof LB === 'undefined' || !LB.setSpeed) { showToast(t('msg.app.only.in.app')); return false; }
   if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
   const kmh = open ? speedOpenVal() : speedEkfvVal();
-  try { LB.setSpeed(kmh); _speedReleased = !!open; return true; }
-  catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
+  try {
+    // setMaxSpeed applies to the gear that is active, so switch to the sport gear FIRST, then send the
+    // value - that way open/eKFV always lands on sport and eco/normal stay untouched. The native write
+    // queue (250 ms) spaces the two frames so the controller does not drop the second.
+    if (capOn('mode') && LB.setSpeedMode) { try { LB.setSpeedMode(2); setSegActive('#ss-mode-seg', 2); } catch (e) {} }
+    LB.setSpeed(kmh);
+    _speedReleased = !!open;
+    return true;
+  } catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
 }
 
 /* Hidden gesture on the VCU speed tile: triple-tap toggles the throttle between open and eKFV. */
