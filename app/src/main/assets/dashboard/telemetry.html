@@ -1539,34 +1539,74 @@ function startRide() {
 
 function finalizeRide() {
   if (!state.currentRide) return;
-  state.currentRide.endTime = Date.now();
-  state.routes = loadRoutes().filter(r => r.id !== state.currentRide.id);
-  // Only save if ride has meaningful data
-  if (state.currentRide.points.length >= 2 || state.currentRide.dist > 0.01) {
-    state.routes.push({ ...state.currentRide });
-  }
-  saveRoutes(state.routes);
+  // The native RouteRecorderService owns the recorded track (it keeps logging GPS with the screen
+  // off, which a WebView geolocation watch cannot). This JS ride object is only the live overlay; it
+  // is NOT persisted. The finished native track is pulled in by importNativeRoutes() shortly after.
   state.currentRide = null;
   clearInterval(state.rideTimer);
   clearInterval(state.saveTimer);
-  // GPS keeps running while connected (live speed on the main screen); it stops only on disconnect.
-  renderRoutes();
   updateRideUI();
+  setTimeout(importNativeRoutes, 1500);
 }
 
-// Stop button for a live ride: finalize now and block auto-re-arm until the next reconnect.
+// Stop button for a live ride: stop native recording too and block auto-re-arm until the next reconnect.
 function stopLiveRide() {
   state.rideStopped = true;
+  try { if (typeof LB !== 'undefined' && LB.stopRouteRecording) LB.stopRouteRecording(); } catch (e) {}
   finalizeRide();
 }
 
-function periodicSaveRide() {
-  if (!state.currentRide) return;
-  // Save current ride as last element with endTime=0 (crash recovery)
-  state.routes = loadRoutes().filter(r => r.id !== state.currentRide.id);
-  state.routes.push({ ...state.currentRide, endTime: 0 });
-  saveRoutes(state.routes);
-  renderRoutes();
+// Durability is now the native recorder's job (flushes every fix to disk), so the old JS crash-save
+// is a no-op - keeping it avoids double-persisting the same ride.
+function periodicSaveRide() {}
+
+// Pull every finished native GPS route into the saved-routes list. The native side hands them over
+// once (deleting its files), so this is safe to call repeatedly (app start, opening the routes list,
+// after a ride). This is what makes a full track appear even when it was recorded with the screen off.
+function buildRouteFromNative(nr) {
+  const src = (nr && Array.isArray(nr.points)) ? nr.points : [];
+  const route = { id: 'ride_' + nr.id, startTime: nr.start || nr.id, endTime: nr.end || nr.id,
+                  dist: 0, hmPlus: 0, hmMinus: 0, points: [] };
+  for (const p of src) {
+    const lat = +p.lat, lon = +p.lon;
+    if (!isFinite(lat) || !isFinite(lon)) continue;
+    const alt = (p.alt != null && isFinite(+p.alt)) ? +p.alt : 0;
+    const pt = { lat, lon, alt, ts: +p.ts || 0, speed: Math.round((+p.speed || 0) * 10) / 10 };
+    if (route.points.length > 0) {
+      const prev = route.points[route.points.length - 1];
+      route.dist = Math.round((route.dist + haversine(prev.lat, prev.lon, lat, lon)) * 100) / 100;
+      const dAlt = alt - prev.alt;
+      if (dAlt > 0.5) route.hmPlus = Math.round(route.hmPlus + dAlt);
+      else if (dAlt < -0.5) route.hmMinus = Math.round(route.hmMinus + Math.abs(dAlt));
+    }
+    route.points.push(pt);
+  }
+  return route;
+}
+
+function importNativeRoutes() {
+  try {
+    if (typeof LB === 'undefined' || !LB.takeRecordedRoutes) return;
+    let arr;
+    try { arr = JSON.parse(LB.takeRecordedRoutes() || '[]'); } catch (e) { return; }
+    if (!Array.isArray(arr) || !arr.length) return;
+    const routes = loadRoutes();
+    let added = 0;
+    for (const nr of arr) {
+      const r = buildRouteFromNative(nr);
+      if (r.points.length >= 2 || r.dist > 0.01) { routes.push(r); added++; }
+    }
+    if (added) { saveRoutes(routes); state.routes = routes; renderRoutes(); }
+  } catch (e) {}
+}
+
+// Keep the native recorder's config in step with the dashboard (it cannot read localStorage).
+function syncGpsConfigToNative() {
+  try {
+    if (typeof LB !== 'undefined' && LB.setGpsRecordConfig) {
+      LB.setGpsRecordConfig(!!state.gpsAutoStart, Math.max(1, Math.round(state.gpsIntervalMs / 1000)));
+    }
+  } catch (e) {}
 }
 
 /* ── GPS Tracking ─────────────────────────────────────────── */
@@ -1988,6 +2028,7 @@ function loadSettings() {
   state.gpsIntervalMs = gpsIntSec * 1000;
   const gpsIntSel = document.getElementById('gps-interval-sel');
   if (gpsIntSel) gpsIntSel.value = String(gpsIntSec);
+  syncGpsConfigToNative();   // the native recorder mirrors this config
 
   // Manual scooter-model override: fill the dropdown from the native list, restore the saved pick
   // and re-apply it to the native side so an override survives a restart.
@@ -3330,6 +3371,7 @@ function wireEvents() {
   // Routes sub-page open/close
   document.getElementById('btn-open-routes').addEventListener('click', () => {
     closeSettings();
+    importNativeRoutes();   // pull in any track recorded natively (incl. with the screen off)
     renderRoutes();
     document.getElementById('routes-page').classList.add('open');
   });
@@ -3501,9 +3543,11 @@ function wireEvents() {
     storage.set('lb_gps_auto', state.gpsAutoStart ? 'on' : 'off');
     if (!state.gpsAutoStart) {
       // Turning auto-tracking off stops the current RECORDING only - the live GPS speed keeps running.
+      try { if (typeof LB !== 'undefined' && LB.stopRouteRecording) LB.stopRouteRecording(); } catch (err) {}
       if (state.currentRide) finalizeRide();
       state.armDistM = 0;
     }
+    syncGpsConfigToNative();
   });
 
   // GPS recording interval: persist and apply live to the ongoing/next recording.
@@ -3512,6 +3556,7 @@ function wireEvents() {
     const sec = parseInt(e.target.value, 10) || 5;
     state.gpsIntervalMs = sec * 1000;
     storage.set('lb_gps_interval', String(sec));
+    syncGpsConfigToNative();
   });
 
   // Manual model override: remember the pick (or clear it for Auto) and switch the native detection.
@@ -3605,6 +3650,11 @@ function init() {
   initLang();      // before anything renders, so the first paint is in the rider's language
   wireEvents();
   recoverStuckRides();
+  importNativeRoutes();   // pull in any track the native recorder finished while the app was away
+  // ...and again whenever the app returns to the foreground (a ride may have finished while away).
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { try { importNativeRoutes(); } catch (e) {} }
+  });
   renderRoutes();
   initNavBanner();
   initRideBanner();

@@ -20,7 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>The main screen fits on one screen.</b> Speed, battery, mode, current and the live values scale to fill the height. The function switches sit at the bottom, so nothing you read while riding needs a scroll; the detail sections come up with a swipe.",
+      "<b>The main screen fits on one screen.</b> Speed, battery, mode and the live values scale to fill the height. The function switches sit at the bottom, so nothing you read while riding needs a scroll; the detail sections come up with a swipe.",
       "<b>Speed limit by triple-tap.</b> Tap the speed tile three times to switch the scooter between your open value and the eKFV value. Both values are set on the Scooter settings page.",
       "<b>Function switches on the main screen.</b> Front light, zero-start, dark mode and the immobilizer are one tap each; only the ones your model supports appear.",
       "<b>Settings, battery info and error reports.</b> Ride mode, lights and the speed values live on the Scooter settings page. Battery and active faults have their own pages, and the firmware versions are under Scooter info.",
@@ -732,7 +732,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Der Hauptbildschirm passt auf einen Bildschirm.</b> Geschwindigkeit, Akku, Modus, Strom und die Live-Werte füllen die Höhe. Die Funktionsschalter sitzen unten, damit du während der Fahrt nichts scrollen musst; die Detail-Abschnitte kommen mit einem Wisch hoch.",
+      "<b>Der Hauptbildschirm passt auf einen Bildschirm.</b> Geschwindigkeit, Akku, Modus und die Live-Werte füllen die Höhe. Die Funktionsschalter sitzen unten, damit du während der Fahrt nichts scrollen musst; die Detail-Abschnitte kommen mit einem Wisch hoch.",
       "<b>Drossel per Dreifach-Tipp.</b> Tippe die Speed-Kachel dreimal an, dann wechselt der Scooter zwischen deinem offenen Wert und dem eKFV-Wert. Beide Werte stellst du in den Scooter-Einstellungen ein.",
       "<b>Funktionsschalter auf dem Hauptbildschirm.</b> Frontlicht, Zero-Start, Dunkelmodus und die Wegfahrsperre sind je ein Tipp. Es erscheinen nur die, die dein Modell kann.",
       "<b>Einstellungen, Batterie-Info und Fehlerberichte.</b> Fahrmodus, Licht und die Speed-Werte liegen in den Scooter-Einstellungen. Akku und aktive Fehler haben eigene Seiten. Die Firmware-Versionen stehen unter Scooter-Info.",
