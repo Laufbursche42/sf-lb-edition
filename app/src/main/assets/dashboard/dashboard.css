@@ -437,6 +437,21 @@ html, body {
 /* Own line under the value, centred like the title and the value above it. */
 .mc-unit { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--label); }
 
+/* Rider-adjustable tile font sizes (Display settings -> Font sizes). Row-scoped (id + class beats the
+   plain class rule) so each row is independent. The var stays unset until a slider is moved, so the
+   default look is unchanged (the built-in clamp). Once set, the slider value IS the displayed size.
+   The big speed drums have their own larger range; their small unit is a normal label. */
+#speed-row .sd-val { font-size: var(--sz-speed-val, clamp(42px, 13vw, 64px)); }
+#speed-row .sd-unit { font-size: var(--sz-speed-lbl, var(--fs-base)); }
+#hero-row .hc-val { font-size: var(--sz-hero-val, clamp(20px, 6.5vw, 32px)); }
+#hero-row .hc-unit { font-size: var(--sz-hero-lbl, var(--fs-md)); }
+#motor-row .mc-main { font-size: var(--sz-m1-val, clamp(20px, 6.5vw, 32px)); }
+#motor-row .mc-title, #motor-row .mc-unit { font-size: var(--sz-m1-lbl, var(--fs-sm)); }
+#motor-row-2 .mc-main { font-size: var(--sz-m2-val, clamp(20px, 6.5vw, 32px)); }
+#motor-row-2 .mc-title, #motor-row-2 .mc-unit { font-size: var(--sz-m2-lbl, var(--fs-sm)); }
+#motor-row-3 .mc-main { font-size: var(--sz-m3-val, clamp(20px, 6.5vw, 32px)); }
+#motor-row-3 .mc-title, #motor-row-3 .mc-unit { font-size: var(--sz-m3-lbl, var(--fs-sm)); }
+
 /* Two stacked tile rows: temperatures and power above, currents below. */
 /* Motor-mode quick toggle: its own full-width row under the motor tiles, four equal buttons,
    same shape as the drive-mode row below it. */

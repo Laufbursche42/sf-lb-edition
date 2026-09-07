@@ -20,7 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>Unlock leaves the gear alone.</b> Unlock and Lock (and the triple-tap on the speed tile) now only set the single speed value and no longer switch the ride mode. Comfort and Sport both reach the open speed, Eco stays firmware-limited. You pick the ride mode yourself: Comfort is gentler and goes further, Sport pulls harder.",
+      "<b>Adjustable tile font size.</b> Under Display settings you can set the font size of every tile on the main screen, per row split into value (top) and label (bottom). The small tiles go from 10 to 40, the large speed number up to 72. The main screen still auto-scales to the height, so it is mainly the ratio between the sizes that shows.",
     ],
 
     'disclaimer.points': [
@@ -157,6 +157,19 @@ window.I18N = {
     "display.bg.color": "Background",
     "display.bg.oled": "Pure black switches OLED pixels off",
     "display.dark.title": "Dark mode",
+    "display.fonts.title": "Font sizes",
+    "display.fonts.hint": "Tile font size on the main screen, per row split into value (top) and label (bottom). The small tiles go from 10 to 40, the large speed number from 20 to 72. The screen still auto-scales to the height, so it is mainly the ratio between the sizes that shows.",
+    "display.fonts.speed.val": "Speed - value",
+    "display.fonts.speed.lbl": "Speed - label",
+    "display.fonts.hero.val": "Upper tiles - value",
+    "display.fonts.hero.lbl": "Upper tiles - label",
+    "display.fonts.m1.val": "Tile row 1 - value",
+    "display.fonts.m1.lbl": "Tile row 1 - label",
+    "display.fonts.m2.val": "Tile row 2 - value",
+    "display.fonts.m2.lbl": "Tile row 2 - label",
+    "display.fonts.m3.val": "Tile row 3 - value",
+    "display.fonts.m3.lbl": "Tile row 3 - label",
+    "display.fonts.reset": "Reset font sizes",
     "display.hint": "Colours are stored per theme: what you set here applies to the theme you are editing, the other one keeps its own values.",
     "display.light.title": "Light mode",
     "display.reset.dark": "Reset dark mode",
@@ -727,7 +740,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Entsperren lässt den Gang in Ruhe.</b> Entsperren und Sperren (auch der Dreifach-Tipp auf der Speed-Kachel) setzen jetzt nur noch den einen Geschwindigkeitswert und schalten den Fahrmodus nicht mehr um. Comfort und Sport erreichen beide die offene Geschwindigkeit, Eco bleibt firmwareseitig gedrosselt. Den Fahrmodus wählst du selbst: Comfort fährt sanfter und weiter, Sport zieht härter.",
+      "<b>Schriftgröße der Kacheln einstellbar.</b> Unter Anzeige-Einstellungen kannst du die Schriftgröße aller Kacheln auf dem Hauptbildschirm festlegen, je Reihe getrennt für Wert (oben) und Beschriftung (unten). Die kleinen Kacheln gehen von 10 bis 40, die große Tacho-Zahl bis 72. Der Hauptschirm skaliert sich weiterhin automatisch auf die Höhe, darum wirkt vor allem das Verhältnis der Größen zueinander.",
     ],
 
     'disclaimer.points': [
@@ -864,6 +877,19 @@ window.I18N = {
     "display.bg.color": "Hintergrund",
     "display.bg.oled": "Reines Schwarz schaltet OLED-Pixel ab",
     "display.dark.title": "Dunkler Modus",
+    "display.fonts.title": "Schriftgrößen",
+    "display.fonts.hint": "Größe der Kachel-Schrift auf dem Hauptbildschirm, je Reihe getrennt für Wert (oben) und Beschriftung (unten). Die kleinen Kacheln gehen von 10 bis 40, die große Tacho-Zahl von 20 bis 72. Der Bildschirm skaliert sich weiterhin automatisch auf die Höhe, darum wirkt vor allem das Verhältnis der Größen zueinander.",
+    "display.fonts.speed.val": "Tacho - Wert",
+    "display.fonts.speed.lbl": "Tacho - Beschriftung",
+    "display.fonts.hero.val": "Obere Kacheln - Wert",
+    "display.fonts.hero.lbl": "Obere Kacheln - Beschriftung",
+    "display.fonts.m1.val": "Kachelreihe 1 - Wert",
+    "display.fonts.m1.lbl": "Kachelreihe 1 - Beschriftung",
+    "display.fonts.m2.val": "Kachelreihe 2 - Wert",
+    "display.fonts.m2.lbl": "Kachelreihe 2 - Beschriftung",
+    "display.fonts.m3.val": "Kachelreihe 3 - Wert",
+    "display.fonts.m3.lbl": "Kachelreihe 3 - Beschriftung",
+    "display.fonts.reset": "Schriftgrößen zurücksetzen",
     "display.hint": "Farben werden je Modus gespeichert: was du hier einstellst, gilt für den Modus, den du gerade bearbeitest, der andere behält seine eigenen Werte.",
     "display.light.title": "Heller Modus",
     "display.reset.dark": "Dunklen Modus zurücksetzen",

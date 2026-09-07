@@ -702,6 +702,52 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
       <button type="button" id="btn-dsp-reset-light" class="settings-btn mt-10" data-i18n="display.reset.light">Reset light mode</button>
     </div>
+
+    <div class="settings-group has-top-rule">
+      <div class="settings-group-title" data-i18n="display.fonts.title">Font sizes</div>
+      <div class="settings-row-sublabel mb-10" data-i18n="display.fonts.hint">Tile font size on the main screen, per row split into value and label.</div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.speed.val">Speed - value</div>
+        <input type="range" class="range-ctrl" id="dsp-font-speed-val" min="20" max="72" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.speed.lbl">Speed - label</div>
+        <input type="range" class="range-ctrl" id="dsp-font-speed-lbl" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.hero.val">Upper tiles - value</div>
+        <input type="range" class="range-ctrl" id="dsp-font-hero-val" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.hero.lbl">Upper tiles - label</div>
+        <input type="range" class="range-ctrl" id="dsp-font-hero-lbl" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.m1.val">Tile row 1 - value</div>
+        <input type="range" class="range-ctrl" id="dsp-font-m1-val" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.m1.lbl">Tile row 1 - label</div>
+        <input type="range" class="range-ctrl" id="dsp-font-m1-lbl" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.m2.val">Tile row 2 - value</div>
+        <input type="range" class="range-ctrl" id="dsp-font-m2-val" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.m2.lbl">Tile row 2 - label</div>
+        <input type="range" class="range-ctrl" id="dsp-font-m2-lbl" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.m3.val">Tile row 3 - value</div>
+        <input type="range" class="range-ctrl" id="dsp-font-m3-val" min="10" max="40" step="1">
+      </div>
+      <div class="settings-row col-stretch">
+        <div class="settings-row-label" data-i18n="display.fonts.m3.lbl">Tile row 3 - label</div>
+        <input type="range" class="range-ctrl" id="dsp-font-m3-lbl" min="10" max="40" step="1">
+      </div>
+      <button type="button" id="btn-dsp-reset-fonts" class="settings-btn mt-10" data-i18n="display.fonts.reset">Reset font sizes</button>
+    </div>
   </div>
 </div>
 
@@ -926,12 +972,30 @@ const DISPLAY_DEFAULTS = {
   light: { card: '#ffffff', bg: '#e8edf5', lum: 100 }
 };
 
+// Rider-adjustable tile font sizes in px, global (not per theme), stored under cfg.fonts. Empty by
+// default so the CSS keeps its built-in sizes until a slider is moved. Each entry carries its own
+// range: the small tiles 10-40, the big speed number 20-72 (its unit is a normal 10-40 label). `def`
+// is where the slider sits until the rider sets a value; `varName` is the matching CSS custom property.
+const FONT_META = [
+  { key: 'speedVal', varName: '--sz-speed-val', id: 'dsp-font-speed-val', def: 64, min: 20, max: 72 },
+  { key: 'speedLbl', varName: '--sz-speed-lbl', id: 'dsp-font-speed-lbl', def: 14, min: 10, max: 40 },
+  { key: 'heroVal',  varName: '--sz-hero-val',  id: 'dsp-font-hero-val',  def: 32, min: 10, max: 40 },
+  { key: 'heroLbl',  varName: '--sz-hero-lbl',  id: 'dsp-font-hero-lbl',  def: 13, min: 10, max: 40 },
+  { key: 'm1Val', varName: '--sz-m1-val', id: 'dsp-font-m1-val', def: 32, min: 10, max: 40 },
+  { key: 'm1Lbl', varName: '--sz-m1-lbl', id: 'dsp-font-m1-lbl', def: 12, min: 10, max: 40 },
+  { key: 'm2Val', varName: '--sz-m2-val', id: 'dsp-font-m2-val', def: 32, min: 10, max: 40 },
+  { key: 'm2Lbl', varName: '--sz-m2-lbl', id: 'dsp-font-m2-lbl', def: 12, min: 10, max: 40 },
+  { key: 'm3Val', varName: '--sz-m3-val', id: 'dsp-font-m3-val', def: 32, min: 10, max: 40 },
+  { key: 'm3Lbl', varName: '--sz-m3-lbl', id: 'dsp-font-m3-lbl', def: 12, min: 10, max: 40 }
+];
+
 function loadDisplayCfg() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(DISPLAY_KEY) || 'null'); } catch (e) {}
-  const out = { dark: Object.assign({}, DISPLAY_DEFAULTS.dark), light: Object.assign({}, DISPLAY_DEFAULTS.light) };
+  const out = { dark: Object.assign({}, DISPLAY_DEFAULTS.dark), light: Object.assign({}, DISPLAY_DEFAULTS.light), fonts: {} };
   if (saved) {
     ['dark', 'light'].forEach(k => { if (saved[k]) Object.assign(out[k], saved[k]); });
+    if (saved.fonts) Object.assign(out.fonts, saved.fonts);
   }
   return out;
 }
@@ -1004,6 +1068,22 @@ function applyDisplay() {
   });
 }
 
+// Push the rider's tile font sizes onto :root as CSS custom properties, then re-fit the fold so the
+// layout adapts. A key that is not set is removed, so the stylesheet falls back to the built-in size.
+function applyFontSizes() {
+  const f = loadDisplayCfg().fonts || {};
+  const root = document.documentElement;
+  FONT_META.forEach(m => {
+    if (f[m.key] != null) {
+      const px = Math.max(m.min, Math.min(m.max, Number(f[m.key]) || m.def));
+      root.style.setProperty(m.varName, px + 'px');
+    } else {
+      root.style.removeProperty(m.varName);
+    }
+  });
+  try { scheduleFitFold(); } catch (e) {}
+}
+
 function initDisplayPage() {
   const cfg = loadDisplayCfg();
   const bind = (theme, key, id, isRange) => {
@@ -1035,6 +1115,27 @@ function initDisplayPage() {
   if (rd) rd.addEventListener('click', () => reset('dark'));
   const rl = document.getElementById('btn-dsp-reset-light');
   if (rl) rl.addEventListener('click', () => reset('light'));
+
+  FONT_META.forEach(m => {
+    const el = document.getElementById(m.id);
+    if (!el) return;
+    el.min = String(m.min); el.max = String(m.max);
+    el.value = String(cfg.fonts[m.key] != null ? cfg.fonts[m.key] : m.def);
+    el.addEventListener('input', () => {
+      const now = loadDisplayCfg();
+      now.fonts[m.key] = Number(el.value);
+      saveDisplayCfg(now);
+      applyFontSizes();
+    });
+  });
+  const rf = document.getElementById('btn-dsp-reset-fonts');
+  if (rf) rf.addEventListener('click', () => {
+    const now = loadDisplayCfg();
+    now.fonts = {};
+    saveDisplayCfg(now);
+    applyFontSizes();
+    refreshDisplayControls();
+  });
 }
 
 function refreshDisplayControls() {
@@ -1046,6 +1147,7 @@ function refreshDisplayControls() {
   put('dsp-light-card', cfg.light.card);
   put('dsp-light-bg',   cfg.light.bg);
   put('dsp-light-lum',  String(cfg.light.lum));
+  FONT_META.forEach(m => put(m.id, String(cfg.fonts[m.key] != null ? cfg.fonts[m.key] : m.def)));
 }
 
 function openDisplayPage() {
@@ -3659,6 +3761,7 @@ function init() {
   initNavBanner();
   initRideBanner();
   initDisplayPage();
+  applyFontSizes();   // push any saved tile font sizes onto :root before the first fold measurement
   initFold();      // after initLang, so the first measurement sees the rider's own label lengths
 
   // Start BLE polling
