@@ -706,45 +706,57 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div class="settings-group has-top-rule">
       <div class="settings-group-title" data-i18n="display.fonts.title">Font sizes</div>
       <div class="settings-row-sublabel mb-10" data-i18n="display.fonts.hint">Tile font size on the main screen, per row split into value and label.</div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.speed.val">Speed - value</div>
-        <input type="range" class="range-ctrl" id="dsp-font-speed-val" min="20" max="72" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.speed.val">Speed - value</div></div>
+        <input class="set-ctrl" id="dsp-font-speed-val" type="number" min="20" max="72" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.speed.lbl">Speed - label</div>
-        <input type="range" class="range-ctrl" id="dsp-font-speed-lbl" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.speed.lbl">Speed - label</div></div>
+        <input class="set-ctrl" id="dsp-font-speed-lbl" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.hero.val">Upper tiles - value</div>
-        <input type="range" class="range-ctrl" id="dsp-font-hero-val" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.hero.val">Upper tiles - value</div></div>
+        <input class="set-ctrl" id="dsp-font-hero-val" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.hero.lbl">Upper tiles - label</div>
-        <input type="range" class="range-ctrl" id="dsp-font-hero-lbl" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.hero.lbl">Upper tiles - label</div></div>
+        <input class="set-ctrl" id="dsp-font-hero-lbl" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.m1.val">Tile row 1 - value</div>
-        <input type="range" class="range-ctrl" id="dsp-font-m1-val" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m1.top">Tile row 1 - title (top)</div></div>
+        <input class="set-ctrl" id="dsp-font-m1-top" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.m1.lbl">Tile row 1 - label</div>
-        <input type="range" class="range-ctrl" id="dsp-font-m1-lbl" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m1.mid">Tile row 1 - value (middle)</div></div>
+        <input class="set-ctrl" id="dsp-font-m1-mid" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.m2.val">Tile row 2 - value</div>
-        <input type="range" class="range-ctrl" id="dsp-font-m2-val" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m1.bot">Tile row 1 - unit (bottom)</div></div>
+        <input class="set-ctrl" id="dsp-font-m1-bot" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.m2.lbl">Tile row 2 - label</div>
-        <input type="range" class="range-ctrl" id="dsp-font-m2-lbl" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m2.top">Tile row 2 - title (top)</div></div>
+        <input class="set-ctrl" id="dsp-font-m2-top" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.m3.val">Tile row 3 - value</div>
-        <input type="range" class="range-ctrl" id="dsp-font-m3-val" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m2.mid">Tile row 2 - value (middle)</div></div>
+        <input class="set-ctrl" id="dsp-font-m2-mid" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
-      <div class="settings-row col-stretch">
-        <div class="settings-row-label" data-i18n="display.fonts.m3.lbl">Tile row 3 - label</div>
-        <input type="range" class="range-ctrl" id="dsp-font-m3-lbl" min="10" max="40" step="1">
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m2.bot">Tile row 2 - unit (bottom)</div></div>
+        <input class="set-ctrl" id="dsp-font-m2-bot" type="number" min="10" max="40" step="1" inputmode="numeric">
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m3.top">Tile row 3 - title (top)</div></div>
+        <input class="set-ctrl" id="dsp-font-m3-top" type="number" min="10" max="40" step="1" inputmode="numeric">
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m3.mid">Tile row 3 - value (middle)</div></div>
+        <input class="set-ctrl" id="dsp-font-m3-mid" type="number" min="10" max="40" step="1" inputmode="numeric">
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left"><div class="settings-row-label" data-i18n="display.fonts.m3.bot">Tile row 3 - unit (bottom)</div></div>
+        <input class="set-ctrl" id="dsp-font-m3-bot" type="number" min="10" max="40" step="1" inputmode="numeric">
       </div>
       <button type="button" id="btn-dsp-reset-fonts" class="settings-btn mt-10" data-i18n="display.fonts.reset">Reset font sizes</button>
     </div>
@@ -981,12 +993,15 @@ const FONT_META = [
   { key: 'speedLbl', varName: '--sz-speed-lbl', id: 'dsp-font-speed-lbl', def: 14, min: 10, max: 40 },
   { key: 'heroVal',  varName: '--sz-hero-val',  id: 'dsp-font-hero-val',  def: 32, min: 10, max: 40 },
   { key: 'heroLbl',  varName: '--sz-hero-lbl',  id: 'dsp-font-hero-lbl',  def: 13, min: 10, max: 40 },
-  { key: 'm1Val', varName: '--sz-m1-val', id: 'dsp-font-m1-val', def: 32, min: 10, max: 40 },
-  { key: 'm1Lbl', varName: '--sz-m1-lbl', id: 'dsp-font-m1-lbl', def: 12, min: 10, max: 40 },
-  { key: 'm2Val', varName: '--sz-m2-val', id: 'dsp-font-m2-val', def: 32, min: 10, max: 40 },
-  { key: 'm2Lbl', varName: '--sz-m2-lbl', id: 'dsp-font-m2-lbl', def: 12, min: 10, max: 40 },
-  { key: 'm3Val', varName: '--sz-m3-val', id: 'dsp-font-m3-val', def: 32, min: 10, max: 40 },
-  { key: 'm3Lbl', varName: '--sz-m3-lbl', id: 'dsp-font-m3-lbl', def: 12, min: 10, max: 40 }
+  { key: 'm1Top', varName: '--sz-m1-top', id: 'dsp-font-m1-top', def: 12, min: 10, max: 40 },
+  { key: 'm1Mid', varName: '--sz-m1-mid', id: 'dsp-font-m1-mid', def: 32, min: 10, max: 40 },
+  { key: 'm1Bot', varName: '--sz-m1-bot', id: 'dsp-font-m1-bot', def: 12, min: 10, max: 40 },
+  { key: 'm2Top', varName: '--sz-m2-top', id: 'dsp-font-m2-top', def: 12, min: 10, max: 40 },
+  { key: 'm2Mid', varName: '--sz-m2-mid', id: 'dsp-font-m2-mid', def: 32, min: 10, max: 40 },
+  { key: 'm2Bot', varName: '--sz-m2-bot', id: 'dsp-font-m2-bot', def: 12, min: 10, max: 40 },
+  { key: 'm3Top', varName: '--sz-m3-top', id: 'dsp-font-m3-top', def: 12, min: 10, max: 40 },
+  { key: 'm3Mid', varName: '--sz-m3-mid', id: 'dsp-font-m3-mid', def: 32, min: 10, max: 40 },
+  { key: 'm3Bot', varName: '--sz-m3-bot', id: 'dsp-font-m3-bot', def: 12, min: 10, max: 40 }
 ];
 
 function loadDisplayCfg() {
@@ -1121,9 +1136,13 @@ function initDisplayPage() {
     if (!el) return;
     el.min = String(m.min); el.max = String(m.max);
     el.value = String(cfg.fonts[m.key] != null ? cfg.fonts[m.key] : m.def);
-    el.addEventListener('input', () => {
+    el.addEventListener('change', () => {
+      let v = Math.round(Number(el.value));
+      if (isNaN(v)) v = m.def;
+      v = Math.max(m.min, Math.min(m.max, v));
+      el.value = String(v);
       const now = loadDisplayCfg();
-      now.fonts[m.key] = Number(el.value);
+      now.fonts[m.key] = v;
       saveDisplayCfg(now);
       applyFontSizes();
     });
@@ -3448,6 +3467,13 @@ function initFold() {
   scheduleFitFold();
   window.addEventListener('resize', scheduleFitFold);
   window.addEventListener('orientationchange', scheduleFitFold);
+  // A soft keyboard on a settings field shrinks the viewport (native IME inset padding in UiChrome).
+  // Once it has opened, pull the focused input into the visible area above the keyboard.
+  document.addEventListener('focusin', (e) => {
+    const t = e.target;
+    if (!t || !/^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)) return;
+    setTimeout(() => { try { t.scrollIntoView({ block: 'center' }); } catch (_) {} }, 300);
+  });
   if (window.ResizeObserver) {
     const inner = document.getElementById('fold-inner');
     const scroller = document.getElementById('scroller');

@@ -83,8 +83,13 @@ final class UiChrome {
                             boolean fsNow = a.getSharedPreferences("lb", Context.MODE_PRIVATE)
                                     .getBoolean("fullscreen", false);
                             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                            // The soft keyboard (IME): when it is open its inset is the keyboard height.
+                            // Pad the bottom by the larger of the nav bar and the keyboard so the content
+                            // (and the WebView scroller inside it) sits ABOVE the keyboard instead of being
+                            // hidden behind it. Closed keyboard => ime.bottom is 0 => unchanged behaviour.
+                            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
                             int top = fsNow ? 0 : bars.top;
-                            int bottom = fsNow ? 0 : bars.bottom;
+                            int bottom = Math.max(fsNow ? 0 : bars.bottom, ime.bottom);
                             v.setPadding(v.getPaddingLeft(), top, v.getPaddingRight(), bottom);
                         } catch (Throwable ignored) {}
                         // Consume: children see zero insets, so nothing else can add top/bottom inset.

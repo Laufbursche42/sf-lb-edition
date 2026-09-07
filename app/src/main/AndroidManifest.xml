@@ -48,6 +48,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|keyboardHidden"
             tools:ignore="LockedOrientationActivity,DiscouragedApi">
             <intent-filter>

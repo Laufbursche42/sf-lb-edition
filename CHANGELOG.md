@@ -14,6 +14,12 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.8
+
+- Renamed the two access functions for clarity: the immobilizer is now "Anti-Theft" (was Immobilizer / Wegfahrsperre) and the speed function is the "eKFV limiter" with "Limiter off" (open) and "Limiter on" (eKFV), so it is clearly separate from the anti-theft lock.
+- Tile font sizes are now number fields instead of sliders, and every tile line is adjustable on its own: on the live-value tiles the title (top), value (middle) and unit (bottom) separately.
+- Fixed input fields being hidden behind the soft keyboard on the settings pages: the content now shifts above the keyboard (IME inset is applied, windowSoftInputMode=adjustResize).
+
 ## 1.0.7
 
 - Every tile font on the main screen is adjustable under Display settings: per row, split into the value (top) and the label (bottom). The small tiles range 10 to 40, the large speed readout 20 to 72. It stays unset by default, so the built-in sizes do not change until you move a slider. The main screen still auto-scales to the height, so the setting mostly shifts the ratio between the sizes rather than acting as a global zoom.
