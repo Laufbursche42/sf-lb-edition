@@ -2833,9 +2833,10 @@ function copyBtName() {
 /* ── Speed release (throttle) ──────────────────────────────────
    The open / eKFV target speeds are kept locally (localStorage), never read from the scooter. Unlock
    sends the open value via LB.setSpeed(kmh); Lock sends the eKFV value. The triple-tap gesture on the
-   VCU speed tile toggles between the two. _speedReleased drives the red tile colour (session only). */
-const SPEED_OPEN_KEY = 'lb_speed_open', SPEED_EKFV_KEY = 'lb_speed_ekfv';
-let _speedReleased = false;
+   VCU speed tile toggles between the two. _speedReleased is persisted (SPEED_RELEASED_KEY) so the
+   triple-tap keeps the right next action across a reload or reconnect, and it drives the red tile colour. */
+const SPEED_OPEN_KEY = 'lb_speed_open', SPEED_EKFV_KEY = 'lb_speed_ekfv', SPEED_RELEASED_KEY = 'lb_speed_released';
+let _speedReleased = (storage.get(SPEED_RELEASED_KEY) === '1');
 
 function speedOpenVal() { const v = parseFloat(storage.get(SPEED_OPEN_KEY)); return isNaN(v) ? 35 : v; }
 function speedEkfvVal() { const v = parseFloat(storage.get(SPEED_EKFV_KEY)); return isNaN(v) ? 22 : v; }
@@ -2850,11 +2851,18 @@ function sendSpeedRelease(open) {
   if (typeof LB === 'undefined' || !LB.setSpeed) { showToast(t('msg.app.only.in.app')); return false; }
   if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
   const kmh = open ? speedOpenVal() : speedEkfvVal();
-  try { LB.setSpeed(kmh); _speedReleased = !!open; return true; }
+  try {
+    LB.setSpeed(kmh);
+    _speedReleased = !!open;
+    try { storage.set(SPEED_RELEASED_KEY, open ? '1' : '0'); } catch (e) {}   // persist across reload/reconnect
+    return true;
+  }
   catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
 }
 
-/* Hidden gesture on the VCU speed tile: triple-tap toggles the throttle between open and eKFV. */
+/* Hidden gesture on the VCU speed tile: triple-tap toggles the throttle between open and eKFV. The
+   state is persisted, so a reload or reconnect keeps the right next action. It mirrors the app's own
+   last send; if the limit is changed elsewhere or reset by a controller power-cycle it can differ. */
 let _spdTapCount = 0, _spdTapTimer = null;
 function onVcuTileTap() {
   _spdTapCount++;

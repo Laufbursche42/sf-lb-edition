@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.10
+
+- The triple-tap on the speed tile now persists its last action (open vs eKFV), so after a reload or reconnect it toggles to the correct opposite instead of always sending "open" first. The two explicit speed buttons stay send-only.
+
 ## 1.0.9
 
 - Ride exports are now LEAT-compatible (https://github.com/Laufbursche42/leat): NDJSON lines also carry the canonical field names realSpeed, SOC, VolPack, singleMile and totalMile, and power is logged in kW. The JSON export is a bare array (no meta wrapper), the CSV has no BOM and no tsISO column, and GPX speed is written in m/s.

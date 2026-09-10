@@ -20,7 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>Ride exports for LEAT.</b> Ride exports (NDJSON, JSON, CSV, GPX) now drop straight into the LEAT desktop tool: canonical field names, power logged in kW, JSON as a bare array, CSV without a BOM, GPX speed in m/s. The distance in the ride list is correct again.",
+      "<b>Triple-tap remembers its state.</b> The triple-tap on the speed tile now remembers what it last sent, persistently. After a restart or reconnect it switches to the opposite instead of always starting with \"open\".",
     ],
 
     'disclaimer.points': [
@@ -743,7 +743,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Fahrt-Exporte für LEAT.</b> Die Fahrt-Exporte (NDJSON, JSON, CSV, GPX) passen jetzt direkt ins Desktop-Tool LEAT: kanonische Feldnamen, Leistung im Log in kW, JSON als reines Array, CSV ohne BOM, GPX-Geschwindigkeit in m/s. Die Distanz in der Fahrtenliste stimmt wieder.",
+      "<b>Dreifach-Tipp merkt sich den Zustand.</b> Der Dreifach-Tipp auf die Speed-Kachel merkt sich jetzt dauerhaft, was zuletzt gesendet wurde. Nach Neustart oder Neuverbinden schaltet er korrekt auf das Gegenteil um, statt immer mit \"offen\" anzufangen.",
     ],
 
     'disclaimer.points': [
