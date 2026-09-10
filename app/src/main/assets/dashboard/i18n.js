@@ -20,9 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>Clear names: Anti-Theft and eKFV limiter.</b> The immobilizer is now clearly called Anti-Theft. The speed function is the eKFV limiter with \"Limiter off\" (open) and \"Limiter on\" (eKFV), cleanly separated from the anti-theft lock.",
-      "<b>Font sizes as number fields, every line on its own.</b> Under Display settings you set the size of each tile line directly as a number. On the live-value tiles split into title (top), value (middle) and unit (bottom).",
-      "<b>Input fields stay visible.</b> The keyboard no longer hides the input fields in the settings; the content moves above it.",
+      "<b>Ride exports for LEAT.</b> Ride exports (NDJSON, JSON, CSV, GPX) now drop straight into the LEAT desktop tool: canonical field names, power logged in kW, JSON as a bare array, CSV without a BOM, GPX speed in m/s. The distance in the ride list is correct again.",
     ],
 
     'disclaimer.points': [
@@ -160,7 +158,7 @@ window.I18N = {
     "display.bg.oled": "Pure black switches OLED pixels off",
     "display.dark.title": "Dark mode",
     "display.fonts.title": "Font sizes",
-    "display.fonts.hint": "Font size for every tile text line on the main screen, set individually. On the live-value tiles that is the title (top), the value (middle) plus the unit (bottom). The small tiles go from 10 to 40, the large speed number from 20 to 72. The screen still auto-scales to the height, so it is mainly the ratio between the sizes that shows.",
+    "display.fonts.hint": "Font size for every tile text line on the main screen, set individually. On the live-value tiles that is the title (top), the value (middle) and the unit (bottom). The small tiles go from 10 to 40, the large speed number from 20 to 72. The screen still auto-scales to the height, so it is mainly the ratio between the sizes that shows.",
     "display.fonts.speed.val": "Speed - value",
     "display.fonts.speed.lbl": "Speed - label",
     "display.fonts.hero.val": "Upper tiles - value",
@@ -745,9 +743,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Klare Namen: Diebstahlschutz plus eKFV Drossel.</b> Die Wegfahrsperre heißt jetzt eindeutig Diebstahlschutz. Die Geschwindigkeits-Funktion heißt eKFV Drossel mit \"Drossel aus\" (offen) plus \"Drossel ein\" (eKFV) - sauber getrennt vom Diebstahlschutz.",
-      "<b>Schriftgrößen als Zahlenfelder, jede Zeile einzeln.</b> Unter Anzeige-Einstellungen stellst du die Größe jeder Kachel-Zeile direkt als Zahl ein. Bei den Live-Werten getrennt für Titel (oben), Wert (Mitte) plus Einheit (unten).",
-      "<b>Eingabefelder bleiben sichtbar.</b> Die Tastatur verdeckt die Eingabefelder in den Einstellungen nicht mehr - der Inhalt schiebt sich darüber.",
+      "<b>Fahrt-Exporte für LEAT.</b> Die Fahrt-Exporte (NDJSON, JSON, CSV, GPX) passen jetzt direkt ins Desktop-Tool LEAT: kanonische Feldnamen, Leistung im Log in kW, JSON als reines Array, CSV ohne BOM, GPX-Geschwindigkeit in m/s. Die Distanz in der Fahrtenliste stimmt wieder.",
     ],
 
     'disclaimer.points': [
@@ -885,7 +881,7 @@ window.I18N = {
     "display.bg.oled": "Reines Schwarz schaltet OLED-Pixel ab",
     "display.dark.title": "Dunkler Modus",
     "display.fonts.title": "Schriftgrößen",
-    "display.fonts.hint": "Schriftgröße für jede Text-Zeile der Kacheln auf dem Hauptbildschirm, einzeln einstellbar. Bei den Live-Wert-Kacheln sind das Titel (oben), Wert (Mitte) plus Einheit (unten). Die kleinen Kacheln gehen von 10 bis 40, die große Tacho-Zahl von 20 bis 72. Der Bildschirm skaliert sich weiterhin automatisch auf die Höhe, darum wirkt vor allem das Verhältnis der Größen zueinander.",
+    "display.fonts.hint": "Schriftgröße für jede Text-Zeile der Kacheln auf dem Hauptbildschirm, einzeln einstellbar. Bei den Live-Wert-Kacheln sind das Titel (oben), Wert (Mitte) und Einheit (unten). Die kleinen Kacheln gehen von 10 bis 40, die große Tacho-Zahl von 20 bis 72. Der Bildschirm skaliert sich weiterhin automatisch auf die Höhe, darum wirkt vor allem das Verhältnis der Größen zueinander.",
     "display.fonts.speed.val": "Tacho - Wert",
     "display.fonts.speed.lbl": "Tacho - Beschriftung",
     "display.fonts.hero.val": "Obere Kacheln - Wert",

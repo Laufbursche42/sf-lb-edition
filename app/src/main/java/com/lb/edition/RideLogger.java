@@ -67,7 +67,7 @@ public final class RideLogger {
     // Headline CSV columns emitted first (when present), before the rest in alphabetical order.
     // Each name must match a FrameParser.toJson() key. A name that matches nothing is silently
     // ignored here and the real column drops back into the alphabetical block.
-    private static final String[] CSV_HEADLINE = {"speed", "SOC", "power", "gear"};
+    private static final String[] CSV_HEADLINE = {"speed", "SOC", "power", "mode"};
 
     private final Context appCtx;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -194,7 +194,25 @@ public final class RideLogger {
         Writer w = writer;
         if (w == null) return;
         try {
-            w.write(json);   // one compact JSON object per line (NDJSON)
+            // Enrich the NDJSON line with LEAT's canonical field names (leat repo). Only the log line
+            // is changed; the live JSON for the dashboard stays untouched. On any parse error the
+            // original line is written unchanged (defensive).
+            String line = json;
+            try {
+                JSONObject o = new JSONObject(json);
+                if (o.has("speed"))   o.put("realSpeed", o.opt("speed"));    // km/h
+                if (o.has("battery")) o.put("SOC", o.opt("battery"));        // %
+                if (o.has("voltage")) o.put("VolPack", o.opt("voltage"));    // V
+                if (o.has("tripKm"))  o.put("singleMile", o.opt("tripKm"));  // km
+                if (o.has("totalKm")) o.put("totalMile", o.opt("totalKm"));  // km
+                // LEAT expects "power" in kW; the source is W. Convert in the log line only.
+                if (o.has("power")) {
+                    double kw = o.optDouble("power", Double.NaN) / 1000.0;
+                    if (!Double.isNaN(kw)) o.put("power", Math.round(kw * 1000.0) / 1000.0);
+                }
+                line = o.toString();
+            } catch (Throwable ignored) { }
+            w.write(line);   // one compact JSON object per line (NDJSON)
             w.write('\n');
             w.flush();       // flush immediately so an app kill loses at most this minute
         } catch (Throwable t) {
@@ -316,15 +334,12 @@ public final class RideLogger {
     private void writeJson(List<JSONObject> samples, long id, File out) {
         Writer w = null;
         try {
-            JSONObject meta = metaFrom(samples, id);
-            meta.put("fin", finOf(samples));
+            // LEAT reads a bare top-level array of sample objects; a wrapper {meta, samples} would
+            // make it abort. The ride metadata stays available via listRides(), not in the export.
             JSONArray arr = new JSONArray();
             for (JSONObject o : samples) arr.put(o);
-            JSONObject root = new JSONObject();
-            root.put("meta", meta);
-            root.put("samples", arr);
             w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out, false), "UTF-8"));
-            w.write(root.toString());
+            w.write(arr.toString());
             w.flush();
         } catch (Throwable t) {
             Log.e(TAG, "writeJson failed", t);
@@ -356,10 +371,10 @@ public final class RideLogger {
         for (String n : names) if (!scalarKeys.contains(n)) nameCols.add(n);
         Set<String> nameColSet = new HashSet<>(nameCols);
 
-        // Column order: ts, tsISO, headline scalars (when present), then the rest alphabetically.
+        // Column order: ts, headline scalars (when present), then the rest alphabetically.
+        // No tsISO column: LEAT would turn it into a constant, meaningless time series.
         List<String> cols = new ArrayList<>();
         cols.add("ts");
-        cols.add("tsISO");
         Set<String> placed = new HashSet<>();
         placed.add("ts");
         for (String h : CSV_HEADLINE) {
@@ -389,11 +404,9 @@ public final class RideLogger {
         }
 
         // try-with-resources guarantees the writer (and its underlying stream) is always closed.
-        // The UTF-8 BOM is written as the U+FEFF character (it encodes to EF BB BF) so spreadsheets
-        // render the degree sign and other units correctly.
+        // No UTF-8 BOM: LEAT needs the first bytes to be "ts," to detect the timestamp column.
         try (Writer w = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(out, false), "UTF-8"))) {
-            w.write('\uFEFF');
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < cols.size(); i++) {
                 if (i > 0) sb.append(',');
@@ -415,7 +428,6 @@ public final class RideLogger {
                     String col = cols.get(i);
                     String cell;
                     if ("ts".equals(col)) cell = ts > 0 ? Long.toString(ts) : "";
-                    else if ("tsISO".equals(col)) cell = ts > 0 ? isoOf(ts) : "";
                     else if (nameColSet.contains(col)) cell = nvals.containsKey(col) ? nvals.get(col) : "";
                     else if (cellIdx.containsKey(col)) {
                         JSONArray cm = o.optJSONArray("cellMv");
@@ -446,7 +458,7 @@ public final class RideLogger {
                 if (start == 0) start = ts;
                 end = ts;
             }
-            double mile = o.optDouble("totalMile", Double.NaN);
+            double mile = o.optDouble("totalKm", Double.NaN);
             if (!Double.isNaN(mile)) {
                 if (Double.isNaN(firstMile)) firstMile = mile;
                 lastMile = mile;
@@ -470,15 +482,6 @@ public final class RideLogger {
         } catch (JSONException ignored) {
         }
         return meta;
-    }
-
-    private static String finOf(List<JSONObject> samples) {
-        String fin = "";
-        for (JSONObject o : samples) {
-            String bn = o.optString("btName", "");
-            if (bn != null && !bn.isEmpty()) fin = bn;
-        }
-        return fin;
     }
 
     // ── File / parsing helpers ──
@@ -588,14 +591,6 @@ public final class RideLogger {
                 || s.charAt(0) == ' ' || s.charAt(s.length() - 1) == ' ';
         if (!quote) return s;
         return "\"" + s.replace("\"", "\"\"") + "\"";
-    }
-
-    private static String isoOf(long ms) {
-        try {
-            return java.time.Instant.ofEpochMilli(ms).toString();
-        } catch (Throwable t) {
-            return "";
-        }
     }
 
     /** Road speed of a snapshot; "speed" is the only key FrameParser emits for it. */

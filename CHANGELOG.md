@@ -14,6 +14,12 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.9
+
+- Ride exports are now LEAT-compatible (https://github.com/Laufbursche42/leat): NDJSON lines also carry the canonical field names realSpeed, SOC, VolPack, singleMile and totalMile, and power is logged in kW. The JSON export is a bare array (no meta wrapper), the CSV has no BOM and no tsISO column, and GPX speed is written in m/s.
+- Ride list: distanceKm is computed correctly again (reads the totalKm field).
+- German UI wording: "und" instead of "plus" in a few strings.
+
 ## 1.0.8
 
 - Renamed the two access functions for clarity: the immobilizer is now "Anti-Theft" (was Immobilizer / Wegfahrsperre) and the speed function is the "eKFV limiter" with "Limiter off" (open) and "Limiter on" (eKFV), so it is clearly separate from the anti-theft lock.
