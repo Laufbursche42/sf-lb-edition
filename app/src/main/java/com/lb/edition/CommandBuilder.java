@@ -61,8 +61,11 @@ final class CommandBuilder {
         return frame;
     }
 
-    /** BE16 speed payload in 0.1-km/h steps (spec 4.4). */
+    /** BE16 speed payload in 0.1-km/h steps (spec 4.4). Input is clamped to a sane 0..120 km/h so a
+     *  bad value from the bridge can never overflow the 16-bit field. */
     static int[] speedPayload(double kmh) {
+        if (Double.isNaN(kmh) || kmh < 0.0) kmh = 0.0;
+        if (kmh > 120.0) kmh = 120.0;
         int v = (int) Math.round(kmh * 10.0);
         return new int[]{(v >> 8) & 0xFF, v & 0xFF};
     }

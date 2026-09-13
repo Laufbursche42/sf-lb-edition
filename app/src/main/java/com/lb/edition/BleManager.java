@@ -266,7 +266,7 @@ final class BleManager {
             // Classify by advertised name now (spec 1.4). "SoFlow"/"SOFLOW" clear names give null and
             // are resolved from the GATT service after discovery (spec 1.5).
             classifyByName();
-            Log.i(TAG, "connect() -> " + desiredAddress + " name=" + deviceName
+            Log.i(TAG, "connect() -> " + LogSan.s(desiredAddress) + " name=" + LogSan.s(deviceName)
                     + " proto=" + (activeProto == null ? "(by service)" : activeProto.id));
             pushState("connecting");
             gatt = dev.connectGatt(appCtx, false, gattCallback, BluetoothDevice.TRANSPORT_LE);

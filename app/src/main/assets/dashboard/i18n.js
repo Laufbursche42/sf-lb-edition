@@ -20,7 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>Triple-tap remembers its state.</b> The triple-tap on the speed tile now remembers what it last sent, persistently. After a restart or reconnect it switches to the opposite instead of always starting with \"open\".",
+      "<b>Security hardening.</b> Internal hardening from a code security scan: log entries are sanitised, the WebView has file and content access switched off, telemetry is passed to the dashboard as safe, escaped data, and the speed value is bounds-checked. Nothing about how you use the app changes.",
     ],
 
     'disclaimer.points': [
@@ -743,7 +743,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Dreifach-Tipp merkt sich den Zustand.</b> Der Dreifach-Tipp auf die Speed-Kachel merkt sich jetzt dauerhaft, was zuletzt gesendet wurde. Nach Neustart oder Neuverbinden schaltet er korrekt auf das Gegenteil um, statt immer mit \"offen\" anzufangen.",
+      "<b>Sicherheits-Härtung.</b> Interne Härtung aus einem Code-Sicherheitsscan: Log-Einträge werden bereinigt, die WebView hat Datei- und Content-Zugriff abgeschaltet, Telemetrie wird als sichere, escapte Daten an das Dashboard übergeben und der Speed-Wert wird auf einen sinnvollen Bereich begrenzt. An der Bedienung ändert sich nichts.",
     ],
 
     'disclaimer.points': [

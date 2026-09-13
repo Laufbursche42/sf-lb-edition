@@ -14,6 +14,13 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.11
+
+- Security hardening from a static code-analysis pass (CodeQL): log lines now strip control characters so caller-supplied text (BLE names, bridge arguments) can no longer forge or split log entries.
+- The dashboard WebView has file access and content access turned off. It only ever loads the bundled asset page, and android_asset stays reachable regardless, so nothing changes for the user.
+- Live telemetry, scan results and navigation state are handed to the WebView as an escaped JSON string that the page parses, instead of being interpolated into the executed script. No scooter value can break out of it any more.
+- The tuning speed value is bounds-checked (0 to 120 km/h) before it is sent, and the debug log capture uses an absolute path. No functional change.
+
 ## 1.0.10
 
 - The triple-tap on the speed tile now persists its last action (open vs eKFV), so after a reload or reconnect it toggles to the correct opposite instead of always sending "open" first. The two explicit speed buttons stay send-only.

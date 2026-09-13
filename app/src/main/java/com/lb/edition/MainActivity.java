@@ -137,13 +137,10 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
-        // The dashboard is a self-contained bundled asset page; it never needs to read other local
-        // files or make cross-origin requests FROM the file:// origin. Keeping these OFF means that
-        // even if a scripting bug ever landed on the page, it could not fetch("file:///...") to exfil
-        // local data or reach the network cross-origin. (Both default to false on modern WebView; set
-        // explicitly so the hardening is not silently lost on an older engine.)
+        // Bundled asset page only. android_asset/android_res stay reachable regardless, so all four
+        // file/content access flags are off: a scripting bug could reach no local data, cross-origin.
+        s.setAllowFileAccess(false);
+        s.setAllowContentAccess(false);
         s.setAllowFileAccessFromFileURLs(false);
         s.setAllowUniversalAccessFromFileURLs(false);
         s.setMediaPlaybackRequiresUserGesture(false);
@@ -195,6 +192,31 @@ public class MainActivity extends Activity {
         });
     }
 
+    /** Wrap a JSON payload as a safe JS argument: a fully-escaped string literal handed to
+     *  JSON.parse, so no field value can break out of the evaluateJavascript script. */
+    private static String jsArg(String json) {
+        String s = json == null ? "null" : json;
+        StringBuilder b = new StringBuilder(s.length() + 16);
+        b.append("JSON.parse('");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '\\': b.append("\\\\"); break;
+                case '\'': b.append("\\'"); break;
+                case '\n': b.append("\\n"); break;
+                case '\r': b.append("\\r"); break;
+                case '\t': b.append("\\t"); break;
+                case 0x2028: b.append("\\u2028"); break;
+                case 0x2029: b.append("\\u2029"); break;
+                default:
+                    if (c < 0x20) b.append(String.format(Locale.US, "\\u%04x", (int) c));
+                    else b.append(c);
+            }
+        }
+        b.append("')");
+        return b.toString();
+    }
+
     /** Push each navigation guidance snapshot to the WebView (window.__onNav) for the dashboard banner. */
     private final NavSession.Listener navListener = new NavSession.Listener() {
         @Override
@@ -208,7 +230,7 @@ public class MainActivity extends Activity {
                 o.put("turnArrow", s.turnArrow);
                 o.put("distToTurnM", s.distToTurnM);
                 o.put("remainingM", s.remainingM);
-                runJs("(function(){try{if(window.__onNav)window.__onNav(" + o + ");}catch(e){}})();");
+                runJs("(function(){try{if(window.__onNav)window.__onNav(" + jsArg(o.toString()) + ");}catch(e){}})();");
             } catch (Throwable ignored) {
             }
         }
@@ -218,13 +240,13 @@ public class MainActivity extends Activity {
         @Override
         public void onScanResults(String jsonArray) {
             if (jsonArray == null) return;
-            runJs("(function(){try{if(window.__onBleScan)window.__onBleScan(" + jsonArray + ");}catch(e){}})();");
+            runJs("(function(){try{if(window.__onBleScan)window.__onBleScan(" + jsArg(jsonArray) + ");}catch(e){}})();");
         }
 
         @Override
         public void onState(String json) {
             if (json == null) return;
-            runJs("(function(){try{if(window.__onBleState)window.__onBleState(" + json + ");}catch(e){}})();");
+            runJs("(function(){try{if(window.__onBleState)window.__onBleState(" + jsArg(json) + ");}catch(e){}})();");
             // Drive the ride logger on connect/disconnect transitions (fires once per change).
             try {
                 boolean nowConnected = new JSONObject(json).optBoolean("connected", false);
@@ -249,7 +271,7 @@ public class MainActivity extends Activity {
             if (json == null) return;
             // Write the JSON string to localStorage['lb_live_data'] (dashboard's tickBLE reads it)
             // and also call window.__onBleData(json) if present.
-            runJs("(function(){try{var d=" + json + ";var s=JSON.stringify(d);"
+            runJs("(function(){try{var d=" + jsArg(json) + ";var s=JSON.stringify(d);"
                     + "try{localStorage.setItem('lb_live_data',s);}catch(e){}"
                     + "if(window.__onBleData){try{window.__onBleData(s);}catch(e){}}}catch(e){}})();");
             // Feed the latest snapshot to the ride logger (arms/samples the ride).
@@ -503,7 +525,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void connect(String addr) {
             try {
-                Log.i(TAG, "LB.connect(" + addr + ")");
+                Log.i(TAG, "LB.connect(" + LogSan.s(addr) + ")");
                 if (ble != null) ble.connect(addr);
             } catch (Throwable t) {
                 Log.e(TAG, "connect bridge failed", t);
@@ -514,7 +536,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void connect(String addr, String name) {
             try {
-                Log.i(TAG, "LB.connect(" + addr + ", " + name + ")");
+                Log.i(TAG, "LB.connect(" + LogSan.s(addr) + ", " + LogSan.s(name) + ")");
                 if (ble != null) ble.connect(addr, name);
             } catch (Throwable t) {
                 Log.e(TAG, "connect bridge failed", t);
@@ -644,7 +666,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setModel(String id) {
             try {
-                Log.i(TAG, "LB.setModel(" + id + ")");
+                Log.i(TAG, "LB.setModel(" + LogSan.s(id) + ")");
                 if (ble != null) ble.setForcedModel(id);
             } catch (Throwable t) {
                 Log.e(TAG, "setModel bridge failed", t);
@@ -688,7 +710,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void startStream(String url) {
-            Log.i(TAG, "LB.startStream(" + url + ")");
+            Log.i(TAG, "LB.startStream(" + LogSan.s(url) + ")");
             try {
                 if (url == null || url.trim().isEmpty()) {
                     Log.w(TAG, "startStream: empty url, ignoring");
@@ -748,7 +770,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void log(String s) {
-            Log.i(TAG, "LB.log: " + s);
+            Log.i(TAG, "LB.log: " + LogSan.s(s));
             try {
                 if (debugLog != null && debugLog.isEnabled()) debugLog.append(s);
             } catch (Throwable ignored) {
@@ -806,7 +828,7 @@ public class MainActivity extends Activity {
                     Log.e(TAG, "checkUpdates failed", t);
                 }
                 final String r = result;
-                runJs("(function(){try{if(window.__onAppUpdate)window.__onAppUpdate(" + r + ");}catch(e){}})();");
+                runJs("(function(){try{if(window.__onAppUpdate)window.__onAppUpdate(" + jsArg(r) + ");}catch(e){}})();");
             }).start();
         }
 
@@ -983,7 +1005,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void deleteRide(String id) {
             try {
-                Log.i(TAG, "LB.deleteRide(" + id + ")");
+                Log.i(TAG, "LB.deleteRide(" + LogSan.s(id) + ")");
                 if (rideLogger != null) rideLogger.deleteRide(id);
             } catch (Throwable t) {
                 Log.e(TAG, "deleteRide bridge failed", t);
@@ -1042,7 +1064,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void openUrl(final String url) {
             try {
-                Log.i(TAG, "LB.openUrl(" + url + ")");
+                Log.i(TAG, "LB.openUrl(" + LogSan.s(url) + ")");
                 if (url == null) return;
                 final String u = url.trim();
                 if (!u.startsWith("http://") && !u.startsWith("https://")) return;
@@ -1063,7 +1085,7 @@ public class MainActivity extends Activity {
         /** Export a ride ("csv"/"json") and share it via the system chooser. No-op if id is unknown. */
         @JavascriptInterface
         public void exportRide(final String id, final String format) {
-            Log.i(TAG, "LB.exportRide(" + id + ", " + format + ")");
+            Log.i(TAG, "LB.exportRide(" + LogSan.s(id) + ", " + LogSan.s(format) + ")");
             runOnUiThread(() -> {
                 try {
                     File f = rideLogger != null ? rideLogger.exportRide(id, format) : null;
@@ -1104,7 +1126,7 @@ public class MainActivity extends Activity {
         public String saveGpxToDownloads(final String fileName, final String content) {
             final String name = safeGpxName(fileName);
             try {
-                Log.i(TAG, "LB.saveGpxToDownloads(" + name + ")");
+                Log.i(TAG, "LB.saveGpxToDownloads(" + LogSan.s(name) + ")");
                 if (content == null) return gpxResult(false, name, "save");
                 return saveGpxViaMediaStore(name, content);
             } catch (Throwable t) {
