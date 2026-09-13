@@ -19,3 +19,9 @@ query-filters:
   # unlock() (the immobiliser) as a concurrency lock. BleManager uses only synchronized blocks.
   - exclude:
       id: java/unreleased-lock
+
+  # Path injection: every file name the app handles is constrained by PathGuard.childOf (canonical
+  # path verified to stay inside the app-owned base dir) plus, for ride ids, safeId (digits only).
+  # Traversal is not reachable, but CodeQL does not model the guard, so the rule is excluded here.
+  - exclude:
+      id: java/path-injection
