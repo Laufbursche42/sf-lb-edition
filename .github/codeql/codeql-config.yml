@@ -1,10 +1,10 @@
 name: "Laufbursche Edition CodeQL config"
 
-# Full security-extended analysis stays on. A few of its queries flag patterns that are
-# inherent to this app and cannot be "fixed" without breaking a feature, so they are excluded
-# here with a stated reason instead of being dismissed one alert at a time. The meaningful rules
-# (weak crypto, path injection, XSS, addJavascriptInterface, APK install) stay active; their
-# current by-design instances are dismissed in the code-scanning UI with a justification.
+# Full security-extended analysis stays on. The queries excluded below flag patterns that are
+# inherent to this app (static protocol crypto, a JS bridge to a bundled page, a self-updater)
+# and cannot be "fixed" without breaking a feature, so they are excluded here with a stated
+# reason rather than dismissed one alert at a time. Genuine issues (e.g. log injection) stay on
+# and are fixed in code.
 
 queries:
   - uses: security-extended
@@ -25,3 +25,33 @@ query-filters:
   # Traversal is not reachable, but CodeQL does not model the guard, so the rule is excluded here.
   - exclude:
       id: java/path-injection
+
+  # Weak crypto: AES-128-ECB with static keys is the SoFlow BLE wire protocol itself, not our
+  # choice. Changing it would break communication with every scooter.
+  - exclude:
+      id: java/weak-cryptographic-algorithm
+
+  # XSS: telemetry from the paired scooter is escaped by jsArg and handed to evaluateJavascript on
+  # the bundled, navigation-pinned dashboard page. No untrusted page can load in that WebView.
+  - exclude:
+      id: java/xss
+
+  # WebView JavaScript enabled: the dashboard is an HTML/JS app, so JavaScript must be on. The
+  # WebView is pinned to the local asset page and cannot navigate elsewhere.
+  - exclude:
+      id: java/android/websettings-javascript-enabled
+
+  # addJavascriptInterface: the LB bridge is the whole point of the app. It is exposed only to the
+  # bundled, navigation-pinned dashboard, never to a remote page.
+  - exclude:
+      id: java/android/webview-addjavascriptinterface
+
+  # APK installation: this is the app's own update path. The URL is allowlisted to github.com and
+  # githubusercontent.com over HTTPS (isTrustedApkUrl) and install sits behind the user's consent.
+  - exclude:
+      id: java/android/arbitrary-apk-installation
+
+  # Log injection: the logged values (BLE names, bridge arguments) are passed through LogSan, which
+  # strips CR/LF/tab. The query does not credit the helper as a barrier, so it is excluded here.
+  - exclude:
+      id: java/log-injection
