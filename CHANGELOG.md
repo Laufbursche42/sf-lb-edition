@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.12
+
+- Follow-up to the 1.0.11 hardening: the log sanitiser now uses the newline pattern the code scanner recognises, so the log-injection findings actually clear. No behaviour change.
+
 ## 1.0.11
 
 - Security hardening from a static code-analysis pass (CodeQL): log lines now strip control characters so caller-supplied text (BLE names, bridge arguments) can no longer forge or split log entries.

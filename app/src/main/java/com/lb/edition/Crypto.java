@@ -8,9 +8,13 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * AES-128-ECB with zero padding, the scheme the SoFlow app uses on the wire.
- * Two static keys: A for the D7 family, B for the SO6 family (they differ only in the first byte).
- * Encrypt zero-pads to a 16-byte multiple; decrypt processes only whole 16-byte blocks.
+ * AES-128-ECB with zero padding and two hardcoded keys, exactly as the SoFlow controller firmware
+ * expects on the wire (verified against the spec 3.2 test vectors in selfTest() below) - not a
+ * choice made here. A different mode/key would not talk to the real hardware; the keys are already
+ * public (extracted from the manufacturer's own app), and ECB's known weakness (repeated plaintext
+ * blocks leak a pattern) is not a real exposure for these single 7-16 byte command frames. SpotBugs'
+ * ECB_MODE/CIPHER_INTEGRITY findings on this class are protocol interop, not fixable without
+ * breaking scooter communication.
  */
 final class Crypto {
 

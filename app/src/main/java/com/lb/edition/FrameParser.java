@@ -114,7 +114,7 @@ final class FrameParser {
     // ── telemetry decoders (spec 6) ──
 
     /** SO4 realtime 0x1D (spec 6.1). len >= 20 ensured by caller. */
-    private void decodeRealtimeSo4(int[] b) {
+    private synchronized void decodeRealtimeSo4(int[] b) {
         int st = b[4];
         mode = (st >> 1) & 0x07;
         imperial = (st & 0x10) != 0 ? 1 : 0;
@@ -133,7 +133,7 @@ final class FrameParser {
     }
 
     /** So5ProBase realtime 0x1D with length guards (spec 6.2). */
-    private void decodeRealtimeSo5(int[] b) {
+    private synchronized void decodeRealtimeSo5(int[] b) {
         if (b.length < 11) return;
         int st = b[4];
         mode = (st >> 1) & 0x07;
@@ -161,7 +161,7 @@ final class FrameParser {
     }
 
     /** SO3 realtime 0x1D (spec 6.3). Mode mapping uncertain. */
-    private void decodeSo3Realtime(int[] b) {
+    private synchronized void decodeSo3Realtime(int[] b) {
         if (b.length < 11) return;
         int st = b[4];
         mode = (st >> 1) & 0x07;
@@ -173,7 +173,7 @@ final class FrameParser {
     }
 
     /** SO3 status2 0x2D (spec 6.3): firmware plus trip/total. */
-    private void decodeSo3Status2(int[] b) {
+    private synchronized void decodeSo3Status2(int[] b) {
         if (b.length < 10) return;
         fw = (b[4] >> 4) + "." + (b[4] & 0x0F);
         tripKm = u16(b, 6) / 10.0;
@@ -181,7 +181,7 @@ final class FrameParser {
     }
 
     /** SO6 realtime {05,46} (spec 6.4): voltage/current/power only. */
-    private void decodeRealtimeSo6(int[] d) {
+    private synchronized void decodeRealtimeSo6(int[] d) {
         if (d.length < 5) return;
         voltage = u16(d, 3) / 10.0;
         if (d.length >= 7) current = u16(d, 5) / 10.0;

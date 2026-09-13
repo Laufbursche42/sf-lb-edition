@@ -1,0 +1,21 @@
+name: "Laufbursche Edition CodeQL config"
+
+# Full security-extended analysis stays on. A few of its queries flag patterns that are
+# inherent to this app and cannot be "fixed" without breaking a feature, so they are excluded
+# here with a stated reason instead of being dismissed one alert at a time. The meaningful rules
+# (weak crypto, path injection, XSS, addJavascriptInterface, APK install) stay active; their
+# current by-design instances are dismissed in the code-scanning UI with a justification.
+
+queries:
+  - uses: security-extended
+
+query-filters:
+  # Missing certificate pinning: the external hosts (GitHub releases, brouter, the mapsforge
+  # mirror) rotate intermediates too often to pin safely without a live device to verify against.
+  - exclude:
+      id: java/android/missing-certificate-pinning
+
+  # Unreleased lock: false positive - CodeQL reads the domain methods CommandBuilder.lock()/
+  # unlock() (the immobiliser) as a concurrency lock. BleManager uses only synchronized blocks.
+  - exclude:
+      id: java/unreleased-lock

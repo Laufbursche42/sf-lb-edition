@@ -22,11 +22,8 @@ final class NavGuidance {
 
     /** Result of one guidance evaluation. */
     static final class Fix {
-        int nearestIdx;        // index of the nearest route point
-        double nearestDist;    // metres to that nearest point
-        boolean offRoute;      // nearestDist > OFF_ROUTE_METERS
+        boolean offRoute;      // distance to the nearest route point > OFF_ROUTE_METERS
         boolean arrive;        // the next "maneuver" is the destination (or the final maneuver)
-        int mi;                // index into maneuverIdx[] of the next maneuver or -1 for arrive
         int maneuverKey;       // stable per-maneuver key for the once-each voice guards
         String nextText;       // instruction text for the next maneuver
         double distToNextM;    // metres to the next maneuver
@@ -55,8 +52,6 @@ final class NavGuidance {
         }
 
         Fix f = new Fix();
-        f.nearestIdx = k;
-        f.nearestDist = best;
         f.offRoute = best > OFF_ROUTE_METERS;
         if (f.offRoute) return f;
 
@@ -68,7 +63,6 @@ final class NavGuidance {
                 break;
             }
         }
-        f.mi = mi;
         double last = cumDist[cumDist.length - 1];
         if (mi < 0) {
             f.nextText = "Arrive at destination";

@@ -427,8 +427,7 @@ public class MapDownloadActivity extends Activity {
             poi.setOnClickListener(v -> {
                 boolean have = poiFile != null && poiFile.isFile() && poiFile.length() > 0;
                 if (have) {
-                    //noinspection ResultOfMethodCallIgnored
-                    poiFile.delete();
+                    if (!poiFile.delete()) Log.w(TAG, "delete failed: " + poiFile);
                     toast(display + " POI deleted");
                     refreshAll();
                 } else {

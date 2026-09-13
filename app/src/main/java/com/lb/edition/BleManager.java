@@ -207,7 +207,7 @@ final class BleManager {
                 changed = prev == null;
                 found.put(addr, e);
             }
-            if (changed) { Log.i(TAG, "found: " + e.name + " [" + addr + "] rssi=" + e.rssi); pushScanResults(); }
+            if (changed) { Log.i(TAG, "found: " + LogSan.s(e.name) + " [" + addr + "] rssi=" + e.rssi); pushScanResults(); }
         } catch (Throwable t) {
             Log.e(TAG, "handleScan failed", t);
         }
@@ -809,7 +809,6 @@ final class BleManager {
         Proto p = activeProto;
         if (p == null) return;
         try {
-            settings.speedUnlocked = unlocked;
             send(unlocked ? CommandBuilder.unlock(p, settings) : CommandBuilder.lock(p, settings));
         } catch (Throwable t) {
             Log.e(TAG, "setLock failed", t);

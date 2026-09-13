@@ -325,6 +325,21 @@ public class MainActivity extends Activity {
      *  progress notification) then opens the installer once it completes. Runs on the UI thread. */
     private static final String APK_UPDATE_NAME = "sf-lb-edition-update.apk";
 
+    /** Only ever download+install an update from GitHub's own release/asset hosts, over HTTPS. */
+    private static boolean isTrustedApkUrl(String url) {
+        try {
+            Uri u = Uri.parse(url);
+            if (!"https".equalsIgnoreCase(u.getScheme())) return false;
+            String host = u.getHost();
+            if (host == null) return false;
+            host = host.toLowerCase(Locale.ROOT);
+            return host.equals("github.com") || host.endsWith(".github.com")
+                    || host.equals("objects.githubusercontent.com") || host.endsWith(".githubusercontent.com");
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     private void startApkDownload(String url) {
         try {
             final android.app.DownloadManager dm =
@@ -837,6 +852,11 @@ public class MainActivity extends Activity {
          *  guarantees the file is a real, visible file in Downloads and yields an installable content URI. */
         @JavascriptInterface
         public void downloadAndInstallApk(final String url) {
+            if (!isTrustedApkUrl(url)) {
+                Log.e(TAG, "downloadAndInstallApk: rejected untrusted url");
+                runOnUiThread(() -> toast("Update rejected: not a GitHub release URL"));
+                return;
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !getPackageManager().canRequestPackageInstalls()) {
                 runOnUiThread(() -> {
                     try {
@@ -1191,20 +1211,6 @@ public class MainActivity extends Activity {
             Log.e(TAG, "saveGpx name lookup failed", t);
         }
         return fallback;
-    }
-
-    /** Never overwrite an existing export: ride.gpx becomes ride (1).gpx. */
-    private static File gpxFreeFile(File dir, String name) {
-        File f = new File(dir, name);
-        if (!f.exists()) return f;
-        int dot = name.lastIndexOf('.');
-        String stem = dot > 0 ? name.substring(0, dot) : name;
-        String ext = dot > 0 ? name.substring(dot) : "";
-        for (int i = 1; i < 1000; i++) {
-            f = new File(dir, stem + " (" + i + ")" + ext);
-            if (!f.exists()) return f;
-        }
-        return f;
     }
 
     /** Keep the page's name from escaping the Downloads folder or losing its extension. */

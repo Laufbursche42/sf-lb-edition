@@ -70,7 +70,7 @@ final class NavDownloader {
         // Never resume without a validator to pin the remote file version: if the file changed on the
         // mirror (maps are regenerated regularly), appending new bytes at the old offset would splice
         // two different files into a corrupt result. Restart cleanly instead.
-        if (have > 0 && validator == null) { part.delete(); meta.delete(); have = 0; }
+        if (have > 0 && validator == null) { deleteQuietly(part); deleteQuietly(meta); have = 0; }
 
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
         c.setConnectTimeout(30000);
@@ -101,7 +101,7 @@ final class NavDownloader {
                 writeLine(meta, validatorOf(c));                  // remember the version for a later resume
             } else if (code == 416) {                             // Range Not Satisfiable - stale .part
                 if (part.exists() && !part.delete()) throw new IOException("could not clear stale part: " + part);
-                meta.delete();
+                deleteQuietly(meta);
                 c.disconnect();
                 download(url, dest, cb, cancel);                  // restart once, cleanly (have is now 0)
                 return;
@@ -151,7 +151,7 @@ final class NavDownloader {
         if (!part.renameTo(dest)) {
             throw new IOException("could not finalize " + dest);
         }
-        meta.delete();   // validator no longer needed once the file is complete
+        deleteQuietly(meta);   // validator no longer needed once the file is complete
     }
 
     /** Prefer the strong ETag, else Last-Modified; may be null (then a later resume restarts clean). */
@@ -172,7 +172,7 @@ final class NavDownloader {
     }
 
     private static void writeLine(File f, String s) {
-        if (s == null || s.isEmpty()) { f.delete(); return; }
+        if (s == null || s.isEmpty()) { deleteQuietly(f); return; }
         try (FileOutputStream o = new FileOutputStream(f, false)) {
             o.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         } catch (Throwable ignored) { }
@@ -206,6 +206,13 @@ final class NavDownloader {
     private static void closeQuietly(java.io.Closeable c) {
         if (c != null) {
             try { c.close(); } catch (IOException ignored) { }
+        }
+    }
+
+    /** Best-effort delete: a leftover stale file is harmless, so a failure here is not fatal. */
+    private static void deleteQuietly(File f) {
+        if (f != null && f.exists() && !f.delete()) {
+            android.util.Log.w("lbnav", "could not delete " + f.getName());
         }
     }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cleartext off app-wide, explicit (targetSdk already defaults this, but audit tools want it stated).
+     No cert pinning: the external hosts (github.com, brouter.de, hs-esslingen.de mirror) rotate
+     intermediates too often to pin safely without a live device to verify against. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

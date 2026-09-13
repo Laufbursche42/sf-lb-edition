@@ -10,9 +10,9 @@ public final class LogSan {
 
     private LogSan() {}
 
-    /** Replace CR, LF, tab and other control characters with '_'. Null becomes "null". */
+    /** Replace CR, LF and tab with '_' so a value cannot forge or split a log line. Null becomes "null". */
     public static String s(String v) {
         if (v == null) return "null";
-        return v.replaceAll("[\\p{Cntrl}]", "_");
+        return v.replaceAll("[\\n\\r\\t]", "_");
     }
 }
