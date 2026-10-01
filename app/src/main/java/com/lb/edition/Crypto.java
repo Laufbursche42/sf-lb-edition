@@ -4,6 +4,8 @@
 
 package com.lb.edition;
 
+import android.annotation.SuppressLint;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -28,6 +30,7 @@ final class Crypto {
     static final boolean OK = selfTest();
 
     /** Encrypt with zero padding to the next 16-byte multiple, AES-128-ECB. */
+    @SuppressLint("GetInstance")  // AES/ECB is the SoFlow controller's wire protocol, not a choice (see class doc)
     static byte[] encrypt(byte[] data, byte[] key) {
         int pad = (16 - (data.length % 16)) % 16;
         byte[] buf = new byte[data.length + pad];
@@ -42,6 +45,7 @@ final class Crypto {
     }
 
     /** Decrypt only whole 16-byte blocks; a trailing partial block is ignored. */
+    @SuppressLint("GetInstance")  // AES/ECB is the SoFlow controller's wire protocol, not a choice (see class doc)
     static byte[] decrypt(byte[] data, byte[] key) {
         int n = data.length - (data.length % 16);
         if (n <= 0) return new byte[0];
