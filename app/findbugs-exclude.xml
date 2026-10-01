@@ -91,4 +91,56 @@
         <Method name="getInputSurface"/>
     </Match>
 
+    <!-- ================================================================================= -->
+    <!-- Findings on this fork's current code layout (see each note).                        -->
+
+    <!-- ECB_MODE + CIPHER_INTEGRITY. Crypto.encrypt/decrypt implement the NAVEE scooter's own
+         BLE auth: the 0x30/0x31 challenge-response is AES-128-ECB keyed from the device key table,
+         matched byte-for-byte to the firmware. The scooter has no cipher mode or MAC we could add,
+         so this is required to talk to the device. Scoped to the protocol class. -->
+    <Match>
+        <Class name="com.lb.edition.Crypto"/>
+        <Bug pattern="ECB_MODE,CIPHER_INTEGRITY"/>
+    </Match>
+
+    <!-- ANDROID_EXTERNAL_FILE_ACCESS (same rationale as the other classes above): app-private,
+         app-scoped getExternalFilesDir use - the downloaded self-update APK (MainActivity) and the
+         GPS route files (RouteRecorder). Sandboxed to the app, non-sensitive. -->
+    <Match>
+        <Class name="com.lb.edition.MainActivity"/>
+        <Bug pattern="ANDROID_EXTERNAL_FILE_ACCESS"/>
+    </Match>
+    <Match>
+        <Class name="com.lb.edition.RouteRecorder"/>
+        <Bug pattern="ANDROID_EXTERNAL_FILE_ACCESS"/>
+    </Match>
+
+    <!-- ANDROID_GEOLOCATION. The WebChromeClient geolocation callback grants geo only to the bundled
+         local dashboard page (same as the MainActivity$1 note above; here the inner class is numbered
+         differently). Matched by the callback method so inner-class renumbering cannot reopen it. -->
+    <Match>
+        <Bug pattern="ANDROID_GEOLOCATION"/>
+        <Method name="onGeolocationPermissionsShowPrompt"/>
+    </Match>
+
+    <!-- POTENTIAL_XML_INJECTION (NavActivity POI dialog). False positive: the HTML string is rendered
+         into a LOCAL AlertDialog via fromHtml() - not a web/XML/network sink - and every interpolated
+         value (OSM tag text, the website URL) is passed through escapeHtml() first (the URL is also
+         scheme-validated). FindSecBugs does not model escapeHtml as a sanitizer. -->
+    <Match>
+        <Class name="com.lb.edition.NavActivity"/>
+        <Bug pattern="POTENTIAL_XML_INJECTION"/>
+    </Match>
+
+    <!-- PATH_TRAVERSAL_IN (RouteRecorderService.openWriter). Not reachable by an attacker: the service
+         is android:exported="false" (only this app can start it) and the file path is always
+         app-computed - RouteRecorder passes a getExternalFilesDir-based f.getAbsolutePath(), never
+         external input. The taint source (an Intent extra) can therefore only ever carry our own path.
+         Scoped to the one service. (navee routes this through PathGuard; this fork's service does not,
+         but is safe by the non-exported + app-computed constraints above.) -->
+    <Match>
+        <Class name="com.lb.edition.RouteRecorderService"/>
+        <Bug pattern="PATH_TRAVERSAL_IN"/>
+    </Match>
+
 </FindBugsFilter>
