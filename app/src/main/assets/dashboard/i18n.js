@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Report an issue from the app.</b> The Version / disclaimer dialog now has a \"Report issue\" button. It opens a pre-filled GitHub issue with your app version, Android version and phone model and attaches your (already masked) debug log - no personal data. Just describe what happened and submit.",
+      "<b>Choose your tile font sizes.</b> Display settings now has a Font sizes section: set the speed value and its label, the upper tiles and each lower tile row independently, each with its own range. Reset puts them all back to the built-in sizes.",
       "<b>Security hardening.</b> Internal hardening from a code security scan: log entries are sanitised, the WebView has file and content access switched off, telemetry is passed to the dashboard as safe, escaped data, and the speed value is bounds-checked. Nothing about how you use the app changes.",
     ],
 
@@ -158,7 +160,7 @@ window.I18N = {
     "display.bg.oled": "Pure black switches OLED pixels off",
     "display.dark.title": "Dark mode",
     "display.fonts.title": "Font sizes",
-    "display.fonts.hint": "Font size for every tile text line on the main screen, set individually. On the live-value tiles that is the title (top), the value (middle) and the unit (bottom). The small tiles go from 10 to 40, the large speed number from 20 to 72. The screen still auto-scales to the height, so it is mainly the ratio between the sizes that shows.",
+    "display.fonts.hint": "Font size for every tile text line on the main screen, set individually. On the live-value tiles that is the title (top), the value (middle) and the unit (bottom). The screen still auto-scales to the height, so it is mainly the ratio between the sizes that shows.",
     "display.fonts.speed.val": "Speed - value",
     "display.fonts.speed.lbl": "Speed - label",
     "display.fonts.hero.val": "Upper tiles - value",
@@ -207,6 +209,7 @@ window.I18N = {
     "fw.start.hint": "Choose a valid firmware file and connect the scooter to enable the update.",
     "fw.verinfo.appversion.label": "App version:",
     "fw.verinfo.close": "Close",
+    "fw.verinfo.report": "Report issue",
     "fw.verinfo.disclaimer": "This is not an official SoFlow app. The developer (Laufbursche) is not affiliated with, endorsed by or connected to SoFlow. SoFlow is a trademark of its respective owner.",
     "fw.verinfo.license": "Laufbursche Edition is source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. Read the <span class=\"link-ble\" onclick=\"openExt('https://github.com/Laufbursche42/tr-lb-edition/blob/main/README.md')\">GitHub README</span> and <span class=\"link-ble\" onclick=\"openExt('https://github.com/Laufbursche42/tr-lb-edition/blob/main/license.md')\">License</span>.",
     "fw.verinfo.map.attribution": "Offline maps and POI data (camping / charging) are &copy; OpenStreetMap contributors, licensed under the ODbL 1.0.",
@@ -743,6 +746,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Fehler direkt aus der App melden.</b> Der Version-/Haftungs-Dialog hat jetzt einen \"Fehler melden\"-Knopf. Er öffnet ein vorausgefülltes GitHub-Issue mit App-Version, Android-Version und Handy-Modell und hängt dein (bereits maskiertes) Debug-Log an - keine persönlichen Daten. Einfach beschreiben was passiert ist und absenden.",
+      "<b>Schriftgrößen der Kacheln selbst wählen.</b> Die Display-Einstellungen haben jetzt den Bereich Schriftgrößen: Tacho-Wert und -Beschriftung, die oberen Kacheln und jede untere Kachelreihe einzeln einstellbar, jeweils mit eigenem Bereich. Zurücksetzen stellt alles auf die eingebauten Größen zurück.",
       "<b>Sicherheits-Härtung.</b> Interne Härtung aus einem Code-Sicherheitsscan: Log-Einträge werden bereinigt, die WebView hat Datei- und Content-Zugriff abgeschaltet, Telemetrie wird als sichere, escapte Daten an das Dashboard übergeben und der Speed-Wert wird auf einen sinnvollen Bereich begrenzt. An der Bedienung ändert sich nichts.",
     ],
 
@@ -881,7 +886,7 @@ window.I18N = {
     "display.bg.oled": "Reines Schwarz schaltet OLED-Pixel ab",
     "display.dark.title": "Dunkler Modus",
     "display.fonts.title": "Schriftgrößen",
-    "display.fonts.hint": "Schriftgröße für jede Text-Zeile der Kacheln auf dem Hauptbildschirm, einzeln einstellbar. Bei den Live-Wert-Kacheln sind das Titel (oben), Wert (Mitte) und Einheit (unten). Die kleinen Kacheln gehen von 10 bis 40, die große Tacho-Zahl von 20 bis 72. Der Bildschirm skaliert sich weiterhin automatisch auf die Höhe, darum wirkt vor allem das Verhältnis der Größen zueinander.",
+    "display.fonts.hint": "Schriftgröße für jede Text-Zeile der Kacheln auf dem Hauptbildschirm, einzeln einstellbar. Bei den Live-Wert-Kacheln sind das Titel (oben), Wert (Mitte) und Einheit (unten). Der Bildschirm skaliert sich weiterhin automatisch auf die Höhe, darum wirkt vor allem das Verhältnis der Größen zueinander.",
     "display.fonts.speed.val": "Tacho - Wert",
     "display.fonts.speed.lbl": "Tacho - Beschriftung",
     "display.fonts.hero.val": "Obere Kacheln - Wert",
@@ -930,6 +935,7 @@ window.I18N = {
     "fw.start.hint": "Wähle eine gültige Firmware-Datei und verbinde den Scooter, um das Update freizugeben.",
     "fw.verinfo.appversion.label": "App-Version:",
     "fw.verinfo.close": "Schließen",
+    "fw.verinfo.report": "Fehler melden",
     "fw.verinfo.disclaimer": "Das ist keine offizielle SoFlow-App. Der Entwickler (Laufbursche) hat keine Verbindung zu SoFlow und wird von SoFlow nicht unterstützt oder empfohlen. SoFlow ist eine Marke des jeweiligen Inhabers.",
     "fw.verinfo.license": "Laufbursche Edition ist source-available unter der PolyForm Noncommercial License 1.0.0 mit Additional Terms. Lies die <span class=\"link-ble\" onclick=\"openExt('https://github.com/Laufbursche42/tr-lb-edition/blob/main/README.md')\">GitHub README</span> und die <span class=\"link-ble\" onclick=\"openExt('https://github.com/Laufbursche42/tr-lb-edition/blob/main/license.md')\">Lizenz</span>.",
     "fw.verinfo.map.attribution": "Offline-Karten und POI-Daten (Camping / Laden) sind &copy; OpenStreetMap contributors, lizenziert unter der ODbL 1.0.",

@@ -14,6 +14,15 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.14
+
+- Display settings > Font sizes: ranges and defaults aligned with the other Laufbursche editions - the upper tiles and the tile-row values now go up to 48 px. Font sizes are now also re-applied when you switch between dark and light mode.
+- Report issue: the Version / disclaimer dialog has a new "Report issue" button that opens a pre-filled GitHub issue with the app version, Android version, phone model and your (already masked) debug log attached. No personal data is collected.
+
+## 1.0.13
+
+- Internal only: lint/SAST and CI housekeeping - scoped SuppressLint on the protocol AES-ECB, SpotBugs/CodeQL by-design exclusions, POI build retry, pinned setup-android. No behaviour change.
+
 ## 1.0.12
 
 - Follow-up to the 1.0.11 hardening: the log sanitiser now uses the newline pattern the code scanner recognises, so the log-injection findings actually clear. No behaviour change.
