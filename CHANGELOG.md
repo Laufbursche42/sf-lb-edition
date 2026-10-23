@@ -14,6 +14,14 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.15
+
+- Fixed: the live-value tiles shifted sideways when a scooter connected. They now sit in a fixed two-column grid and a row whose tiles are all hidden is removed, so a single remaining value keeps its place.
+- Changed: tile font sizes aligned with the other Laufbursche editions (hero values clamp 28-38 px, tile values 22-32 px) and the per-tile ellipsis was removed, so long values are no longer clipped.
+- Fixed: SO6 and SO4 UL now decode speed from the {05,46} telemetry frame (bytes 3-4), so the speedometer and route recording work; voltage and current are read from the correct bytes with the /100 scaling.
+- Changed: connecting now lists every discovered device for you to choose, with no silent auto-reconnect to the last device.
+- Added: a clear message when the route-recording foreground service cannot start automatically, asking you to start the recording by hand.
+
 ## 1.0.14
 
 - Display settings > Font sizes: ranges and defaults aligned with the other Laufbursche editions - the upper tiles and the tile-row values now go up to 48 px. Font sizes are now also re-applied when you switch between dark and light mode.

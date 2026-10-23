@@ -2563,14 +2563,17 @@ function reportFromApp() {
 
 function openConnectPage() {
   document.getElementById('connect-page').classList.add('open');
-  maybeAutoConnectKnown();
+  renderLastDeviceRow();
+  if (!state.bleConnected) startScan();   // list every scooter in range so the rider picks one
 }
 function closeConnectPage() {
   document.getElementById('connect-page').classList.remove('open');
 }
 
-/* Show the remembered scooter as a pinned "Last device" row and auto-reconnect to it once. */
-function maybeAutoConnectKnown() {
+/* Show the remembered scooter as a pinned "Last device" row the rider can tap. No silent auto-connect:
+   with two scooters switched on the rider must pick which one, so a connection only ever happens on a
+   tap, here or in the scanned list below. */
+function renderLastDeviceRow() {
   const wrap = document.getElementById('known-wrap');
   const box  = document.getElementById('known-device');
   if (!wrap || !box) return;
@@ -2578,7 +2581,6 @@ function maybeAutoConnectKnown() {
   let dev = null;
   try { const j = LB.lastDevice(); if (j) dev = JSON.parse(j); } catch (e) {}
   if (!dev || !dev.address) { wrap.style.display='none'; return; }
-  // render a tap-to-reconnect row
   box.innerHTML = '';
   const el = document.createElement('div'); el.className = 'scan-item';
   const info = document.createElement('div'); info.className = 'route-info';
@@ -2590,10 +2592,6 @@ function maybeAutoConnectKnown() {
   el.addEventListener('click', () => { try { LB.connect(dev.address, dev.name || ''); showToast(tf('msg.connect.reconnecting', { device: dev.name || dev.address })); } catch (e) {} });
   box.appendChild(el);
   wrap.style.display = 'block';
-  // auto-attempt once if not already connected
-  if (!state.bleConnected && LB.connect) {
-    try { LB.connect(dev.address, dev.name || ''); showToast(tf('msg.connect.reconnecting', { device: dev.name || dev.address })); } catch (e) {}
-  }
 }
 
 function startScan() {
@@ -2641,6 +2639,15 @@ window.__onBleScan = function(listArg) {
     });
     box.appendChild(el);
   });
+};
+
+/* Native route-recorder errors: {error}. e.g. "fgservice" = the OS refused a background
+   foreground-service start (Android 12+), so auto-start failed and the rider must start manually. */
+window.__onRouteError = function(argObj) {
+  let o = argObj;
+  try { if (typeof argObj === 'string') o = JSON.parse(argObj); } catch (e) { o = {}; }
+  o = o || {};
+  if (o.error === 'fgservice') showToast(t('msg.route.autostart.failed'));
 };
 
 /* Native pushes connection state here: {connected, name, model, family, caps:{...}}. */
@@ -2701,6 +2708,15 @@ function applyCaps() {
   document.querySelectorAll('[data-tcap]').forEach(el => {
     el.classList.toggle('is-hidden', _connectedState && !capOn(el.getAttribute('data-tcap')));
   });
+  // Hide a whole tile row once all its cells are hidden, so it keeps no gap and does not skew the
+  // fitFold() row count. A row left with a single visible cell stays tidy via the two-column grid.
+  ['hero-row', 'motor-row', 'motor-row-2', 'motor-row-3'].forEach(id => {
+    const row = document.getElementById(id);
+    if (!row) return;
+    const any = Array.prototype.some.call(row.children, c => !c.classList.contains('is-hidden'));
+    row.classList.toggle('is-hidden', !any);
+  });
+  scheduleFitFold();   // tile visibility changed -> re-measure the fold
 }
 
 function liveRaw() {

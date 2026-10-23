@@ -93,6 +93,17 @@ public class MainActivity extends Activity {
         // Ride logging: native NDJSON ride recorder, driven from the BLE listener callbacks below.
         rideLogger = new RideLogger(getApplicationContext());
         routeRecorder = new RouteRecorder(getApplicationContext());
+        // Forward native route-recorder errors (e.g. a refused background foreground-service start on
+        // Android 12+) to the dashboard, which shows the rider a clear message.
+        routeRecorder.setListener(code -> {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject();
+                o.put("error", code);
+                runJs("(function(){try{if(window.__onRouteError)window.__onRouteError(" + jsArg(o.toString()) + ");}catch(e){}})();");
+            } catch (Throwable t) {
+                Log.e(TAG, "route error forward failed", t);
+            }
+        });
 
         // Debug logging: persistent across restarts (SharedPreferences key lb_debug).
         // Resume capture immediately if the user left it enabled.
@@ -120,15 +131,9 @@ public class MainActivity extends Activity {
         // Observe navigation and mirror the current state to the dashboard banner immediately.
         NavSession.addListener(navListener);
         navListener.onNavState(NavSession.state());
-        // First time we resume with BT permission available, reconnect to the remembered scooter.
-        if (!autoConnectTried) {
-            boolean btOk = Build.VERSION.SDK_INT < Build.VERSION_CODES.S
-                    || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
-            if (btOk && ble != null) {
-                autoConnectTried = true;
-                ble.connectLast();
-            }
-        }
+        // No silent auto-reconnect: the rider opens the Connect page and picks a device from the scanned
+        // list (the remembered scooter is shown there as a tap-to-reconnect row). Connecting on resume
+        // would skip that choice when two scooters are switched on at once.
     }
 
     @SuppressWarnings({"SetJavaScriptEnabled"})

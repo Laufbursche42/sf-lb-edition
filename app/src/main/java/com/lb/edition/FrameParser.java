@@ -180,12 +180,17 @@ final class FrameParser {
         totalKm = u16(b, 8);
     }
 
-    /** SO6 realtime {05,46} (spec 6.4): voltage/current/power only. */
+    /** SO6/SO4 UL realtime {05,46} (spec 6.4). Byte layout proven from So6BaseDataDelegate.processData
+     *  disassembly: 3-4 speed/10, 5-6 current/100, 7-8 voltage/100, 9-10 remainingKm/10, 11 battery,
+     *  13 locked (byte==0). current/voltage scale /100 here, unlike the /10 of the D7 families; power
+     *  and energy are not carried in this frame. */
     private synchronized void decodeRealtimeSo6(int[] d) {
         if (d.length < 5) return;
-        voltage = u16(d, 3) / 10.0;
-        if (d.length >= 7) current = u16(d, 5) / 10.0;
-        if (d.length >= 9) power = u16(d, 7) / 10.0;
+        speed = u16(d, 3) / 10.0;
+        if (d.length >= 7) current = u16(d, 5) / 100.0;
+        if (d.length >= 9) voltage = u16(d, 7) / 100.0;
+        if (d.length >= 12) battery = d[11] & 0xFF;
+        if (d.length >= 14) locked = (d[13] == 0) ? 1 : 0;   // matches the original app (0 -> locked)
     }
 
     /** SO4 firmware from byte 12 (spec 6.1); drives the plaintext/AES choice via SettingsState. */
