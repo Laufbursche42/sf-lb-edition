@@ -20,11 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>Tiles stay put when you connect.</b> The live-value tiles now sit in a fixed two-column grid and a row whose tiles are all hidden is removed, so a single remaining value no longer slides across the screen.",
-      "<b>Matching tile font sizes.</b> The tile font sizes now match the other Laufbursche editions and long values are no longer cut off.",
-      "<b>SO6 and SO4 UL now show speed.</b> These models now read their speed from the scooter, so the speedometer works and route recording starts on its own. Voltage and current are read correctly too.",
-      "<b>Pick your scooter when connecting.</b> Connecting now lists every scooter it finds so you choose the right one, instead of silently reconnecting to the last device.",
-      "<b>Clearer route-recording message.</b> If route recording cannot start automatically, the app now tells you to start it by hand.",
+      "<b>SO4 Pro Max 2 is detected correctly.</b> Newer units that report only the plain name SoFlow over Bluetooth were taken for an older model; they are now recognised correctly, so the right model profile and settings are used.",
     ],
 
     'disclaimer.points': [
@@ -749,11 +745,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
-      "<b>Kacheln verrutschen beim Verbinden nicht mehr.</b> Die Live-Wert-Kacheln liegen jetzt in einem festen Zwei-Spalten-Raster und eine Reihe, deren Kacheln alle ausgeblendet sind, wird entfernt. Ein allein übriger Wert rutscht so nicht mehr über den Bildschirm.",
-      "<b>Einheitliche Schriftgrößen.</b> Die Schriftgrößen der Kacheln passen jetzt zu den anderen Laufbursche-Editionen und lange Werte werden nicht mehr abgeschnitten.",
-      "<b>SO6 und SO4 UL zeigen jetzt die Geschwindigkeit.</b> Diese Modelle lesen ihre Geschwindigkeit jetzt aus dem Scooter, dadurch funktioniert der Tacho und die Routenaufzeichnung startet von selbst. Spannung und Strom werden ebenfalls korrekt gelesen.",
-      "<b>Beim Verbinden den Scooter auswählen.</b> Das Verbinden listet jetzt jeden gefundenen Scooter auf, damit du den richtigen auswählst, statt dich still mit dem zuletzt genutzten Gerät zu verbinden.",
-      "<b>Klarere Meldung zur Routenaufzeichnung.</b> Wenn die Routenaufzeichnung nicht automatisch starten kann, sagt dir die App jetzt, dass du sie von Hand starten sollst.",
+      "<b>SO4 Pro Max 2 wird richtig erkannt.</b> Neuere Geräte, die sich über Bluetooth nur mit dem Namen SoFlow melden, wurden für ein älteres Modell gehalten; sie werden jetzt korrekt erkannt, sodass das richtige Modellprofil und die passenden Einstellungen verwendet werden.",
     ],
 
     'disclaimer.points': [

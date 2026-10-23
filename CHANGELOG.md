@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.16
+
+- Fixed: the SO4 Pro Max 2 and similar newer units that advertise the plain name "SoFlow" over Nordic UART were misdetected as an older SoFlow model; the Nordic fallback now classifies them as sooneplus, so the correct model profile and settings are used.
+
 ## 1.0.15
 
 - Fixed: the live-value tiles shifted sideways when a scooter connected. They now sit in a fixed two-column grid and a row whose tiles are all hidden is removed, so a single remaining value keeps its place.

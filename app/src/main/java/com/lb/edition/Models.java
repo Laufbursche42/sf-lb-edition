@@ -165,11 +165,13 @@ final class Models {
         return null;
     }
 
-    /** Fallback when the plain name "SoFlow" gives no model: classify by the GATT service (spec 1.5). */
+    /** Fallback when the plain name "SoFlow" gives no model: classify by the GATT service (spec 1.5).
+     * Newer units (SO4 Pro Max 2 and similar) advertise the plain name "SoFlow" over Nordic UART.
+     * They are sooneplus-family, not soone, so the Nordic fallback returns "sooneplus". */
     static String protoFromTransport(Transport t) {
         if (t == Transport.SO6) return "so6";
         if (t == Transport.KINGMETER) return "soonepro";
-        return "soone";
+        return "sooneplus";
     }
 
     // ── model policy helpers (spec 3.4, 5.9) ──
