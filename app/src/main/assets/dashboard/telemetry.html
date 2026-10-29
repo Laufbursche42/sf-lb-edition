@@ -116,9 +116,9 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <!-- Quick function toggles, sent to the scooter immediately over BLE. Each button appears only
          when its capability is supported; greyed out until connected. -->
     <div id="drive-quick" class="dq-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group">
-      <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
-      <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
-      <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
+      <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" data-btn-id="btn-dq-light" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
+      <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" data-btn-id="btn-dq-zero" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
+      <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" data-btn-id="btn-dq-lock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
     </div>
 
      </div>
@@ -307,6 +307,16 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <option value="30" data-i18n="settings.gps.interval.option.30s">30 s</option>
       </select>
     </div>
+    <div class="settings-row">
+      <div class="settings-row-left">
+        <div class="settings-row-label" data-i18n="settings.ridebanner.dock.label">Pin recording banner</div>
+        <div class="settings-row-sublabel" data-i18n="settings.ridebanner.dock.hint">Keeps banner at fixed position, not draggable</div>
+      </div>
+      <div class="toggle-wrap">
+        <input type="checkbox" class="toggle-input" id="toggle-ride-banner-dock">
+        <label class="toggle-label" for="toggle-ride-banner-dock"></label>
+      </div>
+    </div>
     <button id="btn-open-routes" class="mt-10"><span data-i18n="settings.scooter.routes.action">&#128506; Recorded routes</span><span id="routes-count-badge"></span></button>
   </div>
 
@@ -356,6 +366,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
     </div>
     <button id="btn-open-display" class="settings-btn mt-10"><span data-i18n="settings.display.colors.action">&#127912; Display settings</span></button>
+    <button id="btn-open-theme" class="settings-btn mt-10" data-i18n="theme.settings.action">&#127912; Theme manager</button>
   </div>
 
   <!-- Debug logging -->
@@ -760,6 +771,41 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       </div>
       <button type="button" id="btn-dsp-reset-fonts" class="settings-btn mt-10" data-i18n="display.fonts.reset">Reset font sizes</button>
     </div>
+  </div>
+</div>
+
+<!-- ── Theme manager page ────────────────────────── -->
+<div id="theme-page">
+  <div id="topbar">
+    <div class="tb-left">
+      <button class="icon-btn" id="btn-theme-back" aria-label="Back" data-i18n-aria="fw.nav.back.label" data-i18n="fw.nav.back.icon">&#8592;</button>
+    </div>
+    <span class="tb-title" data-i18n="theme.page.title">Theme manager</span>
+    <div class="tb-right"><span class="tb-spacer"></span></div>
+  </div>
+  <div id="theme-scroller">
+    <p class="settings-row-sublabel" data-i18n="theme.page.hint">Import a .zip bundle to customise the dashboard layout. The zip must contain theme.html and theme.css.</p>
+    <button type="button" id="btn-theme-import" class="settings-btn" data-i18n="theme.import.action">&#8682; Import theme (.zip)</button>
+    <p class="settings-row-sublabel m-6-0-2" data-i18n="theme.import.hint">Pick a single .zip file - one zip = one theme.</p>
+    <div id="theme-list"></div>
+    <div id="tile-editor" style="display:none"></div>
+    <div id="btn-row-editor" style="display:none"></div>
+    <div id="style-editor" style="display:none"></div>
+    <button type="button" id="btn-open-guide" class="settings-btn settings-btn-secondary" data-i18n="theme.guide.btn">&#128196; Theme creation guide</button>
+  </div>
+</div>
+
+<!-- ── Theme guide page ──────────────────────────── -->
+<div id="guide-page">
+  <div id="topbar">
+    <div class="tb-left">
+      <button class="icon-btn" id="btn-guide-back" aria-label="Back" data-i18n-aria="fw.nav.back.label" data-i18n="fw.nav.back.icon">&#8592;</button>
+    </div>
+    <span class="tb-title" data-i18n="theme.guide.title">Theme Guide</span>
+    <div class="tb-right"><span class="tb-spacer"></span></div>
+  </div>
+  <div id="guide-scroller">
+    <div id="guide-body"></div>
   </div>
 </div>
 
@@ -1577,6 +1623,7 @@ function tickBLE() {
   updateRideUI();
   // Mirror the SoFlow quick toggles onto the scooter state (~2x/s).
   reflectDriveQuick();
+  updateThemeHooks(data);
   // Keep the scooter-settings page live while it is open.
   maybeLiveRefreshScooterSettings();
 }
@@ -3256,6 +3303,10 @@ function initNavBanner() {
    above the "Motors" heading and can be dragged anywhere; the dragged spot is remembered. */
 
 const RIDE_BANNER_KEY = 'lb_ride_banner_pos';
+const RIDE_BANNER_DOCK_KEY = 'lb_ride_banner_docked';
+function _isRideBannerDocked() {
+  try { return localStorage.getItem(RIDE_BANNER_DOCK_KEY) === 'true'; } catch(e) { return false; }
+}
 
 /* Park it above the "Motors" heading. Only used until the rider drags it somewhere else. */
 function placeRideBannerDefault(b) {
@@ -3276,15 +3327,18 @@ function showRideBanner(on) {
   const was = b.classList.contains('open');
   b.classList.toggle('open', !!on);
   if (on && !was) {
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(RIDE_BANNER_KEY) || 'null'); } catch (e) {}
-    if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
-      b.style.left = saved.left + 'px'; b.style.top = saved.top + 'px';
-      b.style.right = 'auto'; b.style.bottom = 'auto';
-      if (typeof saved.width === 'number') b.style.width = saved.width + 'px';
-    } else {
-      // offsetHeight is only real once the element is displayed, so measure after the class flip.
+    if (_isRideBannerDocked()) {
       placeRideBannerDefault(b);
+    } else {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(RIDE_BANNER_KEY) || 'null'); } catch (e) {}
+      if (saved && typeof saved.left === 'number' && typeof saved.top === 'number') {
+        b.style.left = saved.left + 'px'; b.style.top = saved.top + 'px';
+        b.style.right = 'auto'; b.style.bottom = 'auto';
+        if (typeof saved.width === 'number') b.style.width = saved.width + 'px';
+      } else {
+        placeRideBannerDefault(b);
+      }
     }
   }
 }
@@ -3295,9 +3349,11 @@ function initRideBanner() {
   const stop = document.getElementById('rb-stop');
   if (stop) stop.addEventListener('click', (e) => { e.stopPropagation(); stopLiveRide(); });
 
+  const SNAP = 8;
   let drag = null;
   b.addEventListener('pointerdown', (e) => {
     if (e.target && e.target.id === 'rb-stop') return;
+    if (_isRideBannerDocked()) return;
     const r = b.getBoundingClientRect();
     b.style.width = r.width + 'px';
     b.style.left = r.left + 'px'; b.style.top = r.top + 'px';
@@ -3308,8 +3364,9 @@ function initRideBanner() {
   b.addEventListener('pointermove', (e) => {
     if (!drag) return;
     const w = b.offsetWidth, h = b.offsetHeight;
-    const left = Math.max(4, Math.min(e.clientX - drag.dx, window.innerWidth - w - 4));
-    const top = Math.max(4, Math.min(e.clientY - drag.dy, window.innerHeight - h - 4));
+    const rawL = e.clientX - drag.dx, rawT = e.clientY - drag.dy;
+    const left = Math.round(Math.max(4, Math.min(rawL, window.innerWidth - w - 4)) / SNAP) * SNAP;
+    const top  = Math.round(Math.max(4, Math.min(rawT, window.innerHeight - h - 4)) / SNAP) * SNAP;
     b.style.left = left + 'px'; b.style.top = top + 'px';
   });
   const drop = () => {
@@ -3553,6 +3610,780 @@ function initFold() {
   }
 }
 
+/* ── Theme system ─────────────────────────────────────────── */
+
+// Custom themes declare their own cssVars in theme.json; Default uses this constant.
+// group: 'dark'|'light'|'accents'|'fonts' drives section headers in renderStyleEditor.
+const DEFAULT_CSS_VARS = {
+  // Dark mode colours
+  '--dark-card': { label: 'Kachel-HG',    type: 'color', default: '#111420', group: 'dark'    },
+  '--dark-bg':   { label: 'Hintergrund',  type: 'color', default: '#0A0C10', group: 'dark'    },
+  '--dark-lum':  { label: 'Helligkeit',   type: 'range', default: 90, min: 0, max: 100,        group: 'dark'    },
+  // Light mode colours
+  '--light-card': { label: 'Kachel-HG',  type: 'color', default: '#ffffff',  group: 'light'   },
+  '--light-bg':   { label: 'Hintergrund',type: 'color', default: '#e8edf5',  group: 'light'   },
+  '--light-lum':  { label: 'Helligkeit', type: 'range', default: 100, min: 0, max: 100,        group: 'light'   },
+  // Accent colours (applied in both modes; influence dark/light brightness automatically)
+  '--value':  { label: 'Werte-Farbe',      type: 'color', default: '#BCEB39', group: 'accents' },
+  '--ble':    { label: 'BLE-Speed-Farbe',  type: 'color', default: '#B8F020', group: 'accents' },
+  '--gps':    { label: 'GPS-Speed-Farbe',  type: 'color', default: '#3DB8FF', group: 'accents' },
+  '--good':   { label: 'Akzent/Gut-Farbe', type: 'color', default: '#1EE89A', group: 'accents' },
+  '--unlock': { label: 'Entsperrt-Farbe',  type: 'color', default: '#FF5050', group: 'accents' },
+  // Font sizes
+  '--sz-speed-val': { label: 'Speed-Wert',    type: 'number', default: 64, min: 20, max: 72, unit: 'px', group: 'fonts' },
+  '--sz-speed-lbl': { label: 'Speed-Label',   type: 'number', default: 14, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-hero-val':  { label: 'Hero-Wert',     type: 'number', default: 38, min: 10, max: 48, unit: 'px', group: 'fonts' },
+  '--sz-hero-lbl':  { label: 'Hero-Label',    type: 'number', default: 13, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m1-top':    { label: 'Kachel1-Titel', type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m1-mid':    { label: 'Kachel1-Wert',  type: 'number', default: 32, min: 10, max: 48, unit: 'px', group: 'fonts' },
+  '--sz-m1-bot':    { label: 'Kachel1-Unit',  type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m2-top':    { label: 'Kachel2-Titel', type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m2-mid':    { label: 'Kachel2-Wert',  type: 'number', default: 32, min: 10, max: 48, unit: 'px', group: 'fonts' },
+  '--sz-m2-bot':    { label: 'Kachel2-Unit',  type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  // Tile min-heights (0 = natural content height; increase to make a tile taller)
+  '--tile-h-speed':   { label: 'Speed-Kachel',   type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+  '--tile-h-hero':    { label: 'Hero-Kachel',     type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+  '--tile-h-motors':  { label: 'Motor-Kachel',    type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+};
+
+let _themeActive = '';   // mirrors prefs at page-load and after activate/reload
+
+function openThemePage() {
+  document.getElementById('theme-page').classList.add('open');
+  renderThemeList();
+}
+function closeThemePage() {
+  document.getElementById('theme-page').classList.remove('open');
+}
+
+var _guideLoaded = false;
+function openGuidePage() {
+  document.getElementById('guide-page').classList.add('open');
+  if (!_guideLoaded) {
+    var body = document.getElementById('guide-body');
+    if (!body) return;
+    var html = '';
+    try { if (typeof LB !== 'undefined' && LB.getAsset) html = LB.getAsset('theme-guide.html'); } catch(e) {}
+    if (html) { body.innerHTML = html; _guideLoaded = true; }
+    else body.textContent = 'Guide not available.';
+  }
+}
+function closeGuidePage() {
+  document.getElementById('guide-page').classList.remove('open');
+}
+
+function renderThemeList() {
+  const list = document.getElementById('theme-list');
+  if (!list) return;
+  let themes = [];
+  try {
+    if (typeof LB !== 'undefined' && LB.listThemes) themes = JSON.parse(LB.listThemes() || '[]');
+  } catch (e) {}
+  list.innerHTML = '';
+  let activeCustomTheme = null;
+  themes.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'theme-row';
+    const left = document.createElement('div');
+    left.className = 'theme-row-left';
+    const namEl = document.createElement('span');
+    namEl.className = 'theme-name';
+    namEl.textContent = item.name;
+    left.appendChild(namEl);
+    if (item.active) {
+      const badge = document.createElement('span');
+      badge.className = 'theme-active-badge';
+      badge.setAttribute('data-i18n', 'theme.badge.active');
+      badge.textContent = t('theme.badge.active');
+      left.appendChild(badge);
+      if (item.name !== 'Default') activeCustomTheme = item.name;
+    }
+    row.appendChild(left);
+    const actions = document.createElement('div');
+    actions.className = 'theme-row-actions';
+    if (!item.active) {
+      const btnAct = document.createElement('button');
+      btnAct.textContent = t('theme.action.activate');
+      btnAct.addEventListener('click', () => activateTheme(item.name));
+      actions.appendChild(btnAct);
+    }
+    if (item.name !== 'Default') {
+      const btnExp = document.createElement('button');
+      btnExp.textContent = t('theme.action.export');
+      btnExp.addEventListener('click', () => {
+        if (typeof LB !== 'undefined' && LB.exportTheme) LB.exportTheme(item.name);
+        else showToast(t('msg.app.only.in.app'));
+      });
+      actions.appendChild(btnExp);
+      const btnDel = document.createElement('button');
+      btnDel.textContent = t('theme.action.delete');
+      btnDel.addEventListener('click', () => confirmDeleteTheme(item.name));
+      actions.appendChild(btnDel);
+    }
+    row.appendChild(actions);
+    list.appendChild(row);
+  });
+  // Show tile + style editors for the active theme (custom or Default)
+  const editorTheme = activeCustomTheme || 'Default';
+  renderTileEditor(editorTheme);
+  renderButtonRowEditor(editorTheme);
+  renderStyleEditor(editorTheme);
+}
+
+function activateTheme(name) {
+  if (typeof LB === 'undefined' || !LB.activateTheme) { showToast(t('msg.app.only.in.app')); return; }
+  LB.activateTheme(name === 'Default' ? '' : name);
+  // Reload to apply the new CSS (shouldInterceptRequest picks it up fresh).
+  location.reload();
+}
+
+function renderTileEditor(themeName) {
+  var el = document.getElementById('tile-editor');
+  if (!el) return;
+  var tiles = Array.from(document.querySelectorAll('#scroller [data-tile-id]')).filter(function(t) { return !t.dataset.tileNoEditor; });
+  if (tiles.length === 0) { el.style.display = 'none'; return; }
+  el.style.display = '';
+
+  var cfg = {};
+  try {
+    if (typeof LB !== 'undefined' && LB.getTileConfig)
+      cfg = JSON.parse(LB.getTileConfig(themeName) || '{}');
+  } catch(e) {}
+  var hidden = cfg.hidden || [];
+  var order  = cfg.order  || tiles.map(function(t) { return t.dataset.tileId; });
+  tiles.forEach(function(t) { if (order.indexOf(t.dataset.tileId) < 0) order.push(t.dataset.tileId); });
+
+  el.innerHTML = '';
+
+  var resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.className = 'tile-editor-reset-btn';
+  resetBtn.textContent = 'Alle einblenden';
+  resetBtn.addEventListener('click', function() {
+    el.querySelectorAll('.tile-toggle').forEach(function(cb) { cb.checked = true; });
+    _saveTileEditorState(themeName, el, order);
+  });
+  el.appendChild(resetBtn);
+
+  var foldEl = document.getElementById('fold');
+  var foldMap = {};
+  tiles.forEach(function(t) { if (foldEl && foldEl.contains(t)) foldMap[t.dataset.tileId] = true; });
+  var foldCount = Object.keys(foldMap).length;
+  var hasBothGroups = foldCount > 0 && foldCount < tiles.length;
+
+  function _addTileRow(id, tile) {
+    var rowLabel = tile.dataset.tileLabel || id;
+    var isHidden = hidden.indexOf(id) >= 0;
+    var row = document.createElement('div');
+    row.className = 'tile-editor-row';
+    row.dataset.id = id;
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.className = 'tile-toggle'; cb.dataset.id = id;
+    cb.checked = !isHidden;
+    var lbl = document.createElement('span');
+    lbl.className = 'tile-edit-lbl'; lbl.textContent = rowLabel;
+    var handle = document.createElement('span');
+    handle.className = 'tile-drag-handle'; handle.textContent = '≡';
+    handle.setAttribute('aria-label', 'Verschieben');
+    row.appendChild(cb); row.appendChild(lbl); row.appendChild(handle);
+    el.appendChild(row);
+    cb.addEventListener('change', function() { _saveTileEditorState(themeName, el, order); });
+    _initEditorRowDrag(handle, row, el, order, themeName);
+  }
+
+  if (hasBothGroups) {
+    var hdr1 = document.createElement('div');
+    hdr1.className = 'theme-section-title';
+    hdr1.innerHTML = 'Fold-Kacheln <span class="theme-hint">- im Sichtfeld, lang drücken zum Sortieren</span>';
+    el.appendChild(hdr1);
+    order.forEach(function(id) {
+      var tile = tiles.find(function(t) { return t.dataset.tileId === id; });
+      if (tile && foldMap[id]) _addTileRow(id, tile);
+    });
+    var hdr2 = document.createElement('div');
+    hdr2.className = 'theme-section-title';
+    hdr2.innerHTML = 'Scrollbereich <span class="theme-hint">- nach unten wischen</span>';
+    el.appendChild(hdr2);
+    order.forEach(function(id) {
+      var tile = tiles.find(function(t) { return t.dataset.tileId === id; });
+      if (tile && !foldMap[id]) _addTileRow(id, tile);
+    });
+  } else {
+    var hdr = document.createElement('div');
+    hdr.className = 'theme-section-title';
+    hdr.innerHTML = 'Kacheln <span class="theme-hint">- auf Dashboard lang drücken zum Sortieren</span>';
+    el.appendChild(hdr);
+    order.forEach(function(id) {
+      var tile = tiles.find(function(t) { return t.dataset.tileId === id; });
+      if (tile) _addTileRow(id, tile);
+    });
+  }
+}
+
+function _saveTileEditorState(themeName, el, order) {
+  var hidden = [];
+  el.querySelectorAll('.tile-toggle').forEach(function(cb) {
+    if (!cb.checked) hidden.push(cb.dataset.id);
+  });
+  var cfg = JSON.stringify({ order: order.slice(), hidden: hidden });
+  if (typeof LB !== 'undefined' && LB.saveTileConfig) LB.saveTileConfig(themeName, cfg);
+  applyTileConfig();
+}
+
+/* ── Button-row configurator (per theme) ─────────────────────── */
+var _BTN_ROW_MAX = 8;
+var _BTN_ROW_DEFAULT = ['btn-dq-light', 'btn-dq-zero', 'btn-dq-lock'];
+
+function _getBtnRowConfig(theme) {
+  var key = 'lb_btn_row_' + (theme || 'Default');
+  try {
+    var s = (typeof storage !== 'undefined' ? storage.get(key) : null);
+    var parsed = JSON.parse(s || 'null');
+    if (Array.isArray(parsed)) return parsed;
+  } catch(e) {}
+  return _BTN_ROW_DEFAULT.slice();
+}
+
+function applyButtonRowConfig(theme) {
+  var grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  var cfg = _getBtnRowConfig(theme || _themeActive || 'Default');
+  var anyVisible = false, visCount = 0;
+  grid.querySelectorAll('[data-btn-id]').forEach(function(b) {
+    var visible = cfg.indexOf(b.dataset.btnId) >= 0;
+    b.style.display = visible ? '' : 'none';
+    if (visible) { anyVisible = true; visCount++; }
+  });
+  grid.style.display = anyVisible ? '' : 'none';
+  if (anyVisible) grid.style.gridTemplateColumns = 'repeat(' + visCount + ', 1fr)';
+}
+
+function renderButtonRowEditor(theme) {
+  var el = document.getElementById('btn-row-editor');
+  if (!el) return;
+  var grid = document.getElementById('quick-grid');
+  if (!grid) { el.style.display = 'none'; return; }
+  var allBtns = Array.from(grid.querySelectorAll('[data-btn-id]'));
+  if (allBtns.length === 0) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  var cfg = _getBtnRowConfig(theme);
+  var atMax = cfg.length >= _BTN_ROW_MAX;
+
+  el.innerHTML = '';
+  var hdr = document.createElement('div');
+  hdr.className = 'theme-section-title';
+  hdr.innerHTML = 'Quick Buttons <span class="theme-hint">- max. ' + _BTN_ROW_MAX + '</span>';
+  el.appendChild(hdr);
+
+  allBtns.forEach(function(btn) {
+    var id = btn.dataset.btnId;
+    var label = btn.dataset.bbLabel || btn.textContent.trim();
+    var checked = cfg.indexOf(id) >= 0;
+    var row = document.createElement('div');
+    row.className = 'tile-editor-row';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.className = 'tile-toggle';
+    cb.checked = checked;
+    if (!checked && atMax) cb.disabled = true;
+    var lbl = document.createElement('span');
+    lbl.className = 'tile-edit-lbl'; lbl.textContent = label;
+    row.appendChild(cb); row.appendChild(lbl);
+    el.appendChild(row);
+
+    cb.addEventListener('change', function() {
+      var current = _getBtnRowConfig(theme);
+      if (cb.checked) {
+        if (current.length >= _BTN_ROW_MAX) { cb.checked = false; return; }
+        if (current.indexOf(id) < 0) current.push(id);
+      } else {
+        current = current.filter(function(x) { return x !== id; });
+      }
+      var key = 'lb_btn_row_' + (theme || 'Default');
+      if (typeof storage !== 'undefined') storage.set(key, JSON.stringify(current));
+      applyButtonRowConfig(theme);
+      var newAtMax = current.length >= _BTN_ROW_MAX;
+      el.querySelectorAll('.tile-toggle').forEach(function(c) {
+        if (!c.checked) c.disabled = newAtMax;
+      });
+    });
+  });
+}
+
+/* ── Style editor (CSS variable overrides) ─────────────────── */
+function renderStyleEditor(themeName) {
+  var el = document.getElementById('style-editor');
+  if (!el) return;
+  var meta = {};
+  try {
+    if (themeName === 'Default') {
+      meta = { cssVars: DEFAULT_CSS_VARS };
+    } else if (typeof LB !== 'undefined' && LB.getThemeMeta) {
+      meta = JSON.parse(LB.getThemeMeta(themeName) || '{}');
+    }
+  } catch(e) {}
+  // All themes always use the full DEFAULT_CSS_VARS set (brightness, colors, fonts).
+  // Custom theme cssVars override Default definitions where they share a key.
+  var cssVars = {};
+  Object.keys(DEFAULT_CSS_VARS).forEach(function(k) { cssVars[k] = DEFAULT_CSS_VARS[k]; });
+  if (themeName !== 'Default') {
+    var themeCssVars = meta.cssVars || {};
+    Object.keys(themeCssVars).forEach(function(k) { cssVars[k] = themeCssVars[k]; });
+  }
+  var keys = Object.keys(cssVars);
+  if (keys.length === 0) { el.style.display = 'none'; return; }
+  el.style.display = '';
+
+  var saved = {};
+  try {
+    if (typeof LB !== 'undefined' && LB.getThemeVars)
+      saved = JSON.parse(LB.getThemeVars(themeName) || '{}');
+  } catch(e) {}
+
+  var _groupLabels = { dark: 'Dark Mode', light: 'Light Mode', accents: 'Akzentfarben', fonts: 'Schriftgrößen', tiles: 'Kachelgröße' };
+  var _lastGroup = null;
+  el.innerHTML = '';
+  keys.forEach(function(varName) {
+    var def = cssVars[varName];
+    if (def.group && def.group !== _lastGroup) {
+      _lastGroup = def.group;
+      var ghdr = document.createElement('div');
+      ghdr.className = 'theme-section-title';
+      ghdr.textContent = _groupLabels[def.group] || def.group;
+      el.appendChild(ghdr);
+    }
+    var current = saved[varName] !== undefined ? saved[varName] : (def.default !== undefined ? String(def.default) : '');
+    var row = document.createElement('div');
+    row.className = 'style-editor-row';
+    var lbl = document.createElement('label');
+    lbl.className = 'style-var-lbl'; lbl.textContent = def.label || varName;
+    row.appendChild(lbl);
+
+    if (def.type === 'color') {
+      var inp = document.createElement('input');
+      inp.type = 'color'; inp.className = 'style-var-color';
+      inp.value = current || def.default || '#ffffff';
+      inp.addEventListener('change', function() { _saveStyleVar(themeName, varName, inp.value); });
+      row.appendChild(inp);
+    } else if (def.type === 'number') {
+      var unit = def.unit || '';
+      var numInp = document.createElement('input');
+      numInp.type = 'number';
+      numInp.min = def.min !== undefined ? def.min : 1;
+      numInp.max = def.max !== undefined ? def.max : 999;
+      numInp.value = parseInt(current) || def.default || 16;
+      numInp.className = 'style-var-num';
+      (function(inp, d, u) {
+        inp.addEventListener('change', function() {
+          var mn = d.min !== undefined ? d.min : 1;
+          var mx = d.max !== undefined ? d.max : 999;
+          var v = Math.max(mn, Math.min(mx, parseInt(inp.value) || d.default || 16));
+          inp.value = v;
+          _saveStyleVar(themeName, varName, v + u);
+        });
+      })(numInp, def, unit);
+      row.appendChild(numInp);
+      if (unit) { var uSpan = document.createElement('span'); uSpan.className = 'style-var-unit'; uSpan.textContent = unit; row.appendChild(uSpan); }
+    } else if (def.type === 'range' && def.unit) {
+      var unit = def.unit;
+      var numInp2 = document.createElement('input');
+      numInp2.type = 'number';
+      numInp2.min = def.min !== undefined ? def.min : 1;
+      numInp2.max = def.max !== undefined ? def.max : 999;
+      numInp2.value = parseInt(current) || def.default || 16;
+      numInp2.className = 'style-var-num';
+      (function(inp, d, u) {
+        inp.addEventListener('change', function() {
+          var mn = d.min !== undefined ? d.min : 1;
+          var mx = d.max !== undefined ? d.max : 999;
+          var v = Math.max(mn, Math.min(mx, parseInt(inp.value) || d.default || 16));
+          inp.value = v;
+          _saveStyleVar(themeName, varName, v + u);
+        });
+      })(numInp2, def, unit);
+      row.appendChild(numInp2);
+      var uSpan2 = document.createElement('span'); uSpan2.className = 'style-var-unit'; uSpan2.textContent = unit; row.appendChild(uSpan2);
+    } else if (def.type === 'range') {
+      var unit = def.unit || '';
+      var wrap = document.createElement('div');
+      wrap.className = 'style-var-range-wrap';
+      var rng = document.createElement('input');
+      rng.type = 'range';
+      rng.min = def.min || 8; rng.max = def.max || 120;
+      rng.value = parseInt(current) || def.default || 16;
+      rng.className = 'style-var-range';
+      var valLbl = document.createElement('span');
+      valLbl.className = 'style-var-val'; valLbl.textContent = rng.value + unit;
+      rng.addEventListener('input', function() { valLbl.textContent = rng.value + unit; });
+      rng.addEventListener('change', function() { _saveStyleVar(themeName, varName, rng.value + unit); });
+      wrap.appendChild(rng); wrap.appendChild(valLbl);
+      row.appendChild(wrap);
+    }
+    el.appendChild(row);
+  });
+
+  var btnReset = document.createElement('button');
+  btnReset.textContent = 'Reset'; btnReset.className = 'style-reset-btn';
+  btnReset.addEventListener('click', function() {
+    if (typeof LB !== 'undefined' && LB.saveThemeVars) LB.saveThemeVars(themeName, '{}');
+    injectThemeVars();
+    renderStyleEditor(themeName);
+  });
+  el.appendChild(btnReset);
+}
+
+function _saveStyleVar(themeName, varName, value) {
+  var saved = {};
+  try {
+    if (typeof LB !== 'undefined' && LB.getThemeVars)
+      saved = JSON.parse(LB.getThemeVars(themeName) || '{}');
+  } catch(e) {}
+  saved[varName] = value;
+  if (typeof LB !== 'undefined' && LB.saveThemeVars) LB.saveThemeVars(themeName, JSON.stringify(saved));
+  injectThemeVars();
+}
+
+function confirmDeleteTheme(name) {
+  document.getElementById('confirm-title').textContent = t('theme.action.delete');
+  document.getElementById('confirm-msg').textContent = name;
+  state.confirmCb = () => {
+    if (typeof LB !== 'undefined' && LB.deleteTheme) LB.deleteTheme(name);
+    renderThemeList();
+  };
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+
+/* Fill data-lb attribute hooks in the currently-active theme HTML. Called every tick. */
+function updateThemeHooks(data) {
+  if (!data) return;
+  // data-lb="key" -> textContent = data[key]
+  document.querySelectorAll('#fold-inner [data-lb]').forEach(el => {
+    const key = el.getAttribute('data-lb');
+    const val = data[key];
+    if (val !== undefined && val !== null) el.textContent = val;
+  });
+  // data-lb-state="key:class" -> toggle class based on truthy data[key]
+  document.querySelectorAll('#fold-inner [data-lb-state]').forEach(el => {
+    const spec = el.getAttribute('data-lb-state');
+    const sep = spec.indexOf(':');
+    if (sep < 0) return;
+    const key = spec.substring(0, sep);
+    const cls = spec.substring(sep + 1);
+    el.classList.toggle(cls, !!data[key]);
+  });
+}
+
+/* Re-attach the triple-tap speed-unlock listener to [data-lb-action="speed-unlock"]
+   in the injected theme HTML. Called after theme injection. */
+function reattachSpeedUnlock() {
+  const el = document.querySelector('#fold-inner [data-lb-action="speed-unlock"]');
+  if (el) el.addEventListener('click', onVcuTileTap);
+}
+
+/* Apply saved tile visibility + order to all [data-tile-id] elements in #scroller. */
+function applyTileConfig() {
+  var name = _themeActive || 'Default';
+  var cfg = {};
+  try {
+    if (typeof LB !== 'undefined' && LB.getTileConfig)
+      cfg = JSON.parse(LB.getTileConfig(name) || '{}');
+  } catch(e) {}
+  var hidden = cfg.hidden || [];
+  var order  = cfg.order  || [];
+  document.querySelectorAll('#scroller [data-tile-id]').forEach(function(el) {
+    if (el.dataset.tileNoEditor) return;
+    el.style.display = hidden.indexOf(el.dataset.tileId) >= 0 ? 'none' : '';
+  });
+  if (order.length > 0) {
+    var parents = [];
+    document.querySelectorAll('#scroller [data-tile-id]').forEach(function(el) {
+      if (parents.indexOf(el.parentElement) < 0) parents.push(el.parentElement);
+    });
+    parents.forEach(function(parent) {
+      var children = Array.from(parent.querySelectorAll(':scope > [data-tile-id]'));
+      children.sort(function(a, b) {
+        var ai = order.indexOf(a.dataset.tileId);
+        var bi = order.indexOf(b.dataset.tileId);
+        return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+      });
+      children.forEach(function(c) { parent.appendChild(c); });
+    });
+  }
+  try { scheduleFitFold(); } catch(e2) {}
+}
+
+/* ── Button-row drag (reorder buttons in #quick-grid) ──────── */
+var _btnDragEl = null, _btnDragTarget = null, _btnLongTimer = null;
+
+function applyQuickBtnOrder() {
+  var stored;
+  try { stored = JSON.parse((typeof storage !== 'undefined' ? storage.get('lb_btn_order') : null) || 'null'); } catch(e) {}
+  if (!Array.isArray(stored)) return;
+  var grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  var btns = {};
+  grid.querySelectorAll('[data-btn-id]').forEach(function(b) { btns[b.dataset.btnId] = b; });
+  stored.forEach(function(id) { if (btns[id]) grid.appendChild(btns[id]); });
+}
+
+function initBtnDrag() {
+  var grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  grid.querySelectorAll('[data-btn-id]').forEach(function(el) {
+    el.removeEventListener('touchstart', _onBtnTouchStart);
+    el.addEventListener('touchstart', _onBtnTouchStart, { passive: true });
+  });
+}
+
+function _onBtnTouchStart(e) {
+  e.stopPropagation();
+  if (_isDashLocked() || _btnDragEl) return;
+  if (_btnLongTimer) { clearTimeout(_btnLongTimer); _btnLongTimer = null; }
+  var el = this;
+  var t0 = e.touches[0];
+  var ox = t0.clientX, oy = t0.clientY;
+  function _cancelBtnLong(e2) {
+    if (e2.type === 'touchmove' && e2.touches && e2.touches[0]) {
+      var t2 = e2.touches[0];
+      if (Math.abs(t2.clientX - ox) < 12 && Math.abs(t2.clientY - oy) < 12) return;
+    }
+    if (_btnLongTimer) { clearTimeout(_btnLongTimer); _btnLongTimer = null; }
+    document.removeEventListener('touchmove', _cancelBtnLong);
+    document.removeEventListener('touchend', _cancelBtnLong);
+    document.removeEventListener('touchcancel', _cancelBtnLong);
+  }
+  _btnLongTimer = setTimeout(function() {
+    _btnLongTimer = null;
+    document.removeEventListener('touchmove', _cancelBtnLong);
+    document.removeEventListener('touchend', _cancelBtnLong);
+    document.removeEventListener('touchcancel', _cancelBtnLong);
+    _beginBtnDrag(el);
+  }, 500);
+  document.addEventListener('touchmove', _cancelBtnLong, { passive: true });
+  document.addEventListener('touchend', _cancelBtnLong, { once: true });
+  document.addEventListener('touchcancel', _cancelBtnLong, { once: true });
+}
+
+function _beginBtnDrag(el) {
+  _btnDragEl = el;
+  el.classList.add('btn-drag-active');
+  document.addEventListener('touchmove', _onBtnDragMove, { passive: false });
+  document.addEventListener('touchend', _onBtnDragEnd, { once: true });
+  document.addEventListener('touchcancel', _onBtnDragEnd, { once: true });
+}
+
+function _onBtnDragMove(e) {
+  if (!_btnDragEl) return;
+  e.preventDefault();
+  var t = e.touches[0];
+  var tx = t.clientX, ty = t.clientY;
+  var under = null;
+  var grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  grid.querySelectorAll('[data-btn-id]').forEach(function(btn) {
+    if (btn === _btnDragEl || btn.style.display === 'none') return;
+    var r = btn.getBoundingClientRect();
+    if (tx >= r.left && tx <= r.right && ty >= r.top && ty <= r.bottom) under = btn;
+  });
+  grid.querySelectorAll('.btn-drop-target').forEach(function(s) { s.classList.remove('btn-drop-target'); });
+  if (!under) { _btnDragTarget = null; return; }
+  under.classList.add('btn-drop-target');
+  _btnDragTarget = under;
+}
+
+function _onBtnDragEnd(e) {
+  if (!_btnDragEl) return;
+  var el = _btnDragEl;
+  el.classList.remove('btn-drag-active');
+  document.removeEventListener('touchmove', _onBtnDragMove);
+  document.removeEventListener('touchcancel', _onBtnDragEnd);
+  var grid = document.getElementById('quick-grid');
+  if (grid) grid.querySelectorAll('.btn-drop-target').forEach(function(s) { s.classList.remove('btn-drop-target'); });
+  var cancelled = e && e.type === 'touchcancel';
+  if (_btnDragTarget && !cancelled) {
+    var parent = el.parentElement;
+    var nodes = Array.from(parent.querySelectorAll(':scope > [data-btn-id]'));
+    var iDrag = nodes.indexOf(el), iTarget = nodes.indexOf(_btnDragTarget);
+    if (iDrag > iTarget) {
+      parent.insertBefore(el, _btnDragTarget);
+    } else {
+      var nxt = _btnDragTarget.nextSibling;
+      nxt ? parent.insertBefore(el, nxt) : parent.appendChild(el);
+    }
+    _saveBtnOrder();
+  }
+  _btnDragEl = null; _btnDragTarget = null;
+}
+
+function _saveBtnOrder() {
+  var grid = document.getElementById('quick-grid');
+  if (!grid || typeof storage === 'undefined') return;
+  var order = Array.from(grid.querySelectorAll('[data-btn-id]')).map(function(b) { return b.dataset.btnId; });
+  storage.set('lb_btn_order', JSON.stringify(order));
+}
+
+/* ── Editor row drag (≡ handle) ─────────────────────────────── */
+function _initEditorRowDrag(handle, row, listEl, order, themeName) {
+  var _edTarget = null;
+  handle.addEventListener('touchstart', function(e) {
+    e.stopPropagation();
+    row.classList.add('tile-drag-active');
+    document.addEventListener('touchmove', onEdMove, { passive: false });
+    document.addEventListener('touchend', onEdEnd, { once: true });
+  }, { passive: true });
+
+  function onEdMove(e) {
+    e.preventDefault();
+    var y = e.touches[0].clientY;
+    var rows = Array.from(listEl.querySelectorAll('.tile-editor-row')).filter(function(r) { return r !== row; });
+    rows.forEach(function(r) { r.classList.remove('tile-drop-above', 'tile-drop-below'); });
+    var best = null, bestDist = Infinity;
+    rows.forEach(function(r) {
+      var rect = r.getBoundingClientRect();
+      var mid = rect.top + rect.height / 2;
+      var d = Math.abs(y - mid);
+      if (d < bestDist) { bestDist = d; best = { el: r, above: y < mid }; }
+    });
+    if (best) best.el.classList.add(best.above ? 'tile-drop-above' : 'tile-drop-below');
+    _edTarget = best;
+  }
+
+  function onEdEnd() {
+    row.classList.remove('tile-drag-active');
+    document.removeEventListener('touchmove', onEdMove);
+    listEl.querySelectorAll('.tile-drop-above, .tile-drop-below').forEach(function(r) {
+      r.classList.remove('tile-drop-above', 'tile-drop-below');
+    });
+    if (_edTarget) {
+      var id = row.dataset.id;
+      var targetId = _edTarget.el.dataset.id;
+      var i = order.indexOf(id);
+      var ti = order.indexOf(targetId);
+      if (i >= 0 && ti >= 0 && i !== ti) {
+        order.splice(i, 1);
+        var ni = order.indexOf(targetId);
+        _edTarget.above ? order.splice(ni, 0, id) : order.splice(ni + 1, 0, id);
+        _saveTileEditorState(themeName, listEl, order);
+        renderTileEditor(themeName);
+      }
+    }
+    _edTarget = null;
+  }
+}
+
+/* Inject user CSS-variable overrides for the active theme into a <style> tag. */
+function injectThemeVars() {
+  var name = _themeActive || 'Default';
+  var vars = {};
+  try {
+    if (typeof LB !== 'undefined' && LB.getThemeVars)
+      vars = JSON.parse(LB.getThemeVars(name) || '{}');
+  } catch(e) {}
+  var style = document.getElementById('_theme-var-overrides');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = '_theme-var-overrides';
+    document.head.appendChild(style);
+  }
+
+  function dv(k) {
+    var d = DEFAULT_CSS_VARS[k];
+    return vars[k] !== undefined ? vars[k] : (d ? String(d.default) : '');
+  }
+  function buildModeBlock(mode, card, bg, lum) {
+    var t = displayTextColors(mode, lum);
+    var a = Math.max(0, Math.min(100, lum));
+    var k = 0.35 + 0.65 * (a / 100);
+    var base = DISPLAY_ACCENTS[mode];
+    var r = '--card:' + card + ';--bg:' + bg + ';--text:' + t.text + ';--label:' + t.label + ';';
+    Object.keys(base).forEach(function(n) {
+      var saved = vars['--' + n];
+      if (saved !== undefined) {
+        r += '--' + n + ':' + saved + ';';
+      } else {
+        var hsl = hexToHsl(base[n]);
+        if (hsl) {
+          var l = mode === 'dark' ? hsl.l * k : 100 - (100 - hsl.l) * k;
+          r += '--' + n + ':hsl(' + hsl.h.toFixed(0) + ' ' + hsl.s.toFixed(0) + '% ' + l.toFixed(1) + '%);';
+        }
+      }
+    });
+    return r;
+  }
+  var fontRules = '';
+  FONT_META.forEach(function(m) {
+    var saved = vars[m.varName];
+    if (saved !== undefined) {
+      var px = Math.max(m.min, Math.min(m.max, parseInt(saved, 10) || m.def));
+      fontRules += m.varName + ':' + px + 'px;';
+    }
+  });
+  var css = fontRules ? ':root{' + fontRules + '}' : '';
+  css += ':root:not([data-theme="light"]){' + buildModeBlock('dark',  dv('--dark-card'),  dv('--dark-bg'),  Number(dv('--dark-lum')))  + '}';
+  css += ':root[data-theme="light"]{' + buildModeBlock('light', dv('--light-card'), dv('--light-bg'), Number(dv('--light-lum'))) + '}';
+  style.textContent = css;
+  var ROOT_VARS = ['--card','--bg','--text','--label','--value','--ble','--gps','--good','--btnfill','--warn','--danger'];
+  ROOT_VARS.forEach(function(v) { document.documentElement.style.removeProperty(v); });
+  FONT_META.forEach(function(m) { document.documentElement.style.removeProperty(m.varName); });
+  try { scheduleFitFold(); } catch(e) {}
+}
+
+/* Inject custom theme HTML (non-Default), then apply tile config and CSS var overrides for ALL themes. */
+function initActiveTheme() {
+  if (typeof LB === 'undefined' || !LB.listThemes) {
+    applyTileConfig();
+    return;
+  }
+  try {
+    var themes = JSON.parse(LB.listThemes() || '[]');
+    var active = null;
+    for (var i = 0; i < themes.length; i++) {
+      if (themes[i].active) { active = themes[i]; break; }
+    }
+    if (!active) {
+      applyTileConfig();
+      return;
+    }
+    _themeActive = active.name;
+    if (active.name !== 'Default' && LB.getThemeHtml) {
+      var html = LB.getThemeHtml(active.name);
+      if (html) {
+        var inner = document.getElementById('fold-inner');
+        if (inner) {
+          inner.innerHTML = html;
+          reattachSpeedUnlock();
+          // Merge any custom i18n strings the theme declared in theme.json `strings` into
+          // the global I18N table before applyLang() translates the freshly-injected HTML.
+          try {
+            if (LB.getThemeMeta && window.I18N) {
+              var themeMeta = JSON.parse(LB.getThemeMeta(active.name) || '{}');
+              if (themeMeta.strings) {
+                if (themeMeta.strings.en && window.I18N.en) Object.assign(window.I18N.en, themeMeta.strings.en);
+                if (themeMeta.strings.de && window.I18N.de) Object.assign(window.I18N.de, themeMeta.strings.de);
+              }
+            }
+          } catch (eStr) {}
+          try { applyLang(); } catch (eLang) {}
+        }
+      }
+    }
+    injectThemeVars();
+    applyTileConfig();
+    scheduleFitFold();
+  } catch (e) {
+    try { applyTileConfig(); } catch(e2) {}
+  }
+}
+
+window.__onThemeEvent = function(ev) {
+  if (!ev) return;
+  if (ev.event === 'imported') {
+    renderThemeList();
+    showToast(ev.name + ' imported');
+  } else if (ev.event === 'error') {
+    showToast(ev.message || 'import error', 4000, 'err');
+  }
+};
+
 /* ── Event Wiring ─────────────────────────────────────────── */
 
 function wireEvents() {
@@ -3638,6 +4469,25 @@ function wireEvents() {
     openDisplayPage();
   });
   document.getElementById('btn-display-back').addEventListener('click', closeDisplayPage);
+
+  document.getElementById('btn-open-theme').addEventListener('click', () => {
+    closeSettings();
+    openThemePage();
+  });
+  document.getElementById('btn-theme-back').addEventListener('click', closeThemePage);
+  document.getElementById('btn-open-guide').addEventListener('click', openGuidePage);
+  document.getElementById('btn-guide-back').addEventListener('click', closeGuidePage);
+  document.getElementById('btn-theme-import').addEventListener('click', () => {
+    if (typeof LB !== 'undefined' && LB.pickThemeFiles) LB.pickThemeFiles();
+    else showToast(t('msg.app.only.in.app'));
+  });
+  document.getElementById('toggle-ride-banner-dock').addEventListener('change', e => {
+    try { localStorage.setItem(RIDE_BANNER_DOCK_KEY, e.target.checked ? '1' : '0'); } catch (err) {}
+    const banner = document.getElementById('ride-banner');
+    if (banner) {
+      if (e.target.checked) placeRideBannerDefault(banner);
+    }
+  });
 
   document.getElementById('btn-copy-btname').addEventListener('click', copyBtName);
 
@@ -3855,6 +4705,10 @@ function init() {
   renderRoutes();
   initNavBanner();
   initRideBanner();
+  initActiveTheme();
+  applyButtonRowConfig();
+  applyQuickBtnOrder();
+  initBtnDrag();
   initDisplayPage();
   applyFontSizes();   // push any saved tile font sizes onto :root before the first fold measurement
   initFold();      // after initLang, so the first measurement sees the rider's own label lengths

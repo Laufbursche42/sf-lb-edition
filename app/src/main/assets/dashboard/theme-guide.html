@@ -1,0 +1,641 @@
+<!-- EN -->
+<div class="tg-lang tg-en">
+
+<div class="tg-toc">
+  <p class="tg-toc-title" data-i18n="theme.guide.toc">Contents</p>
+  <ul>
+    <li><a href="#tg-en-what">What a theme is and is not</a></li>
+    <li><a href="#tg-en-bundle">Bundle format</a></li>
+    <li><a href="#tg-en-html">theme.html - structure and hooks</a>
+      <ul>
+        <li><a href="#tg-en-data-lb">data-lb (live values)</a></li>
+        <li><a href="#tg-en-data-lb-state">data-lb-state (state classes)</a></li>
+        <li><a href="#tg-en-data-lb-action">data-lb-action (actions)</a></li>
+        <li><a href="#tg-en-tile-id">data-tile-id (tile manager)</a></li>
+        <li><a href="#tg-en-keys">Available data keys</a></li>
+      </ul>
+    </li>
+    <li><a href="#tg-en-css">theme.css - layout and variables</a></li>
+    <li><a href="#tg-en-json">theme.json - metadata</a></li>
+    <li><a href="#tg-en-security">Security model - no JavaScript</a></li>
+    <li><a href="#tg-en-import">How to import</a></li>
+    <li><a href="#tg-en-portable">Portability between apps</a></li>
+    <li><a href="#tg-en-i18n">Translations and language</a></li>
+    <li><a href="#tg-en-example">Complete minimal example</a></li>
+    <li><a href="#tg-en-tips">Tips and limitations</a></li>
+  </ul>
+</div>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-what">What a theme is and is not</h2>
+<p>A custom theme <strong>replaces the HTML inside <code>#fold-inner</code></strong> - the part of the main screen that sits above the scroll area. You control layout, typography and colours with your own HTML and CSS. The app keeps driving everything else: the scroll tiles below, the quick-action button row, the recording banner and all the sub-pages.</p>
+<p><strong>A theme is not a web app.</strong> It cannot run JavaScript, load external resources or change the app's logic. It is structure and style only, with data fed in by the app.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-bundle">The bundle format</h2>
+<p>A theme is a <strong>ZIP file</strong> containing three files at the root level of the archive:</p>
+<table class="tg-table">
+  <thead><tr><th>File</th><th>Required</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>theme.html</code></td><td><strong>Yes</strong></td><td>HTML fragment injected into <code>#fold-inner</code></td></tr>
+    <tr><td><code>theme.css</code></td><td><strong>Yes</strong></td><td>CSS loaded for this theme</td></tr>
+    <tr><td><code>theme.json</code></td><td>No</td><td>Metadata: display name, version, optional CSS-variable declarations</td></tr>
+  </tbody>
+</table>
+<p>The ZIP filename becomes the import fallback name if <code>theme.json</code> has no <code>name</code> field. <strong>Size limit: 2 MB per file.</strong></p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-html">theme.html - structure and hooks</h2>
+<p><code>theme.html</code> is a plain HTML fragment - <strong>no <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code> tags</strong>, just the content you want inside <code>#fold-inner</code>. The app sanitizes it before storing.</p>
+
+<h3 id="tg-en-data-lb">Live value hooks - data-lb</h3>
+<p>Add <code>data-lb="key"</code> to any element. The app sets that element's <code>textContent</code> to the current scooter value every 500 ms:</p>
+<pre><code>&lt;div class="my-speed" data-lb="speed"&gt;&lt;/div&gt;
+&lt;div class="my-soc"   data-lb="soc"&gt;&lt;/div&gt;</code></pre>
+<p>Values are numbers (or <code>true</code>/<code>false</code> for booleans). If the scooter is disconnected, the last known value stays.</p>
+
+<h3 id="tg-en-data-lb-state">State hooks - data-lb-state</h3>
+<p>Add <code>data-lb-state="key:classname"</code> to toggle a CSS class based on whether a data value is truthy:</p>
+<pre><code>&lt;div class="speed-box" data-lb-state="park:is-parked"&gt;</code></pre>
+<p>When <code>data.park</code> is <code>true</code>, the class <code>is-parked</code> is added; when <code>false</code>, it is removed.</p>
+
+<h3 id="tg-en-data-lb-action">Action hooks - data-lb-action</h3>
+<table class="tg-table">
+  <thead><tr><th>Value</th><th>Behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><code>speed-unlock</code></td><td>Triple-tap to trigger the eKFV speed-unlock sequence</td></tr>
+  </tbody>
+</table>
+<pre><code>&lt;div data-lb="speed" data-lb-action="speed-unlock"&gt;&lt;/div&gt;</code></pre>
+
+<h3 id="tg-en-tile-id">Tile registration - data-tile-id</h3>
+<p>Wrap sections with <code>data-tile-id</code> and <code>data-tile-label</code> to register them with the tile manager. Registered tiles can be shown, hidden and drag-reordered by the user:</p>
+<pre><code>&lt;div data-tile-id="my-speed-block" data-tile-label="Tacho"&gt;
+  &lt;!-- speed content --&gt;
+&lt;/div&gt;</code></pre>
+<p>Without <code>data-tile-id</code>, a section is always shown and cannot be managed.</p>
+
+<h3 id="tg-en-keys">Available data keys</h3>
+<p>All keys are parsed from the scooter's BLE telemetry every 500 ms. Raw numbers are <code>0</code> when disconnected; <code>park</code> is <code>false</code>.</p>
+<table class="tg-table tg-table-keys">
+  <thead><tr><th>Key</th><th>Type</th><th>Unit</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>speed</code></td><td>number</td><td>km/h or mph</td><td>Current speed</td></tr>
+    <tr><td><code>avgSpeed</code></td><td>number</td><td>km/h or mph</td><td>Average speed (this ride)</td></tr>
+    <tr><td><code>maxSpeed</code></td><td>number</td><td>km/h or mph</td><td>Maximum speed (this ride)</td></tr>
+    <tr><td><code>soc</code></td><td>number</td><td>%</td><td>State of charge</td></tr>
+    <tr><td><code>soh</code></td><td>number</td><td>%</td><td>State of health</td></tr>
+    <tr><td><code>volt</code></td><td>number</td><td>V</td><td>Pack voltage</td></tr>
+    <tr><td><code>poleVolt</code></td><td>number</td><td>V</td><td>Pole voltage</td></tr>
+    <tr><td><code>current</code></td><td>number</td><td>A</td><td>Pack current (null when not reported)</td></tr>
+    <tr><td><code>gear</code></td><td>number</td><td>-</td><td>Active gear (1-3)</td></tr>
+    <tr><td><code>rearCurrent</code></td><td>number</td><td>A</td><td>Rear motor current</td></tr>
+    <tr><td><code>frontCurrent</code></td><td>number</td><td>A</td><td>Front motor current</td></tr>
+    <tr><td><code>rTemp</code></td><td>number</td><td>°C</td><td>Rear motor temperature</td></tr>
+    <tr><td><code>fTemp</code></td><td>number</td><td>°C</td><td>Front motor temperature</td></tr>
+    <tr><td><code>power</code></td><td>number</td><td>kW</td><td>Total power</td></tr>
+    <tr><td><code>singleMile</code></td><td>number</td><td>km or mi</td><td>Trip distance</td></tr>
+    <tr><td><code>totalMile</code></td><td>number</td><td>km or mi</td><td>Odometer</td></tr>
+    <tr><td><code>fb</code></td><td>number</td><td>-</td><td>Feedback / regen value</td></tr>
+    <tr><td><code>rssi</code></td><td>number</td><td>dBm</td><td>Bluetooth signal strength</td></tr>
+    <tr><td><code>park</code></td><td>boolean</td><td>-</td><td><code>true</code> when scooter is in park</td></tr>
+    <tr><td><code>vcuUnlock</code></td><td>number</td><td>-</td><td><code>0</code> = locked, <code>1</code> = unlocked, <code>-1</code> = unknown</td></tr>
+  </tbody>
+</table>
+<p class="tg-note"><strong>Unit note:</strong> <code>speed</code>, <code>avgSpeed</code>, <code>maxSpeed</code>, <code>singleMile</code> and <code>totalMile</code> follow the app's km/mph setting automatically.</p>
+<p class="tg-note"><strong>Value format:</strong> all numbers are raw JavaScript floats, e.g. <code>speed = 25.3</code>. There is no formatting control without JavaScript. Design your layout so a one-decimal value fits.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-css">theme.css - layout and variables</h2>
+<p><code>theme.css</code> is loaded after the app's own CSS. Write selectors targeting your own class names or IDs from <code>theme.html</code>. Use the app's CSS variables so your theme adapts to dark mode, light mode and user colour settings automatically.</p>
+
+<h3>Colour variables</h3>
+<table class="tg-table">
+  <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>--card</code></td><td>Tile / card background</td></tr>
+    <tr><td><code>--bg</code></td><td>Page background</td></tr>
+    <tr><td><code>--text</code></td><td>Primary text</td></tr>
+    <tr><td><code>--label</code></td><td>Secondary / muted text</td></tr>
+    <tr><td><code>--value</code></td><td>Accent / highlight colour (user-configurable)</td></tr>
+    <tr><td><code>--ble</code></td><td>BLE speed indicator colour</td></tr>
+    <tr><td><code>--gps</code></td><td>GPS speed indicator colour</td></tr>
+    <tr><td><code>--good</code></td><td>Positive / OK state colour</td></tr>
+    <tr><td><code>--warn</code></td><td>Warning colour</td></tr>
+    <tr><td><code>--danger</code></td><td>Error / critical colour</td></tr>
+    <tr><td><code>--unlock</code></td><td>Unlocked / entdrosselt indicator colour</td></tr>
+    <tr><td><code>--btnfill</code></td><td>Button fill colour</td></tr>
+    <tr><td><code>--border</code></td><td>Border / divider colour</td></tr>
+  </tbody>
+</table>
+
+<h3>Typography variables</h3>
+<table class="tg-table">
+  <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>--fs-2xs</code></td><td>10 px</td><td>Smallest text</td></tr>
+    <tr><td><code>--fs-xs</code></td><td>11 px</td><td>Extra-small</td></tr>
+    <tr><td><code>--fs-sm</code></td><td>12 px</td><td>Small</td></tr>
+    <tr><td><code>--fs-md</code></td><td>13 px</td><td>Medium</td></tr>
+    <tr><td><code>--fs-base</code></td><td>14 px</td><td>Base body text</td></tr>
+    <tr><td><code>--fs-xl</code></td><td>16 px</td><td>Large</td></tr>
+    <tr><td><code>--fw-semibold</code></td><td>600</td><td>Semibold weight</td></tr>
+    <tr><td><code>--fw-bold</code></td><td>700</td><td>Bold weight</td></tr>
+    <tr><td><code>--radius</code></td><td>12 px</td><td>Standard border radius</td></tr>
+  </tbody>
+</table>
+
+<h3>User-configurable size variables</h3>
+<table class="tg-table">
+  <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>--sz-speed-val</code></td><td>Speed number font size</td></tr>
+    <tr><td><code>--sz-speed-lbl</code></td><td>Speed label font size</td></tr>
+    <tr><td><code>--sz-hero-val</code></td><td>Hero tile value font size</td></tr>
+    <tr><td><code>--sz-hero-lbl</code></td><td>Hero tile label font size</td></tr>
+    <tr><td><code>--sz-m1-mid</code></td><td>Motor tile 1 value font size</td></tr>
+    <tr><td><code>--sz-m2-mid</code></td><td>Motor tile 2 value font size</td></tr>
+  </tbody>
+</table>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-json">theme.json - metadata</h2>
+<pre><code>{
+  "name": "My Theme",
+  "version": "1.0"
+}</code></pre>
+<table class="tg-table">
+  <thead><tr><th>Field</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>name</code></td><td>Display name in the theme list. Falls back to ZIP filename.</td></tr>
+    <tr><td><code>version</code></td><td>Free-form version string, informational only.</td></tr>
+  </tbody>
+</table>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-security">Security model - no JavaScript</h2>
+<p><strong>JavaScript does not run in themes.</strong> Enforced in two layers:</p>
+<p><strong>Layer 1 - import-time sanitizer</strong> (runs when the ZIP is imported and before HTML is stored). Stripped unconditionally:</p>
+<ul>
+  <li><code>&lt;script&gt;</code> tags and their content</li>
+  <li><code>&lt;iframe&gt;</code> tags and their content</li>
+  <li><code>&lt;base&gt;</code> tags</li>
+  <li>All inline event handlers (<code>onclick=</code>, <code>onerror=</code>, etc.)</li>
+  <li><code>javascript:</code> URIs in <code>href</code>, <code>src</code>, <code>action</code></li>
+  <li><code>data:</code> URIs in <code>src</code> and <code>href</code></li>
+  <li>External <code>http://</code> and <code>https://</code> URLs in <code>src</code> and <code>href</code></li>
+</ul>
+<p><strong>Layer 2 - load-time sanitizer</strong> runs again on every theme load.</p>
+<p><strong>Instead of JavaScript, use:</strong></p>
+<ul>
+  <li><code>data-lb-state</code> for conditional CSS classes</li>
+  <li>CSS <code>@keyframes</code>, transitions and custom properties for animation</li>
+  <li><code>data-lb-action</code> for the built-in speed-unlock tap</li>
+</ul>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-import">How to import</h2>
+<h3>Step 1 - Create the ZIP</h3>
+<p>All three files must be <strong>at the root of the archive</strong> (not inside a subfolder).</p>
+<ul>
+  <li><strong>Windows:</strong> select all three files in Explorer, right-click - "Compress to ZIP file" (Windows 11) or "Send to - Compressed (zipped) folder"</li>
+  <li><strong>macOS / Linux:</strong> <code>zip my-theme.zip theme.html theme.css theme.json</code></li>
+  <li><strong>Android:</strong> use a file manager that supports ZIP creation (e.g. MT Manager, ZArchiver)</li>
+</ul>
+<h3>Step 2 - Import in the app</h3>
+<ol>
+  <li>Transfer the ZIP to your phone.</li>
+  <li>In the app: <strong>Settings - Display - Theme manager - Import theme</strong>.</li>
+  <li>Pick the ZIP from your file browser.</li>
+  <li>The theme appears in the list; tap <strong>Activate</strong> to apply it.</li>
+  <li>The <strong>Style</strong> button opens the Style Editor for colour, brightness and font-size overrides.</li>
+</ol>
+<p>To export a theme for sharing or backup: <strong>Theme manager - (tap the theme) - Export</strong>.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-portable">Portability between Laufbursche apps</h2>
+<p>The ZIP bundle format and the <code>data-lb</code> attribute names are a <strong>shared API across all Laufbursche apps</strong>. A theme built for one app can be imported into any other Laufbursche app that supports custom themes.</p>
+<p>For cross-app themes: use only the data keys and CSS variables listed in this guide. Do not rely on fixed IDs or classes that belong to one app's own HTML.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-i18n">Translations and language</h2>
+<p>The app runs in German or English. When the language is switched, the app re-runs the full i18n pass over your injected HTML too.</p>
+<h3>Using existing app strings</h3>
+<p>Add <code>data-i18n="key"</code> to any element. Fallback text between tags shows during browser testing:</p>
+<pre><code>&lt;span data-i18n="dash.hero.gear.label"&gt;Gear&lt;/span&gt;</code></pre>
+<table class="tg-table">
+  <thead><tr><th>Key</th><th>DE</th><th>EN</th></tr></thead>
+  <tbody>
+    <tr><td><code>dash.hero.gear.label</code></td><td>Gang</td><td>Gear</td></tr>
+    <tr><td><code>dash.hero.battery.unit</code></td><td>Batterie %</td><td>Battery %</td></tr>
+    <tr><td><code>dash.motors.section</code></td><td>Motoren</td><td>Motors</td></tr>
+    <tr><td><code>dash.motor.rear.title</code></td><td>HINTEN</td><td>REAR</td></tr>
+    <tr><td><code>dash.motor.front.title</code></td><td>VORNE</td><td>FRONT</td></tr>
+    <tr><td><code>dash.speed.vcu.unit</code></td><td>km/h - VCU</td><td>km/h - VCU</td></tr>
+  </tbody>
+</table>
+<h3>Adding your own translated strings</h3>
+<p>Declare a <code>strings</code> block in <code>theme.json</code>:</p>
+<pre><code>{
+  "name": "My Theme",
+  "version": "1.0",
+  "strings": {
+    "de": { "mtheme.speed.label": "Tempo" },
+    "en": { "mtheme.speed.label": "Speed" }
+  }
+}</code></pre>
+<p>Prefix your keys with the theme name to avoid collisions. A missing key falls back to the text between the tags.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-example">Complete minimal example</h2>
+<h3>theme.json</h3>
+<pre><code>{
+  "name": "Minimal",
+  "version": "1.0"
+}</code></pre>
+<h3>theme.html</h3>
+<pre><code>&lt;div class="mn-wrap" data-tile-id="mn-main" data-tile-label="Dashboard"&gt;
+  &lt;div class="mn-speed-row"&gt;
+    &lt;span class="mn-speed-val" data-lb="speed" data-lb-action="speed-unlock"&gt;-&lt;/span&gt;
+    &lt;span class="mn-speed-unit"&gt;km/h&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="mn-row"&gt;
+    &lt;div class="mn-cell"&gt;
+      &lt;span class="mn-lbl"&gt;SOC&lt;/span&gt;
+      &lt;span class="mn-val" data-lb="soc"&gt;-&lt;/span&gt;
+      &lt;span class="mn-unit"&gt;%&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="mn-cell"&gt;
+      &lt;span class="mn-lbl"&gt;Gang&lt;/span&gt;
+      &lt;span class="mn-val" data-lb="gear"&gt;-&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="mn-cell"&gt;
+      &lt;span class="mn-lbl"&gt;Power&lt;/span&gt;
+      &lt;span class="mn-val" data-lb="power"&gt;-&lt;/span&gt;
+      &lt;span class="mn-unit"&gt;kW&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<h3>theme.css</h3>
+<pre><code>.mn-wrap {
+  padding: 12px 8px; display: flex; flex-direction: column;
+  gap: 10px; background: var(--card); border-radius: var(--radius);
+}
+.mn-speed-row { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.mn-speed-val { font-size: 64px; font-weight: var(--fw-bold); color: var(--value); line-height: 1; }
+.mn-speed-unit { font-size: var(--fs-md); color: var(--label); }
+.mn-row { display: flex; gap: 8px; }
+.mn-cell {
+  flex: 1; background: var(--bg); border-radius: 8px; padding: 8px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.mn-lbl { font-size: var(--fs-xs); color: var(--label); }
+.mn-val { font-size: 24px; font-weight: var(--fw-bold); color: var(--text); }
+.mn-unit { font-size: var(--fs-xs); color: var(--label); }</code></pre>
+
+<hr class="tg-rule">
+
+<h2 id="tg-en-tips">Tips and limitations</h2>
+<ul>
+  <li><strong>No external images.</strong> <code>http://</code> and <code>https://</code> URLs are stripped. Use CSS background-color and SVG shapes.</li>
+  <li><strong>No custom web fonts.</strong> Stick to the system font stack or inline a base64 font-face (2 MB limit).</li>
+  <li><strong>The scroll area is unchanged.</strong> Your theme only covers <code>#fold-inner</code>.</li>
+  <li><strong>CSS load order.</strong> <code>theme.css</code> loads right after <code>dashboard.css</code>. Prefix your class names to avoid changing app UI outside <code>#fold-inner</code>.</li>
+  <li><strong>Content Security Policy.</strong> <code>style-src file:</code> - external CSS, Google Fonts and CDNs are blocked. Base64 font-face works.</li>
+  <li><strong>Dark / light mode.</strong> Use <code>var(--card)</code>, <code>var(--text)</code>, etc. - never hardcode colours.</li>
+  <li><strong>Testing.</strong> Open <code>telemetry.html</code> in a desktop browser. Paste your HTML into <code>#fold-inner</code> via DevTools, inject a <code>&lt;link&gt;</code> for your local CSS, and add a temporary <code>&lt;script&gt;</code> with dummy values - remove it before zipping.</li>
+  <li><strong>Tile manager sync.</strong> Keep <code>data-tile-label</code> values short (under 20 characters).</li>
+</ul>
+
+</div><!-- /tg-en -->
+
+<!-- DE -->
+<div class="tg-lang tg-de">
+
+<div class="tg-toc">
+  <p class="tg-toc-title" data-i18n="theme.guide.toc">Inhalt</p>
+  <ul>
+    <li><a href="#tg-de-what">Was ein Theme ist und was nicht</a></li>
+    <li><a href="#tg-de-bundle">Bundle-Format</a></li>
+    <li><a href="#tg-de-html">theme.html - Struktur und Hooks</a>
+      <ul>
+        <li><a href="#tg-de-data-lb">data-lb (Live-Werte)</a></li>
+        <li><a href="#tg-de-data-lb-state">data-lb-state (Zustandsklassen)</a></li>
+        <li><a href="#tg-de-data-lb-action">data-lb-action (Aktionen)</a></li>
+        <li><a href="#tg-de-tile-id">data-tile-id (Kachel-Manager)</a></li>
+        <li><a href="#tg-de-keys">Verfügbare Datenschlüssel</a></li>
+      </ul>
+    </li>
+    <li><a href="#tg-de-css">theme.css - Layout und Variablen</a></li>
+    <li><a href="#tg-de-json">theme.json - Metadaten</a></li>
+    <li><a href="#tg-de-security">Sicherheitsmodell - kein JavaScript</a></li>
+    <li><a href="#tg-de-import">Import-Anleitung</a></li>
+    <li><a href="#tg-de-portable">Portabilität zwischen Apps</a></li>
+    <li><a href="#tg-de-i18n">Übersetzungen und Sprache</a></li>
+    <li><a href="#tg-de-example">Vollständiges Minimalbeispiel</a></li>
+    <li><a href="#tg-de-tips">Tipps und Einschränkungen</a></li>
+  </ul>
+</div>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-what">Was ein Theme ist und was nicht</h2>
+<p>Ein Custom-Theme <strong>ersetzt den HTML-Inhalt von <code>#fold-inner</code></strong> - den Teil des Hauptbildschirms, der oberhalb des Scroll-Bereichs liegt. Layout, Typografie und Farben steuerst du mit eigenem HTML und CSS. Die App treibt den Rest weiter: die Scroll-Kacheln darunter, die Schnellaktions-Buttons, das Aufnahme-Banner und alle Sub-Pages.</p>
+<p><strong>Ein Theme ist keine Web-App.</strong> Es kann kein JavaScript ausführen, keine externen Ressourcen laden und die App-Logik nicht ändern. Es ist nur Struktur und Style - die Daten kommen von der App.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-bundle">Das Bundle-Format</h2>
+<p>Ein Theme ist eine <strong>ZIP-Datei</strong> mit drei Dateien im Wurzelverzeichnis des Archivs:</p>
+<table class="tg-table">
+  <thead><tr><th>Datei</th><th>Pflicht</th><th>Zweck</th></tr></thead>
+  <tbody>
+    <tr><td><code>theme.html</code></td><td><strong>Ja</strong></td><td>HTML-Fragment, das in <code>#fold-inner</code> eingefügt wird</td></tr>
+    <tr><td><code>theme.css</code></td><td><strong>Ja</strong></td><td>CSS, das für dieses Theme geladen wird</td></tr>
+    <tr><td><code>theme.json</code></td><td>Nein</td><td>Metadaten: Anzeigename, Version, optionale CSS-Variablen</td></tr>
+  </tbody>
+</table>
+<p>Der ZIP-Dateiname wird als Fallback-Name verwendet, wenn <code>theme.json</code> kein <code>name</code>-Feld hat. <strong>Größenlimit: 2 MB pro Datei.</strong></p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-html">theme.html - Struktur und Hooks</h2>
+<p><code>theme.html</code> ist ein reines HTML-Fragment - <strong>keine <code>&lt;html&gt;</code>-, <code>&lt;head&gt;</code>- oder <code>&lt;body&gt;</code>-Tags</strong>, nur der Inhalt, den du in <code>#fold-inner</code> haben möchtest. Die App bereinigt es vor dem Speichern.</p>
+
+<h3 id="tg-de-data-lb">Live-Wert-Hooks - data-lb</h3>
+<p>Füge <code>data-lb="key"</code> zu einem beliebigen Element hinzu. Die App setzt den <code>textContent</code> dieses Elements alle 500 ms auf den aktuellen Rollerwert:</p>
+<pre><code>&lt;div class="my-speed" data-lb="speed"&gt;&lt;/div&gt;
+&lt;div class="my-soc"   data-lb="soc"&gt;&lt;/div&gt;</code></pre>
+<p>Werte sind Zahlen (oder <code>true</code>/<code>false</code> für Booleans). Wenn der Roller getrennt ist, bleibt der letzte bekannte Wert erhalten.</p>
+
+<h3 id="tg-de-data-lb-state">Zustands-Hooks - data-lb-state</h3>
+<p>Füge <code>data-lb-state="key:klassenname"</code> hinzu, um eine CSS-Klasse je nach Wahrheitswert eines Datenwerts zu schalten:</p>
+<pre><code>&lt;div class="speed-box" data-lb-state="park:is-parked"&gt;</code></pre>
+<p>Wenn <code>data.park</code> <code>true</code> ist, wird die Klasse <code>is-parked</code> hinzugefügt; bei <code>false</code> wieder entfernt.</p>
+
+<h3 id="tg-de-data-lb-action">Aktions-Hooks - data-lb-action</h3>
+<table class="tg-table">
+  <thead><tr><th>Wert</th><th>Verhalten</th></tr></thead>
+  <tbody>
+    <tr><td><code>speed-unlock</code></td><td>Dreifach-Tipp löst die eKFV-Entsperrsequenz aus</td></tr>
+  </tbody>
+</table>
+<pre><code>&lt;div data-lb="speed" data-lb-action="speed-unlock"&gt;&lt;/div&gt;</code></pre>
+
+<h3 id="tg-de-tile-id">Kachel-Registrierung - data-tile-id</h3>
+<p>Umschliesse Abschnitte mit <code>data-tile-id</code> und <code>data-tile-label</code>, um sie beim Kachel-Manager zu registrieren. Registrierte Kacheln können vom Nutzer ein-/ausgeblendet und per Drag &amp; Drop neu angeordnet werden:</p>
+<pre><code>&lt;div data-tile-id="my-speed-block" data-tile-label="Tacho"&gt;
+  &lt;!-- Tacho-Inhalt --&gt;
+&lt;/div&gt;</code></pre>
+<p>Ohne <code>data-tile-id</code> ist ein Abschnitt immer sichtbar und nicht verwaltbar.</p>
+
+<h3 id="tg-de-keys">Verfügbare Datenschlüssel</h3>
+<p>Alle Schlüssel kommen aus der BLE-Telemetrie des Rollers, alle 500 ms geparst. Rohe Zahlen sind <code>0</code> bei Trennung; <code>park</code> ist <code>false</code>.</p>
+<table class="tg-table tg-table-keys">
+  <thead><tr><th>Schlüssel</th><th>Typ</th><th>Einheit</th><th>Beschreibung</th></tr></thead>
+  <tbody>
+    <tr><td><code>speed</code></td><td>number</td><td>km/h oder mph</td><td>Aktuelle Geschwindigkeit</td></tr>
+    <tr><td><code>avgSpeed</code></td><td>number</td><td>km/h oder mph</td><td>Durchschnittsgeschwindigkeit (Fahrt)</td></tr>
+    <tr><td><code>maxSpeed</code></td><td>number</td><td>km/h oder mph</td><td>Höchstgeschwindigkeit (Fahrt)</td></tr>
+    <tr><td><code>soc</code></td><td>number</td><td>%</td><td>Ladezustand</td></tr>
+    <tr><td><code>soh</code></td><td>number</td><td>%</td><td>Gesundheitszustand Akku</td></tr>
+    <tr><td><code>volt</code></td><td>number</td><td>V</td><td>Paketspannung</td></tr>
+    <tr><td><code>poleVolt</code></td><td>number</td><td>V</td><td>Polspannung</td></tr>
+    <tr><td><code>current</code></td><td>number</td><td>A</td><td>Paketstrom (null wenn nicht gemeldet)</td></tr>
+    <tr><td><code>gear</code></td><td>number</td><td>-</td><td>Aktiver Gang (1-3)</td></tr>
+    <tr><td><code>rearCurrent</code></td><td>number</td><td>A</td><td>Hintermotor-Strom</td></tr>
+    <tr><td><code>frontCurrent</code></td><td>number</td><td>A</td><td>Vordermotor-Strom</td></tr>
+    <tr><td><code>rTemp</code></td><td>number</td><td>°C</td><td>Hintermotor-Temperatur</td></tr>
+    <tr><td><code>fTemp</code></td><td>number</td><td>°C</td><td>Vordermotor-Temperatur</td></tr>
+    <tr><td><code>power</code></td><td>number</td><td>kW</td><td>Gesamtleistung</td></tr>
+    <tr><td><code>singleMile</code></td><td>number</td><td>km oder mi</td><td>Tageskilometer</td></tr>
+    <tr><td><code>totalMile</code></td><td>number</td><td>km oder mi</td><td>Gesamtkilometer (Tacho)</td></tr>
+    <tr><td><code>fb</code></td><td>number</td><td>-</td><td>Rückspeisung / Regen-Wert</td></tr>
+    <tr><td><code>rssi</code></td><td>number</td><td>dBm</td><td>Bluetooth-Signalstärke</td></tr>
+    <tr><td><code>park</code></td><td>boolean</td><td>-</td><td><code>true</code> wenn Roller geparkt</td></tr>
+    <tr><td><code>vcuUnlock</code></td><td>number</td><td>-</td><td><code>0</code> = gesperrt, <code>1</code> = entsperrt, <code>-1</code> = unbekannt</td></tr>
+  </tbody>
+</table>
+<p class="tg-note"><strong>Einheitenhinweis:</strong> <code>speed</code>, <code>avgSpeed</code>, <code>maxSpeed</code>, <code>singleMile</code> und <code>totalMile</code> folgen automatisch der km/mph-Einstellung der App.</p>
+<p class="tg-note"><strong>Werteformat:</strong> alle Zahlen sind rohe JavaScript-Floats, z.B. <code>speed = 25.3</code>. Ohne JavaScript gibt es keine Formatierungsmöglichkeit. Gestalte dein Layout so, dass ein Wert mit einer Nachkommastelle passt.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-css">theme.css - Layout und Variablen</h2>
+<p><code>theme.css</code> wird nach dem App-eigenen CSS geladen. Schreibe Selektoren, die deine eigenen Klassen oder IDs aus <code>theme.html</code> ansprechen. Nutze die CSS-Variablen der App, damit dein Theme sich automatisch an Dunkel-/Hellmodus und Nutzerfarben anpasst.</p>
+
+<h3>Farbvariablen</h3>
+<table class="tg-table">
+  <thead><tr><th>Variable</th><th>Beschreibung</th></tr></thead>
+  <tbody>
+    <tr><td><code>--card</code></td><td>Kachel-/Card-Hintergrund</td></tr>
+    <tr><td><code>--bg</code></td><td>Seitenhintergrund</td></tr>
+    <tr><td><code>--text</code></td><td>Primärtext</td></tr>
+    <tr><td><code>--label</code></td><td>Sekundär-/gedämpfter Text</td></tr>
+    <tr><td><code>--value</code></td><td>Akzent-/Highlight-Farbe (vom Nutzer einstellbar)</td></tr>
+    <tr><td><code>--ble</code></td><td>BLE-Geschwindigkeitsanzeige-Farbe</td></tr>
+    <tr><td><code>--gps</code></td><td>GPS-Geschwindigkeitsanzeige-Farbe</td></tr>
+    <tr><td><code>--good</code></td><td>Positiv-/OK-Zustandsfarbe</td></tr>
+    <tr><td><code>--warn</code></td><td>Warnfarbe</td></tr>
+    <tr><td><code>--danger</code></td><td>Fehler-/Kritischfarbe</td></tr>
+    <tr><td><code>--unlock</code></td><td>Entsperrt-/Entdrosselt-Anzeigefarbe</td></tr>
+    <tr><td><code>--btnfill</code></td><td>Button-Füllfarbe</td></tr>
+    <tr><td><code>--border</code></td><td>Rahmen-/Trennlinienfarbe</td></tr>
+  </tbody>
+</table>
+
+<h3>Typografie-Variablen</h3>
+<table class="tg-table">
+  <thead><tr><th>Variable</th><th>Standard</th><th>Beschreibung</th></tr></thead>
+  <tbody>
+    <tr><td><code>--fs-2xs</code></td><td>10 px</td><td>Kleinster Text</td></tr>
+    <tr><td><code>--fs-xs</code></td><td>11 px</td><td>Sehr klein</td></tr>
+    <tr><td><code>--fs-sm</code></td><td>12 px</td><td>Klein</td></tr>
+    <tr><td><code>--fs-md</code></td><td>13 px</td><td>Mittel</td></tr>
+    <tr><td><code>--fs-base</code></td><td>14 px</td><td>Grundtext</td></tr>
+    <tr><td><code>--fs-xl</code></td><td>16 px</td><td>Groß</td></tr>
+    <tr><td><code>--fw-semibold</code></td><td>600</td><td>Halbfett</td></tr>
+    <tr><td><code>--fw-bold</code></td><td>700</td><td>Fett</td></tr>
+    <tr><td><code>--radius</code></td><td>12 px</td><td>Standard-Eckenradius</td></tr>
+  </tbody>
+</table>
+
+<h3>Vom Nutzer einstellbare Größenvariablen</h3>
+<table class="tg-table">
+  <thead><tr><th>Variable</th><th>Beschreibung</th></tr></thead>
+  <tbody>
+    <tr><td><code>--sz-speed-val</code></td><td>Schriftgröße Tacho-Zahl</td></tr>
+    <tr><td><code>--sz-speed-lbl</code></td><td>Schriftgröße Tacho-Beschriftung</td></tr>
+    <tr><td><code>--sz-hero-val</code></td><td>Schriftgröße Hero-Kachel-Wert</td></tr>
+    <tr><td><code>--sz-hero-lbl</code></td><td>Schriftgröße Hero-Kachel-Beschriftung</td></tr>
+    <tr><td><code>--sz-m1-mid</code></td><td>Schriftgröße Motor-Kachel-1-Wert</td></tr>
+    <tr><td><code>--sz-m2-mid</code></td><td>Schriftgröße Motor-Kachel-2-Wert</td></tr>
+  </tbody>
+</table>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-json">theme.json - Metadaten</h2>
+<pre><code>{
+  "name": "Mein Theme",
+  "version": "1.0"
+}</code></pre>
+<table class="tg-table">
+  <thead><tr><th>Feld</th><th>Beschreibung</th></tr></thead>
+  <tbody>
+    <tr><td><code>name</code></td><td>Anzeigename in der Theme-Liste. Fallback: ZIP-Dateiname.</td></tr>
+    <tr><td><code>version</code></td><td>Freier Versionsstring, nur informativ.</td></tr>
+  </tbody>
+</table>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-security">Sicherheitsmodell - kein JavaScript</h2>
+<p><strong>JavaScript läuft in Themes nicht.</strong> Zwei Schutzebenen erzwingen das:</p>
+<p><strong>Ebene 1 - Import-Sanitizer</strong> (läuft beim ZIP-Import, vor dem Speichern). Bedingungslos entfernt:</p>
+<ul>
+  <li><code>&lt;script&gt;</code>-Tags mit Inhalt</li>
+  <li><code>&lt;iframe&gt;</code>-Tags mit Inhalt</li>
+  <li><code>&lt;base&gt;</code>-Tags</li>
+  <li>Alle Inline-Event-Handler (<code>onclick=</code>, <code>onerror=</code>, etc.)</li>
+  <li><code>javascript:</code>-URIs in <code>href</code>, <code>src</code>, <code>action</code></li>
+  <li><code>data:</code>-URIs in <code>src</code> und <code>href</code></li>
+  <li>Externe <code>http://</code>- und <code>https://</code>-URLs in <code>src</code> und <code>href</code></li>
+</ul>
+<p><strong>Ebene 2 - Load-Sanitizer</strong> läuft bei jedem Theme-Laden erneut.</p>
+<p><strong>Alternativen zu JavaScript:</strong></p>
+<ul>
+  <li><code>data-lb-state</code> für bedingte CSS-Klassen</li>
+  <li>CSS <code>@keyframes</code>, Transitions und Custom Properties für Animationen</li>
+  <li><code>data-lb-action</code> für den eingebauten Entsperr-Tipp</li>
+</ul>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-import">Import-Anleitung</h2>
+<h3>Schritt 1 - ZIP erstellen</h3>
+<p>Alle drei Dateien müssen <strong>im Wurzelverzeichnis des Archivs</strong> liegen (nicht in einem Unterordner).</p>
+<ul>
+  <li><strong>Windows:</strong> alle drei Dateien im Explorer markieren, Rechtsklick - "In ZIP-Datei komprimieren" (Windows 11) oder "Senden an - ZIP-komprimierter Ordner"</li>
+  <li><strong>macOS / Linux:</strong> <code>zip mein-theme.zip theme.html theme.css theme.json</code></li>
+  <li><strong>Android:</strong> Datei-Manager mit ZIP-Unterstützung verwenden (z.B. MT Manager, ZArchiver)</li>
+</ul>
+<h3>Schritt 2 - In der App importieren</h3>
+<ol>
+  <li>ZIP auf das Handy übertragen.</li>
+  <li>In der App: <strong>Einstellungen - Display - Theme-Manager - Theme importieren</strong>.</li>
+  <li>ZIP im Datei-Browser auswählen.</li>
+  <li>Theme erscheint in der Liste; auf <strong>Aktivieren</strong> tippen.</li>
+  <li>Der <strong>Style</strong>-Button öffnet den Style-Editor für Farb-, Helligkeits- und Schriftgrößen-Anpassungen.</li>
+</ol>
+<p>Theme exportieren (für Teilen oder Backup): <strong>Theme-Manager - (Theme antippen) - Exportieren</strong>.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-portable">Portabilität zwischen Laufbursche-Apps</h2>
+<p>Das ZIP-Bundle-Format und die <code>data-lb</code>-Attributnamen sind eine <strong>gemeinsame API aller Laufbursche-Apps</strong>. Ein Theme für eine App kann in jede andere Laufbursche-App importiert werden, die Custom Themes unterstützt.</p>
+<p>Für app-übergreifende Themes: nur die hier aufgeführten Datenschlüssel und CSS-Variablen verwenden. Keine fest codierten IDs oder Klassen aus dem App-eigenen HTML verwenden.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-i18n">Übersetzungen und Sprache</h2>
+<p>Die App läuft auf Deutsch und Englisch. Beim Sprachwechsel führt die App den vollständigen i18n-Durchlauf auch über dein injiziertes Theme-HTML durch.</p>
+<h3>Vorhandene App-Strings verwenden</h3>
+<p>Füge <code>data-i18n="key"</code> zu einem Element hinzu. Der Fallback-Text zwischen den Tags wird beim Browser-Test angezeigt:</p>
+<pre><code>&lt;span data-i18n="dash.hero.gear.label"&gt;Gang&lt;/span&gt;</code></pre>
+<table class="tg-table">
+  <thead><tr><th>Schlüssel</th><th>DE</th><th>EN</th></tr></thead>
+  <tbody>
+    <tr><td><code>dash.hero.gear.label</code></td><td>Gang</td><td>Gear</td></tr>
+    <tr><td><code>dash.hero.battery.unit</code></td><td>Batterie %</td><td>Battery %</td></tr>
+    <tr><td><code>dash.motors.section</code></td><td>Motoren</td><td>Motors</td></tr>
+    <tr><td><code>dash.motor.rear.title</code></td><td>HINTEN</td><td>REAR</td></tr>
+    <tr><td><code>dash.motor.front.title</code></td><td>VORNE</td><td>FRONT</td></tr>
+    <tr><td><code>dash.speed.vcu.unit</code></td><td>km/h - VCU</td><td>km/h - VCU</td></tr>
+  </tbody>
+</table>
+<h3>Eigene Übersetzungen hinzufügen</h3>
+<p>Einen <code>strings</code>-Block in <code>theme.json</code> deklarieren:</p>
+<pre><code>{
+  "name": "Mein Theme",
+  "version": "1.0",
+  "strings": {
+    "de": { "mtheme.speed.label": "Tempo" },
+    "en": { "mtheme.speed.label": "Speed" }
+  }
+}</code></pre>
+<p>Schlüssel mit dem Theme-Namen prefixen, um Kollisionen zu vermeiden. Ein fehlender Schlüssel fällt auf den Text zwischen den Tags zurück.</p>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-example">Vollständiges Minimalbeispiel</h2>
+<h3>theme.json</h3>
+<pre><code>{
+  "name": "Minimal",
+  "version": "1.0"
+}</code></pre>
+<h3>theme.html</h3>
+<pre><code>&lt;div class="mn-wrap" data-tile-id="mn-main" data-tile-label="Dashboard"&gt;
+  &lt;div class="mn-speed-row"&gt;
+    &lt;span class="mn-speed-val" data-lb="speed" data-lb-action="speed-unlock"&gt;-&lt;/span&gt;
+    &lt;span class="mn-speed-unit"&gt;km/h&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="mn-row"&gt;
+    &lt;div class="mn-cell"&gt;
+      &lt;span class="mn-lbl"&gt;SOC&lt;/span&gt;
+      &lt;span class="mn-val" data-lb="soc"&gt;-&lt;/span&gt;
+      &lt;span class="mn-unit"&gt;%&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="mn-cell"&gt;
+      &lt;span class="mn-lbl"&gt;Gang&lt;/span&gt;
+      &lt;span class="mn-val" data-lb="gear"&gt;-&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="mn-cell"&gt;
+      &lt;span class="mn-lbl"&gt;Leistung&lt;/span&gt;
+      &lt;span class="mn-val" data-lb="power"&gt;-&lt;/span&gt;
+      &lt;span class="mn-unit"&gt;kW&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<h3>theme.css</h3>
+<pre><code>.mn-wrap {
+  padding: 12px 8px; display: flex; flex-direction: column;
+  gap: 10px; background: var(--card); border-radius: var(--radius);
+}
+.mn-speed-row { display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.mn-speed-val { font-size: 64px; font-weight: var(--fw-bold); color: var(--value); line-height: 1; }
+.mn-speed-unit { font-size: var(--fs-md); color: var(--label); }
+.mn-row { display: flex; gap: 8px; }
+.mn-cell {
+  flex: 1; background: var(--bg); border-radius: 8px; padding: 8px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.mn-lbl { font-size: var(--fs-xs); color: var(--label); }
+.mn-val { font-size: 24px; font-weight: var(--fw-bold); color: var(--text); }
+.mn-unit { font-size: var(--fs-xs); color: var(--label); }</code></pre>
+
+<hr class="tg-rule">
+
+<h2 id="tg-de-tips">Tipps und Einschränkungen</h2>
+<ul>
+  <li><strong>Keine externen Bilder.</strong> <code>http://</code>- und <code>https://</code>-URLs werden aus <code>src</code>-Attributen entfernt. CSS-Hintergrundfarben und SVG-Formen verwenden.</li>
+  <li><strong>Keine Web-Schriften.</strong> System-Font-Stack oder eine base64-Font-face-Einbettung verwenden (2-MB-Limit beachten).</li>
+  <li><strong>Scroll-Bereich bleibt unverändert.</strong> Das Theme deckt nur <code>#fold-inner</code> ab.</li>
+  <li><strong>CSS-Ladereihenfolge.</strong> <code>theme.css</code> lädt direkt nach <code>dashboard.css</code>. Klassen prefixen, um App-UI außerhalb von <code>#fold-inner</code> nicht zu verändern.</li>
+  <li><strong>Content Security Policy.</strong> <code>style-src file:</code> - externes CSS, Google Fonts und CDNs sind blockiert. Base64-Font-Face funktioniert.</li>
+  <li><strong>Dunkel-/Hellmodus.</strong> <code>var(--card)</code>, <code>var(--text)</code> etc. verwenden - niemals Farben fest codieren.</li>
+  <li><strong>Testen.</strong> <code>telemetry.html</code> im Desktop-Browser öffnen. HTML per DevTools in <code>#fold-inner</code> einfügen, <code>&lt;link&gt;</code> für die lokale CSS einfügen und ein temporäres <code>&lt;script&gt;</code> mit Dummy-Werten hinzufügen - vor dem Zippen entfernen.</li>
+  <li><strong>Kachel-Manager.</strong> <code>data-tile-label</code>-Werte kurz halten (unter 20 Zeichen).</li>
+</ul>
+
+</div><!-- /tg-de -->

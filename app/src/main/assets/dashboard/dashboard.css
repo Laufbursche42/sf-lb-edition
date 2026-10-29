@@ -616,6 +616,7 @@ html, body {
 }
 .settings-btn:active,
 #btn-scooter-settings:active, #btn-connect-scooter:active, #btn-export-logs:active, #btn-error-reports:active, #btn-navigation:active, #btn-info:active, #btn-battery:active, #btn-firmware:active, #btn-whatsnew:active, #btn-version-info:active { background: var(--border); }
+.settings-btn-secondary { color: var(--label); font-weight: normal; font-size: var(--fs-sm); margin-top: 4px; }
 /* #btn-stream-start (good fill) + #btn-stream-stop (neutral) are styled by the shared action-button base. */
 #stream-url { color: var(--text); background: var(--bg); border: 1px solid var(--border);
   border-radius: 8px; padding: 8px; font-family: monospace; }
@@ -624,21 +625,21 @@ html, body {
    Every sub-page is the same full-screen sheet that slides in from the right, so one shell
    carries all of them. #routes-scroller keeps its own block: it clips instead of scrolling. */
 #routes-page, #streaming-page,
-#connect-page, #scooter-page, #error-reports-page, #info-page, #battery-page, #display-page {
+#connect-page, #scooter-page, #error-reports-page, #info-page, #battery-page, #display-page, #theme-page, #guide-page {
   position: fixed; inset: 0; z-index: 120; background: var(--bg);
   display: flex; flex-direction: column;
   transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
 }
 #routes-page.open, #streaming-page.open,
-#connect-page.open, #scooter-page.open, #error-reports-page.open, #info-page.open, #battery-page.open, #display-page.open { transform: translateX(0); }
-#streaming-scroller,
+#connect-page.open, #scooter-page.open, #error-reports-page.open, #info-page.open, #battery-page.open, #display-page.open, #theme-page.open, #guide-page.open { transform: translateX(0); }
+#streaming-scroller, #theme-scroller, #guide-scroller,
 #connect-scroller, #scooter-scroller, #error-reports-scroller, #info-scroller, #battery-scroller, #firmware-scroller, #display-scroller {
   flex: 1; min-height: 0; overflow-y: auto; padding: var(--gap);
   display: flex; flex-direction: column; gap: 4px;
   padding-bottom: calc(var(--gap) + env(safe-area-inset-bottom, 0px) + 12px);
 }
 /* children must NOT shrink, otherwise the flex column squashes instead of scrolling */
-#routes-scroller > *, #streaming-scroller > *,
+#routes-scroller > *, #streaming-scroller > *, #theme-scroller > *, #guide-scroller > *,
 #connect-scroller > *, #scooter-scroller > *, #error-reports-scroller > *, #info-scroller > *, #battery-scroller > *, #firmware-scroller > *, #display-scroller > * { flex-shrink: 0; }
 
 /* ── Battery Info page ── */
@@ -947,3 +948,111 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
   background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
 }
 .range-ctrl { width: 100%; accent-color: var(--btnfill); height: 28px; cursor: pointer; }
+
+/* ── Button row drag ── */
+[data-btn-id].btn-drag-active { opacity: .55; outline: 2px dashed var(--value); outline-offset: -2px; }
+[data-btn-id].btn-drop-target { box-shadow: 0 0 0 2px var(--value); }
+
+/* ── Theme guide page ── */
+#guide-body {
+  padding: 4px 2px 24px;
+  font-size: var(--fs-base);
+  color: var(--text);
+  line-height: 1.55;
+}
+#guide-body h2 {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--value);
+  margin: 20px 0 8px;
+  padding-top: 4px;
+}
+#guide-body h3 {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+  margin: 14px 0 6px;
+}
+#guide-body p { margin: 6px 0; }
+#guide-body ul, #guide-body ol { margin: 6px 0 6px 18px; padding: 0; }
+#guide-body li { margin: 3px 0; }
+#guide-body ul ul { margin-top: 2px; margin-bottom: 2px; }
+#guide-body code {
+  font-family: monospace;
+  font-size: var(--fs-sm);
+  background: var(--card);
+  border-radius: 4px;
+  padding: 1px 4px;
+  color: var(--value);
+}
+#guide-body pre {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  border: 1px solid var(--border);
+}
+#guide-body pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: var(--text);
+  font-size: inherit;
+}
+#guide-body .tg-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: var(--fs-sm);
+}
+#guide-body .tg-table th {
+  text-align: left;
+  font-weight: var(--fw-semibold);
+  color: var(--label);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 8px 5px 0;
+}
+#guide-body .tg-table td {
+  padding: 4px 8px 4px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+#guide-body .tg-table td:first-child { color: var(--value); }
+#guide-body .tg-table-keys td:first-child { white-space: nowrap; }
+#guide-body .tg-rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+#guide-body .tg-note {
+  font-size: var(--fs-sm);
+  color: var(--label);
+  background: var(--card);
+  border-left: 3px solid var(--value);
+  border-radius: 0 6px 6px 0;
+  padding: 6px 10px;
+  margin: 6px 0;
+}
+#guide-body .tg-toc {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: var(--fs-sm);
+}
+#guide-body .tg-toc-title {
+  font-weight: var(--fw-semibold);
+  color: var(--label);
+  margin: 0 0 6px;
+  font-size: var(--fs-sm);
+}
+#guide-body .tg-toc ul { margin: 0; list-style: none; padding-left: 0; }
+#guide-body .tg-toc ul ul { padding-left: 14px; margin-top: 2px; }
+#guide-body .tg-toc a { color: var(--value); text-decoration: none; }
+#guide-body strong { font-weight: var(--fw-semibold); }
+html[lang="de"] #guide-body .tg-en { display: none; }
+html:not([lang="de"]) #guide-body .tg-de { display: none; }

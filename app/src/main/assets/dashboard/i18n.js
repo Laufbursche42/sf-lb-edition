@@ -20,7 +20,10 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
-      "<b>SO4 Pro Max 2 is detected correctly.</b> Newer units that report only the plain name SoFlow over Bluetooth were taken for an older model; they are now recognised correctly, so the right model profile and settings are used.",
+      "<b>Pin or unpin the recording banner.</b> The overlay that appears during route recording can now be docked to the top of the screen or left free-floating. Find the toggle in Settings under GPS.",
+      "<b>Custom theme ZIP bundles.</b> Themes can now be shared as a single .zip file containing theme.html, theme.css and theme.json. Import one from a file manager, share it from any other LB app.",
+      "<b>Theme creation guide.</b> A full offline guide is now one tap away in the Theme Manager - in German and English. It covers the bundle format, all live-data hooks, every CSS variable, the security model and a working example.",
+      "<b>Quick-action buttons are reorderable.</b> Long-press any quick button at the bottom of the home screen to drag it into the order that suits your riding style.",
     ],
 
     'disclaimer.points': [
@@ -739,13 +742,32 @@ window.I18N = {
     "settings.whatsnew": "&#10024; What is new",
     "settings.whatsnew.sub": "What changed in this version",
 
+    "settings.ridebanner.dock.label": "Pin recording banner",
+    "settings.ridebanner.dock.hint": "Keeps banner at fixed position, not draggable",
+
+    "theme.page.title": "Theme manager",
+    "theme.page.hint": "Import a .zip bundle to customise the dashboard layout. The zip must contain theme.html and theme.css.",
+    "theme.import.action": "&#8681; Import theme (.zip)",
+    "theme.import.hint": "Pick a single .zip file - one zip = one theme.",
+    "theme.guide.btn": "&#128196; Theme creation guide",
+    "theme.guide.title": "Theme Guide",
+    "theme.guide.toc": "Contents",
+    "theme.settings.action": "&#127912; Theme manager",
+    "theme.badge.active": "Active",
+    "theme.action.activate": "Activate",
+    "theme.action.export": "Export",
+    "theme.action.delete": "Delete",
+
     "whatsnew.close": "Got it",
     "whatsnew.title": "What is new",
   },
 
   de: {
     'whatsnew.points': [
-      "<b>SO4 Pro Max 2 wird richtig erkannt.</b> Neuere Geräte, die sich über Bluetooth nur mit dem Namen SoFlow melden, wurden für ein älteres Modell gehalten; sie werden jetzt korrekt erkannt, sodass das richtige Modellprofil und die passenden Einstellungen verwendet werden.",
+      "<b>Aufnahme-Banner andocken oder freigeben.</b> Das Overlay, das während der Routenaufnahme erscheint, kann jetzt oben am Bildschirm angedockt oder frei positioniert werden. Den Schalter findest du in den Einstellungen unter GPS.",
+      "<b>Custom-Theme-ZIP-Pakete.</b> Themes lassen sich jetzt als einzelne .zip-Datei teilen, die theme.html, theme.css und theme.json enthält. Importiere sie aus einem Datei-Manager oder teile sie aus einer anderen LB-App.",
+      "<b>Theme-Anleitung in der App.</b> Im Theme-Manager gibt es jetzt einen Knopf für die vollständige Offline-Anleitung - auf Deutsch und Englisch. Sie erklärt das Bundle-Format, alle Live-Daten-Hooks, alle CSS-Variablen und das Sicherheitsmodell.",
+      "<b>Schnellzugriff-Knöpfe umsortierbar.</b> Langer Druck auf einen der Knöpfe am unteren Bildschirmrand erlaubt es, ihn in der Reihenfolge zu verschieben.",
     ],
 
     'disclaimer.points': [
@@ -1463,6 +1485,22 @@ window.I18N = {
     "settings.version.info.action": "&#8505; Versionsinfo &amp; Haftungsausschluss",
     "settings.whatsnew": "&#10024; Was ist neu",
     "settings.whatsnew.sub": "Was sich in dieser Version geändert hat",
+
+    "settings.ridebanner.dock.label": "Aufnahme-Banner fixieren",
+    "settings.ridebanner.dock.hint": "Banner bleibt oben fixiert, nicht verschiebbar",
+
+    "theme.page.title": "Theme-Manager",
+    "theme.page.hint": "Ein .zip-Bundle importieren, um das Dashboard-Layout anzupassen. Die ZIP muss theme.html und theme.css enthalten.",
+    "theme.import.action": "&#8681; Theme importieren (.zip)",
+    "theme.import.hint": "Eine einzige .zip-Datei wählen - eine ZIP = ein Theme.",
+    "theme.guide.btn": "&#128196; Anleitung: Eigenes Theme erstellen",
+    "theme.guide.title": "Theme-Anleitung",
+    "theme.guide.toc": "Inhalt",
+    "theme.settings.action": "&#127912; Theme-Manager",
+    "theme.badge.active": "Aktiv",
+    "theme.action.activate": "Aktivieren",
+    "theme.action.export": "Exportieren",
+    "theme.action.delete": "Löschen",
 
     "whatsnew.close": "Verstanden",
     "whatsnew.title": "Was ist neu",

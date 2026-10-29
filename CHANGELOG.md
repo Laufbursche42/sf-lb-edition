@@ -14,6 +14,13 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.17
+
+- Added: quick-action buttons in the dashboard can be long-pressed to drag them into any order.
+- Added: import and switch custom theme ZIP bundles; each theme can override accent colors, font sizes and tile heights. An active theme's HTML shell is also replaceable.
+- Added: built-in theme creation guide (EN/DE) accessible from the theme page.
+- Added: the recording banner can be docked to its default position so it no longer floats freely; a toggle in the GPS settings controls this.
+
 ## 1.0.16
 
 - Fixed: the SO4 Pro Max 2 and similar newer units that advertise the plain name "SoFlow" over Nordic UART were misdetected as an older SoFlow model; the Nordic fallback now classifies them as sooneplus, so the correct model profile and settings are used.

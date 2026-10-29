@@ -25,6 +25,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
@@ -55,6 +56,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "lbedition";
     private static final int REQ_PERMS = 4711;
+    private static final int REQ_THEME_ZIP = 4712;
 
     private WebView webView;
     private BleManager ble;
@@ -62,6 +64,7 @@ public class MainActivity extends Activity {
     private RideLogger rideLogger;
     private RouteRecorder routeRecorder;
     private SharedPreferences prefs;
+    private ThemeManager themeManager;
     // Auto-reconnect to the remembered scooter is attempted at most once per process.
     private boolean autoConnectTried = false;
     // Tracks the BLE connection state so ride-logging transitions fire exactly once per change.
@@ -82,6 +85,7 @@ public class MainActivity extends Activity {
         // Android status bar (battery / clock / notifications) shows and content sits below it.
         // Delegated to UiChrome so every screen (main + native) shares the exact same inset logic.
         prefs = getSharedPreferences("lb", MODE_PRIVATE);
+        themeManager = new ThemeManager(this);
         UiChrome.applyFullscreen(this);
 
         configureWebView();
@@ -138,6 +142,8 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings({"SetJavaScriptEnabled"})
     private void configureWebView() {
+        if ((getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0)
+            WebView.setWebContentsDebuggingEnabled(true);
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -169,6 +175,29 @@ public class MainActivity extends Activity {
                 Uri u = request != null ? request.getUrl() : null;
                 String url = u != null ? u.toString() : "";
                 return !url.startsWith("file:///android_asset/");   // true = cancel the navigation
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                Uri u = request != null ? request.getUrl() : null;
+                if (u != null && "file:///android_asset/dashboard/active-theme.css".equals(u.toString())) {
+                    try {
+                        String name = themeManager.getActiveThemeName();
+                        if (!name.isEmpty()) {
+                            byte[] css = themeManager.readThemeCss(name);
+                            if (css != null) {
+                                return new WebResourceResponse("text/css", "UTF-8",
+                                        new java.io.ByteArrayInputStream(css));
+                            }
+                        }
+                    } catch (Throwable t) {
+                        Log.e(TAG, "theme CSS intercept failed", t);
+                    }
+                    // No active theme or file missing: serve empty CSS (page loads normally).
+                    return new WebResourceResponse("text/css", "UTF-8",
+                            new java.io.ByteArrayInputStream(new byte[0]));
+                }
+                return super.shouldInterceptRequest(view, request);
             }
         });
 
@@ -322,6 +351,76 @@ public class MainActivity extends Activity {
                 Log.i(TAG, "perm " + permissions[i] + " -> " + grantResults[i]);
             }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_THEME_ZIP) {
+            handleThemeZipPick(resultCode, data);
+        }
+    }
+
+    private void handleThemeZipPick(int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+            pushThemeEvent("{\"event\":\"cancelled\"}");
+            return;
+        }
+        Uri uri = data.getData();
+        try {
+            String zipName = queryDisplayName(uri);
+            InputStream is = getContentResolver().openInputStream(uri);
+            if (is == null) {
+                pushThemeEvent("{\"event\":\"error\",\"message\":\"cannot open file\"}");
+                return;
+            }
+            String[] result;
+            try {
+                result = themeManager.importThemeZip(zipName, is);
+            } finally {
+                try { is.close(); } catch (Throwable ignored) {}
+            }
+            if (result[1] != null) {
+                pushThemeEvent("{\"event\":\"error\",\"message\":" + jsonStr(result[1]) + "}");
+            } else {
+                pushThemeEvent("{\"event\":\"imported\",\"name\":" + jsonStr(result[0]) + "}");
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "theme zip pick failed", t);
+            pushThemeEvent("{\"event\":\"error\",\"message\":\"read failed\"}");
+        }
+    }
+
+    private void pushThemeEvent(String json) {
+        runJs("(function(){try{if(window.__onThemeEvent)window.__onThemeEvent(" + json + ");}catch(e){}})();");
+    }
+
+    private String queryDisplayName(Uri uri) {
+        try (android.database.Cursor c = getContentResolver().query(uri, null, null, null, null)) {
+            if (c != null && c.moveToFirst()) {
+                int idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                if (idx >= 0) {
+                    String n = c.getString(idx);
+                    if (n != null && !n.isEmpty()) return n;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        String last = uri.getLastPathSegment();
+        return last == null ? "import.zip" : last;
+    }
+
+    private static String jsonStr(String s) {
+        if (s == null) return "\"\"";
+        StringBuilder b = new StringBuilder("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '"' || c == '\\') b.append('\\').append(c);
+            else if (c == '\n') b.append("\\n");
+            else if (c < 0x20) b.append(String.format("\\u%04x", (int) c));
+            else b.append(c);
+        }
+        return b.append('"').toString();
     }
 
     // ── Update helpers (used by the LB.checkUpdates / downloadAndInstallApk bridge) ──
@@ -1182,6 +1281,150 @@ public class MainActivity extends Activity {
                     }
                 }
             });
+        }
+
+        // ── Theme manager ──
+
+        /** JSON array [{name, active}] of available themes; "Default" is always first. */
+        @JavascriptInterface
+        public String listThemes() {
+            try {
+                return themeManager.listThemes();
+            } catch (Throwable t) {
+                return "[]";
+            }
+        }
+
+        /** Sanitized HTML of a named theme, or "" if it does not exist. */
+        @JavascriptInterface
+        public String getThemeHtml(String name) {
+            try {
+                String html = themeManager.getThemeHtml(name);
+                return html == null ? "" : html;
+            } catch (Throwable t) {
+                return "";
+            }
+        }
+
+        /** Activate a theme by name; empty string = built-in Default. */
+        @JavascriptInterface
+        public void activateTheme(String name) {
+            try {
+                Log.i(TAG, "LB.activateTheme(" + LogSan.s(name) + ")");
+                themeManager.activateTheme(name == null ? "" : name);
+            } catch (Throwable t) {
+                Log.e(TAG, "activateTheme bridge failed", t);
+            }
+        }
+
+        /** Delete an imported theme. No-op if the theme does not exist. */
+        @JavascriptInterface
+        public void deleteTheme(String name) {
+            try {
+                Log.i(TAG, "LB.deleteTheme(" + LogSan.s(name) + ")");
+                themeManager.deleteTheme(name);
+            } catch (Throwable t) {
+                Log.e(TAG, "deleteTheme bridge failed", t);
+            }
+        }
+
+        /** Package the named theme as a .zip and share it via the system chooser. */
+        @JavascriptInterface
+        public void exportTheme(final String name) {
+            Log.i(TAG, "LB.exportTheme(" + LogSan.s(name) + ")");
+            runOnUiThread(() -> {
+                try {
+                    File zip = themeManager.exportThemeZip(name);
+                    if (zip == null) {
+                        Toast.makeText(MainActivity.this, "Theme files not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String pkg = getPackageName() + ".fileprovider";
+                    Uri uri = FileProvider.getUriForFile(MainActivity.this, pkg, zip);
+                    Intent send = new Intent(Intent.ACTION_SEND);
+                    send.setType("application/zip");
+                    send.putExtra(Intent.EXTRA_STREAM, uri);
+                    send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    Intent chooser = Intent.createChooser(send, "Export theme");
+                    chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(chooser);
+                } catch (Throwable t) {
+                    Log.e(TAG, "exportTheme failed", t);
+                    try {
+                        Toast.makeText(MainActivity.this, "Export failed", Toast.LENGTH_SHORT).show();
+                    } catch (Throwable ignored) {}
+                }
+            });
+        }
+
+        /** Open SAF file picker for a .zip theme bundle (one file = one theme). */
+        @JavascriptInterface
+        public void pickThemeFiles() {
+            Log.i(TAG, "LB.pickThemeFiles()");
+            runOnUiThread(() -> {
+                try {
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("*/*");
+                    startActivityForResult(i, REQ_THEME_ZIP);
+                } catch (Throwable t) {
+                    Log.e(TAG, "pickThemeFiles failed", t);
+                    pushThemeEvent("{\"event\":\"error\",\"message\":\"no file picker\"}");
+                }
+            });
+        }
+
+        /** Per-theme tile layout: JSON {order:[ids], hidden:[ids]}. */
+        @JavascriptInterface
+        public String getTileConfig(String name) {
+            try { return themeManager.getTileConfig(name); } catch (Throwable t) { return "{}"; }
+        }
+
+        @JavascriptInterface
+        public void saveTileConfig(String name, String json) {
+            try {
+                Log.i(TAG, "LB.saveTileConfig(" + LogSan.s(name) + ")");
+                themeManager.saveTileConfig(name, json);
+            } catch (Throwable t) { Log.e(TAG, "saveTileConfig failed", t); }
+        }
+
+        /** Per-theme CSS variable overrides: JSON {varName: value}. */
+        @JavascriptInterface
+        public String getThemeVars(String name) {
+            try { return themeManager.getThemeVars(name); } catch (Throwable t) { return "{}"; }
+        }
+
+        @JavascriptInterface
+        public void saveThemeVars(String name, String json) {
+            try {
+                Log.i(TAG, "LB.saveThemeVars(" + LogSan.s(name) + ")");
+                themeManager.saveThemeVars(name, json);
+            } catch (Throwable t) { Log.e(TAG, "saveThemeVars failed", t); }
+        }
+
+        /** theme.json metadata for a named theme (name, version, cssVars), or "{}" if none. */
+        @JavascriptInterface
+        public String getThemeMeta(String name) {
+            try { return themeManager.getThemeMeta(name); } catch (Throwable t) { return "{}"; }
+        }
+
+        /** Read a dashboard asset by filename and return its UTF-8 content, or "" on error.
+         *  Only names without path separators are accepted (no directory traversal). */
+        @JavascriptInterface
+        public String getAsset(final String name) {
+            if (name == null || name.contains("/") || name.contains("\\") || name.contains("..")) return "";
+            try {
+                java.io.InputStream is = getAssets().open("dashboard/" + name);
+                java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                byte[] buf = new byte[4096];
+                int n;
+                while ((n = is.read(buf)) != -1) out.write(buf, 0, n);
+                is.close();
+                return out.toString("UTF-8");
+            } catch (Throwable t) {
+                Log.w(TAG, "LB.getAsset failed for " + name, t);
+                return "";
+            }
         }
 
         /**
