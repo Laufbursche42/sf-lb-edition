@@ -51,6 +51,7 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:enableOnBackInvokedCallback="true"
             tools:ignore="LockedOrientationActivity,DiscouragedApi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

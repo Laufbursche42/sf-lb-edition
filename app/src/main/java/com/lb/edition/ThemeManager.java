@@ -206,6 +206,7 @@ class ThemeManager {
                     org.json.JSONObject orig = new org.json.JSONObject(new String(jsonBytes, StandardCharsets.UTF_8));
                     if (orig.has("cssVars")) meta.put("cssVars", orig.get("cssVars"));
                     if (orig.has("strings")) meta.put("strings", orig.get("strings"));
+                    if (orig.has("scope")) meta.put("scope", orig.get("scope"));
                 } catch (Throwable ignored) {}
             }
             writeFile(getThemeFile(name, "json"), meta.toString().getBytes(StandardCharsets.UTF_8));

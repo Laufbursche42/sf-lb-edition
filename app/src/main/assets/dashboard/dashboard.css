@@ -72,6 +72,19 @@ html, body {
   position: relative;
 }
 
+/* ── Bottombar (bottom-nav mode) ───────────────────────────── */
+#bottombar {
+  display: none; /* shown by applyBottomNav() */
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  height: 32px;
+  background: var(--card); border-top: 1px solid var(--border);
+  align-items: stretch;
+}
+.bb-btn { flex: 1; height: 32px; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+#bb-btn-left, #bb-btn-right { font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+body.bottom-nav-active #scroller { padding-bottom: 32px; }
+body.bottom-nav-active #btn-settings { display: none !important; }
+
 /* ── Topbar ────────────────────────────────────────────────── */
 #topbar {
   display: flex; align-items: center; justify-content: space-between;
@@ -123,6 +136,11 @@ html, body {
 /* children must NOT shrink - otherwise the flex column squashes instead of scrolling */
 #scroller > * { flex-shrink: 0; }
 #scroller::-webkit-scrollbar { display: none; }
+/* Hide content during theme init so the default HTML never flashes before the custom
+   theme HTML is injected. visibility:hidden (not display:none) preserves layout so
+   fitFold() still measures the correct dimensions. The attribute is removed by
+   initActiveTheme() once injection and var-injection are done. */
+html[data-theme-loading] #scroller { visibility: hidden; }
 
 /* ── First-screen fold ─────────────────────────────────────── */
 /* The fold holds the live values a rider reads while moving, and fitFold() scales it so it
@@ -134,11 +152,15 @@ html, body {
 #fold { overflow: hidden; }
 #fold-inner {
   display: flex; flex-direction: column; gap: var(--gap);
-  /* fitFold() grows the tiles to fill the screen and then tops up the row gap to fill the rest, but
-     only up to a capped value (FOLD_MAX_GAP) so the gaps never open into large voids. */
   transform-origin: top left; width: 100%;
 }
 #fold-inner > * { flex-shrink: 0; }
+/* Per-tile minimum heights - set via --tile-h-* CSS vars in the style editor (0 = natural).
+   SoFlow has no #motors-section wrapper (its live-value rows are direct fold rows, so fitFold()
+   counts them one by one), so the motor height applies to each of the three rows. */
+#speed-row { min-height: var(--tile-h-speed, 0px); }
+#hero-row  { min-height: var(--tile-h-hero, 0px); }
+#motor-row, #motor-row-2, #motor-row-3 { min-height: var(--tile-h-motors, 0px); }
 
 /* ── Speed Drums ───────────────────────────────────────────── */
 #speed-row {
@@ -152,7 +174,7 @@ html, body {
   gap: 2px;
 }
 .speed-drum .sd-val {
-  font-size: clamp(42px, 13vw, 64px);
+  font-size: var(--sz-speed-val, clamp(42px, 13vw, 64px));
   font-weight: var(--fw-heavy); line-height: 1;
   letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
@@ -160,7 +182,7 @@ html, body {
 .speed-drum.ble-drum .sd-val { color: var(--ble); }
 .speed-drum.gps-drum .sd-val { color: var(--gps); }
 .speed-drum .sd-unit {
-  font-size: var(--fs-base); color: var(--label); margin-top: 4px;
+  font-size: var(--sz-speed-lbl, var(--fs-base)); color: var(--label); margin-top: 4px;
   font-weight: var(--fw-medium); letter-spacing: .04em;
 }
 
@@ -180,16 +202,15 @@ html, body {
   border-radius: var(--radius); padding: 12px 8px 10px;
   display: flex; flex-direction: column; align-items: center;
 }
-/* One uniform value size for every tile (hero and motor), kept identical to the other Laufbursche
-   editions (navee is the reference). The per-row rules further down take a rider-set --sz-* value
-   (Display settings -> Font sizes) and otherwise fall back to the built-in clamp. */
+/* Value/label sizes take a theme- or rider-set --sz-* token (Display settings -> Font sizes), else
+   the built-in clamp. Same contract as every edition, so a universal theme renders identically. */
 .hero-cell .hc-val {
-  font-size: clamp(28px, 9vw, 38px); font-weight: var(--fw-heavy);
+  font-size: var(--sz-hero-val, clamp(28px, 9vw, 38px)); font-weight: var(--fw-heavy);
   line-height: 1; letter-spacing: -.01em;
   font-variant-numeric: tabular-nums;
 }
 .hero-cell .hc-unit {
-  font-size: var(--fs-md); color: var(--label); margin-top: 3px; white-space: nowrap;
+  font-size: var(--sz-hero-lbl, var(--fs-md)); color: var(--label); margin-top: 3px; white-space: nowrap; text-align: center;
 }
 .hero-cell .hc-tag {
   margin-top: 5px; padding: 2px 7px;
@@ -210,6 +231,15 @@ html, body {
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); overflow: hidden;
 }
+/* The ride grid has its own id (unique ids for the tile editor / drag placements) but the same card surface. */
+#data-grid-ride {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+/* Section wrappers after the fold (data-section-container): keep the header-to-panel spacing the
+   #scroller column gave them before they were wrapped. applyTileConfig() hides a wrapper whose
+   tiles are all hidden. */
+#sect-vehicle, #sect-ride, #sect-allvals { display: flex; flex-direction: column; gap: var(--gap); }
 .dg-row {
   display: grid; grid-template-columns: 1fr 1fr;
   border-bottom: 1px solid var(--border);
@@ -297,28 +327,14 @@ html, body {
 .del-btn:last-child { border-right: none; }
 .del-btn:active { background: #FF505015; }
 
-/* ── Settings Sheet ────────────────────────────────────────── */
-#settings-overlay {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(0,0,0,.45);
-  opacity: 0; pointer-events: none;
-  transition: opacity .25s;
+/* Themed select used in the theme-editor panels. */
+select.theme-sel {
+  appearance: none; -webkit-appearance: none;
+  background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 8px center / 10px 6px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-size: var(--fs-sm); font-family: inherit;
+  padding: 6px 28px 6px 10px; cursor: pointer; min-width: 100px;
 }
-#settings-overlay.open { opacity: 1; pointer-events: all; }
-#settings-sheet {
-  position: fixed; top: 0; right: 0; bottom: 0;
-  width: min(320px, 85vw); z-index: 101;
-  background: var(--card); border-left: 1px solid var(--border);
-  transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
-  overflow-y: auto; padding-top: var(--sat);
-}
-#settings-sheet.open { transform: translateX(0); }
-
-.settings-topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; border-bottom: 1px solid var(--border);
-}
-.settings-topbar h2 { font-size: var(--fs-xl); font-weight: var(--fw-bold); }
 #update-banners { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 0; }
 #update-banners:empty { display: none; }
 .update-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -460,7 +476,7 @@ html, body {
 /* Motor-mode quick toggle: its own full-width row under the motor tiles, four equal buttons,
    same shape as the drive-mode row below it. */
 #motor-quick { display: flex; gap: var(--gap); container-type: inline-size; }
-#motor-quick .mq-btn {
+#quick-grid .mq-btn {
   flex: 1 1 0; min-width: 0; padding: 8px 1px;
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); color: var(--label);
@@ -469,7 +485,7 @@ html, body {
   font-size: clamp(7px, 3.4cqi, 12px);   /* same reasoning as .dq-btn below */
   -webkit-tap-highlight-color: transparent;
 }
-#motor-quick .mq-btn:active { opacity: .7; }
+#quick-grid .mq-btn:active { opacity: .7; }
 /* The active fills are the shared action-button variants (primary fill / good fill). */
 /* Not connected: whole control greyed and non-interactive */
 /* Greyed out while disconnected, but still clickable so a tap shows the "Connect the scooter
@@ -479,8 +495,8 @@ html, body {
 /* Drive-mode quick toggles under the motor tiles: four equal-width buttons on one row. */
 /* No margin-top: #fold-inner already spaces its children by --gap, so an extra margin would
    double the distance to the motor-mode row above. */
-#drive-quick { display: flex; gap: var(--gap); container-type: inline-size; }
-#drive-quick .dq-btn {
+#quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: auto; gap: var(--gap); container-type: inline-size; }
+#quick-grid .dq-btn {
   flex: 1 1 0; min-width: 0; padding: 8px 1px;
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); color: var(--label);
@@ -493,10 +509,10 @@ html, body {
   font-size: clamp(7px, 3.4cqi, 12px);
   -webkit-tap-highlight-color: transparent;
 }
-#drive-quick .dq-btn:active { opacity: .7; }
+#quick-grid .dq-btn:active { opacity: .7; }
 /* Cruise while the scooter is locked: the firmware refuses the write, so mark it as unavailable. */
-#drive-quick .dq-btn.dq-locked { opacity: .45; }
-#drive-quick.dq-disabled { opacity: .4; filter: grayscale(1); }
+#quick-grid .dq-btn.dq-locked { opacity: .45; }
+#quick-grid.qg-disabled { opacity: .4; filter: grayscale(1); }
 
 /* ── All values ──────────────────────────────────────────────── */
 /* #all-values takes the shared card surface defined with #data-grid. */
@@ -625,21 +641,23 @@ html, body {
    Every sub-page is the same full-screen sheet that slides in from the right, so one shell
    carries all of them. #routes-scroller keeps its own block: it clips instead of scrolling. */
 #routes-page, #streaming-page,
-#connect-page, #scooter-page, #error-reports-page, #info-page, #battery-page, #display-page, #theme-page, #guide-page {
+#connect-page, #scooter-page, #error-reports-page, #info-page, #battery-page, #display-page, #theme-page, #guide-page, #settings-sheet {
   position: fixed; inset: 0; z-index: 120; background: var(--bg);
   display: flex; flex-direction: column;
   transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
 }
 #routes-page.open, #streaming-page.open,
-#connect-page.open, #scooter-page.open, #error-reports-page.open, #info-page.open, #battery-page.open, #display-page.open, #theme-page.open, #guide-page.open { transform: translateX(0); }
-#streaming-scroller, #theme-scroller, #guide-scroller,
+#connect-page.open, #scooter-page.open, #error-reports-page.open, #info-page.open, #battery-page.open, #display-page.open, #theme-page.open, #guide-page.open, #settings-sheet.open { transform: translateX(0); }
+#settings-scroller, #streaming-scroller, #theme-scroller, #guide-scroller,
 #connect-scroller, #scooter-scroller, #error-reports-scroller, #info-scroller, #battery-scroller, #firmware-scroller, #display-scroller {
   flex: 1; min-height: 0; overflow-y: auto; padding: var(--gap);
   display: flex; flex-direction: column; gap: 4px;
   padding-bottom: calc(var(--gap) + env(safe-area-inset-bottom, 0px) + 12px);
 }
+/* The theme page rows (theme list, tile/button/style editors) sit a little further from the edges. */
+#theme-scroller { padding-left: calc(var(--gap) + 5px); padding-right: calc(var(--gap) + 5px); }
 /* children must NOT shrink, otherwise the flex column squashes instead of scrolling */
-#routes-scroller > *, #streaming-scroller > *, #theme-scroller > *, #guide-scroller > *,
+#routes-scroller > *, #settings-scroller > *, #streaming-scroller > *, #theme-scroller > *, #guide-scroller > *,
 #connect-scroller > *, #scooter-scroller > *, #error-reports-scroller > *, #info-scroller > *, #battery-scroller > *, #firmware-scroller > *, #display-scroller > * { flex-shrink: 0; }
 
 /* ── Battery Info page ── */
@@ -710,13 +728,13 @@ html, body {
 /* Variant: primary fill (also the selected motor-mode button and the accept button of the
    disclaimer, the one modal button that grants something rather than dismissing). */
 #btn-fw-start, #btn-scan, .gs-save-btn, #disclaimer-accept,
-#motor-quick .mq-btn.active, #drive-quick .dq-btn.active {
+#quick-grid .mq-btn.active, #quick-grid .dq-btn.active {
   background: var(--btnfill); color: #0A0C10; border-color: var(--btnfill);
 }
 /* Variant: good fill (start streaming, Smart on). Must stay after the primary fill: the Smart
    button carries .mq-btn and .mq-smart at equal specificity, so the later rule decides. */
 #btn-stream-start,
-#motor-quick .mq-smart.active { background: var(--good); color: #06251a; border-color: var(--good); }
+#quick-grid .mq-smart.active { background: var(--good); color: #06251a; border-color: var(--good); }
 /* Variant: neutral card (firmware pick) */
 #btn-fw-pick { background: var(--card); color: var(--text); }
 /* Variant: danger outline (cancel / disconnect) */
@@ -920,6 +938,11 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
 }
 /* A thin red stripe that sits IN FLOW directly below the icon bar (never over it, never large).
    flex-shrink:0 keeps its slim height; it only takes space while debug logging is active. */
+/* Top banners live IN FLOW inside #app, directly under the topbar (see #topbanners in
+   telemetry.html), never fixed over it. #topbanners itself takes no space; each banner is a
+   thin line that only appears when toggled on. Because they follow #topbar in the flex column
+   they can NEVER cover the title or the icon buttons. */
+#topbanners { flex-shrink: 0; }
 .debug-banner.debug-banner {
   display: none; flex-shrink: 0;
   background: #c0392b; color: #fff; text-align: center;
@@ -949,11 +972,132 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
 }
 .range-ctrl { width: 100%; accent-color: var(--btnfill); height: 28px; cursor: pointer; }
 
-/* ── Button row drag ── */
+/* ── Theme manager page ── */
+.theme-list-toggle {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--card); cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+}
+.theme-list-toggle-label { flex: 1; font-size: var(--fs-md); font-weight: 500; color: var(--text); }
+.theme-list-chevron { font-size: 10px; color: var(--label); transition: transform .15s; flex-shrink: 0; }
+.theme-list-toggle.open .theme-list-chevron { transform: rotate(90deg); }
+.theme-list-body { display: none; padding: 6px 0 0; }
+.theme-list-body.open { display: block; }
+.theme-row { display: flex; align-items: center; gap: 8px; padding: 10px 6px; }
+.theme-row-left { flex: 1; min-width: 0; }
+.theme-name { font-size: var(--fs-md); color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.theme-active-badge {
+  display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .4px;
+  background: color-mix(in srgb, var(--good) 20%, transparent);
+  color: var(--good); border: 1px solid var(--good);
+  border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle;
+}
+.theme-version { font-size: 10px; color: var(--label); margin-left: 6px; vertical-align: middle; opacity: .8; }
+#std-tile-pool { display: none !important; }
+#std-tile-extras { padding: 0; }
+.tile-editor-add-row { opacity: .85; }
+.tile-add-btn { padding: 2px 10px; font-size: var(--fs-sm); border-radius: var(--radius); background: var(--btnfill); color: var(--btntext); border: none; cursor: pointer; flex-shrink: 0; }
+.tile-remove-btn { padding: 2px 7px; font-size: var(--fs-sm); border-radius: var(--radius); background: transparent; color: var(--label); border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; }
+.tile-source-sel { font-size: var(--fs-sm); background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 2px 4px; flex-shrink: 0; }
+.tile-editor-reset-btn { display: block; width: 100%; margin-top: 10px; padding: 8px; font-size: var(--fs-sm); font-weight: var(--fw-bold); border-radius: var(--radius); background: transparent; color: var(--label); border: 1px solid var(--border); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.tile-editor-reset-btn:active { background: var(--border); }
+.theme-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.theme-row-actions button {
+  padding: 5px 10px; font-size: var(--fs-sm);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card); color: var(--text);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.theme-row-actions button:active { opacity: .7; }
+.theme-row-actions .tm-btn-primary { background: var(--btnfill); color: #0A0C10; border-color: var(--btnfill); }
+.theme-row-actions .tm-btn-danger { color: var(--danger); border-color: var(--danger); }
+
+/* ── Theme customise panels (tile editor + style editor) ── */
+.theme-section-title {
+  font-size: var(--fs-sm); font-weight: 600; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: .08em;
+  padding: 14px 0 6px;
+}
+#bb-shortcut-rows, #tile-editor, #btn-row-editor, #style-editor { display: none; }
+#tile-editor, #style-editor { padding: 0 0 4px; }
+.tile-editor-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.tile-toggle {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; flex-shrink: 0; cursor: pointer;
+  border: 2px solid #888; border-radius: 3px;
+  background: transparent; position: relative; vertical-align: middle;
+}
+.tile-toggle:checked { background: #4A90E2; border-color: #4A90E2; }
+.tile-toggle:checked::after {
+  content: ''; position: absolute;
+  left: 3px; top: -1px; width: 5px; height: 10px;
+  border: 2px solid #fff; border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+.tile-edit-lbl { flex: 1; font-size: var(--fs-sm); color: var(--text); }
+/* ── Drag: dashboard + editor ── */
+[data-cell-id].cell-drag-active { outline: 2px solid var(--value); opacity: .6; transform: scale(.94); z-index: 1; }
+[data-cell-id].cell-drop-target { outline: 2px dashed var(--value); }
+[data-tile-id].tile-drag-active { opacity: .45; outline: 2px dashed var(--value); outline-offset: -2px; filter: brightness(.7); }
+[data-tile-id].tile-drop-target { outline: 3px solid var(--value); outline-offset: -2px; opacity: .8; }
+.tile-editor-row.tile-drag-active { opacity: .5; }
+.tile-editor-row.tile-drop-above { border-top: 2px solid var(--value); }
+.tile-editor-row.tile-drop-below { border-bottom: 2px solid var(--value); }
 [data-btn-id].btn-drag-active { opacity: .55; outline: 2px dashed var(--value); outline-offset: -2px; }
 [data-btn-id].btn-drop-target { box-shadow: 0 0 0 2px var(--value); }
+[data-btn-id].btn-ghost-slot { opacity: .2; border: 2px dashed var(--clr-accent, #448aff); background: transparent; }
+[data-btn-id].btn-ghost-slot.btn-drop-target { opacity: .55; }
+.tile-drag-handle { font-size: 20px; color: var(--label); padding: 0 6px; touch-action: none; user-select: none; cursor: grab; flex-shrink: 0; }
+.theme-hint { font-size: 10px; color: var(--label); font-weight: normal; }
+.btn-slot-sel { flex: 1; }
+.btn-slot-del {
+  flex-shrink: 0; background: none; border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--label); font-size: 14px;
+  padding: 2px 8px; cursor: pointer; line-height: 1;
+}
+.btn-slot-del:active { background: var(--border); }
+.style-var-num {
+  width: 58px; background: var(--card); border: 1px solid var(--border);
+  color: var(--text); border-radius: 4px; padding: 4px 6px;
+  font-size: var(--fs-sm); text-align: right; flex-shrink: 0;
+}
+.style-var-unit { font-size: 11px; color: var(--label); margin-left: 2px; flex-shrink: 0; }
+.tile-mv {
+  padding: 2px 8px; font-size: 14px; border: 1px solid var(--border);
+  background: var(--card); color: var(--text); border-radius: 5px;
+  cursor: pointer; flex-shrink: 0;
+}
+.tile-mv:disabled { opacity: .3; cursor: default; }
+.style-editor-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid var(--border); gap: 10px;
+}
+.style-var-lbl { font-size: var(--fs-sm); color: var(--text); flex: 1; }
+.style-var-color { width: 44px; height: 34px; padding: 2px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: var(--card); flex-shrink: 0; }
+.style-var-range-wrap { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.style-var-range { width: 120px; accent-color: var(--btnfill); cursor: pointer; }
+.style-var-val { font-size: var(--fs-sm); color: var(--text-dim); min-width: 36px; text-align: right; }
+.style-reset-btn {
+  margin-top: 10px; padding: 7px 16px; font-size: var(--fs-sm);
+  border: 1px solid var(--border); background: var(--card); color: var(--text-dim);
+  border-radius: 7px; cursor: pointer;
+}
 
 /* ── Theme guide page ── */
+.guide-totop {
+  position: absolute; bottom: 24px; right: 16px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+  z-index: 10; cursor: pointer;
+}
+.guide-totop--visible { opacity: 1; pointer-events: auto; }
 #guide-body {
   padding: 4px 2px 24px;
   font-size: var(--fs-base);
@@ -1056,3 +1200,33 @@ select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; 
 #guide-body strong { font-weight: var(--fw-semibold); }
 html[lang="de"] #guide-body .tg-en { display: none; }
 html:not([lang="de"]) #guide-body .tg-de { display: none; }
+/* AI-prompt box of the theme guide (kept in step with the tr guide; used once the box is in the guide markup). */
+#guide-body .tg-ai-box {
+  background: var(--card);
+  border: 1px solid var(--value);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+#guide-body .tg-ai-box p { margin: 0 0 8px; font-size: var(--fs-sm); color: var(--text); }
+#guide-body .tg-ai-box code {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--value);
+  word-break: break-all;
+  user-select: all;
+  -webkit-user-select: all;
+  padding: 6px 8px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+
+/* Tile/button transparency: bind Default surfaces to --tile-alpha/--btn-alpha so the sliders work in
+   every theme (default alpha=1 = solid). Custom themes override via their own #scroller theme.css. */
+.speed-drum, .hero-cell, .motor-cell,
+#data-grid, #actions-section, #all-values, #data-grid-ride {
+  background: rgb(from var(--card) r g b / var(--tile-alpha, 1));
+}
+#quick-grid .mq-btn, #quick-grid .dq-btn {
+  background: rgb(from var(--card) r g b / var(--btn-alpha, 1));
+}

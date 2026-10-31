@@ -173,6 +173,14 @@ The scooter can also be fully **locked or unlocked** (immobiliser) from the sett
 - **Full-screen toggle** (when off, the app sits below the Android status bar), **km / mph** units (mph converts both speed and distance - Trip, Odometer and saved-route distances - to miles), **light / dark app theme** and a **"Version Info & Disclaimer"** entry.
 - **A language switch in the Display settings** turns the whole interface, help popups included, English or German. On the first start the app follows your phone's language and your choice sticks after that.
 
+### Custom themes
+
+Replace the main-screen fold area with your own HTML and CSS layout. A theme with `"scope":"full"` in its `theme.json` replaces the entire scrollable dashboard - both the fold and the data tiles below. Live scooter values (speed, SOC, gear, temperatures, ...) are fed into your HTML automatically every 500 ms via `data-lb` attribute hooks  -  no JavaScript required or allowed. The tile manager lets users show/hide and drag-reorder your declared tile blocks, and the Style Editor on top of your theme lets them adjust colours, brightness and font sizes without touching your files.
+
+Themes are distributed as a **ZIP bundle** (`theme.html` + `theme.css` + optional `theme.json`). The format is shared across Laufbursche apps, so a theme built for one app can be imported into any other. Import via **Settings → Display → Theme manager → Import theme**; export any installed theme via the share button in the theme list.
+
+**[-> Full theme authoring guide: THEME-GUIDE.md](THEME-GUIDE.md)**
+
 ## Screenshots
 
 <p align="center"><img src="screenshots/livetoggle.png" width="260" alt="Triple-tap the km/h VCU tile to release or re-lock the top speed over Bluetooth"></p>

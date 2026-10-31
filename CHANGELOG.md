@@ -14,6 +14,16 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.18
+
+- Added: two ready-to-use themes, Carbon and Lambo, now ship built in - activate them in the Theme Manager, no import or download needed.
+- Changed: the in-app theme creation guide is now the full version - on top of the bundle format, every data hook and every CSS variable it covers the live-state signals, the complete circular speed-gauge technique and a full worked example (EN/DE).
+- Added: the theme list shows each theme's version and collapses into a tidy section.
+- Added: button row alignment modes - fill (default), center and edges, selectable in the quick-button row editor.
+- Added: during a button drag, hidden buttons appear as ghost drop targets so buttons can be dropped into any slot.
+- Added: full-screen themes via `"scope":"full"` in theme.json - the theme HTML replaces the entire dashboard area instead of only the fold.
+- Changed: the bottom-bar shortcut captions now follow the app language instead of fixed English labels.
+
 ## 1.0.17
 
 - Added: quick-action buttons in the dashboard can be long-pressed to drag them into any order.

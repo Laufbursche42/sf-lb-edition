@@ -4,7 +4,7 @@ Copyright (c) 2026 Laufbursche (https://github.com/Laufbursche42)
 Source-available under the PolyForm Noncommercial License 1.0.0 with Additional Terms. See license.md.
 -->
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-theme-loading>
 <head>
 <meta charset="UTF-8">
 <!-- Styling may only come from a file next to this page, never from the document
@@ -16,6 +16,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Telemetry - SoFlow LB</title>
 <link rel="stylesheet" href="dashboard.css">
+<link id="theme-css-link" rel="stylesheet" href="active-theme.css">
 </head>
 <body>
 <div id="app">
@@ -34,8 +35,21 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     </div>
   </div>
 
-  <!-- Debug-mode stripe: a thin red line directly UNDER the icon bar while native logging records. -->
-  <div class="debug-banner" id="debug-banner" data-i18n="dash.debug.banner">&#9888; DEBUG MODE ON: recording logs</div>
+  <!-- ── Top banners ────────────────────────────────────
+       ALL top-of-app banners live here, IN FLOW directly under the topbar, so they can
+       never overlap the title or the icon buttons. Keep them thin (see .debug-banner in
+       dashboard.css): a banner is a slim line, never a full overlay. -->
+  <div id="topbanners">
+    <!-- Debug-mode stripe: a thin red line directly UNDER the icon bar while native logging records. -->
+    <div class="debug-banner" id="debug-banner" data-i18n="dash.debug.banner">&#9888; DEBUG MODE ON: recording logs</div>
+  </div>
+
+  <!-- ── Bottom navigation bar (shown when bottom-nav mode is active) ── -->
+  <div id="bottombar">
+    <button class="icon-btn bb-btn" id="bb-btn-left" aria-label="Left shortcut"></button>
+    <button class="icon-btn bb-btn" id="bb-btn-settings" aria-label="Settings" data-i18n-aria="dash.topbar.settings" data-i18n="dash.topbar.settings.icon">&#9881;</button>
+    <button class="icon-btn bb-btn" id="bb-btn-right" aria-label="Right shortcut"></button>
+  </div>
 
   <!-- ── Scrollable Content ─────────────────────────── -->
   <div id="scroller">
@@ -47,24 +61,24 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
      <div id="fold-inner">
 
     <!-- Speed Drums -->
-    <div id="speed-row">
-      <div class="speed-drum ble-drum">
+    <div id="speed-row" data-section-container>
+      <div class="speed-drum ble-drum" data-tile-id="tile-speed-ble" data-tile-label="Speed VCU" data-i18n-tile-label="tile.label.speed.ble">
         <div class="sd-val" id="ble-speed">-</div>
         <div class="sd-unit" data-i18n="dash.speed.vcu.unit">km/h &middot; VCU</div>
       </div>
-      <div class="speed-drum gps-drum">
+      <div class="speed-drum gps-drum" data-tile-id="tile-speed-gps" data-tile-label="Speed GPS" data-i18n-tile-label="tile.label.speed.gps">
         <div class="sd-val" id="gps-speed">-</div>
         <div class="sd-unit" data-i18n="dash.speed.gps.unit">km/h &middot; GPS</div>
       </div>
     </div>
 
     <!-- Hero Metrics -->
-    <div id="hero-row">
-      <div class="hero-cell" data-tcap="battery">
+    <div id="hero-row" data-section-container>
+      <div class="hero-cell" data-tcap="battery" data-cell-id="hero-battery" data-tile-id="tile-hero-soc" data-tile-label="Battery %" data-i18n-tile-label="tile.label.battery">
         <div class="hc-val" id="soc-val">-</div>
         <div class="hc-unit" data-i18n="dash.hero.battery.unit">Battery %</div>
       </div>
-      <div class="hero-cell" data-tcap="mode">
+      <div class="hero-cell" data-tcap="mode" data-cell-id="hero-mode" data-tile-id="tile-hero-mode" data-tile-label="Mode" data-i18n-tile-label="tile.label.mode">
         <div class="hc-val" id="mode-val">-</div>
         <div class="hc-unit" data-i18n="dash.hero.mode.label">Mode</div>
       </div>
@@ -72,41 +86,42 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
     <!-- Live telemetry tiles: the values the SoFlow controller streams. First row drive
          (voltage, power, trip), second row context (total distance, error, lock). Reuses the
-         shared motor-tile grid classes. -->
-    <div class="section-hdr sub-hdr">
+         shared motor-tile grid classes. Each row is a tile (tile editor / long-press drag), each
+         card a cell (long-press moves it within or across the rows, see _CELL_ROWS). -->
+    <div class="section-hdr sub-hdr" id="tele-hdr">
       <span data-i18n="dash.tele.section">Live values</span>
     </div>
-    <div id="motor-row">
-      <div class="motor-cell" data-tcap="voltage">
+    <div id="motor-row" data-tile-id="tile-tele-r1" data-tile-label="Voltage / Total" data-i18n-tile-label="tile.label.tele.r1">
+      <div class="motor-cell" data-tcap="voltage" data-cell-id="tele-volt">
         <div class="mc-title" data-i18n="dash.tele.volt.title">VOLTAGE</div>
         <div class="mc-main"><span id="tl-volt">-</span></div>
         <div class="mc-unit" data-i18n="dash.tele.volt.unit">V</div>
       </div>
-      <div class="motor-cell" data-tcap="total">
+      <div class="motor-cell" data-tcap="total" data-cell-id="tele-total">
         <div class="mc-title" data-i18n="dash.tele.total.title">TOTAL</div>
         <div class="mc-main"><span id="tl-total">-</span></div>
         <div class="mc-unit" data-i18n="dash.tele.total.unit">km</div>
       </div>
     </div>
-    <div id="motor-row-2">
-      <div class="motor-cell" data-tcap="power">
+    <div id="motor-row-2" data-tile-id="tile-tele-r2" data-tile-label="Power / Energy" data-i18n-tile-label="tile.label.tele.r2">
+      <div class="motor-cell" data-tcap="power" data-cell-id="tele-power">
         <div class="mc-title" data-i18n="dash.tele.power.title">POWER</div>
         <div class="mc-main"><span id="tl-power">-</span></div>
         <div class="mc-unit" data-i18n="dash.tele.power.unit">W</div>
       </div>
-      <div class="motor-cell" data-tcap="energy">
+      <div class="motor-cell" data-tcap="energy" data-cell-id="tele-energy">
         <div class="mc-title" data-i18n="dash.tele.energy.title">ENERGY</div>
         <div class="mc-main"><span id="tl-energy">-</span></div>
         <div class="mc-unit" data-i18n="dash.tele.energy.unit">Wh</div>
       </div>
     </div>
-    <div id="motor-row-3">
-      <div class="motor-cell" data-tcap="error">
+    <div id="motor-row-3" data-tile-id="tile-tele-r3" data-tile-label="Error / Lock" data-i18n-tile-label="tile.label.tele.r3">
+      <div class="motor-cell" data-tcap="error" data-cell-id="tele-error">
         <div class="mc-title" data-i18n="dash.tele.error.title">ERROR</div>
         <div class="mc-main"><span id="tl-error">-</span></div>
         <div class="mc-unit" data-i18n="dash.tele.error.unit">code</div>
       </div>
-      <div class="motor-cell" data-tcap="lock">
+      <div class="motor-cell" data-tcap="lock" data-cell-id="tele-lock">
         <div class="mc-title" data-i18n="dash.tele.lock.title">LOCK</div>
         <div class="mc-main"><span id="tl-lock">-</span></div>
         <div class="mc-unit" data-i18n="dash.tele.lock.unit">state</div>
@@ -115,51 +130,59 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
     <!-- Quick function toggles, sent to the scooter immediately over BLE. Each button appears only
          when its capability is supported; greyed out until connected. -->
-    <div id="drive-quick" class="dq-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group">
-      <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" data-btn-id="btn-dq-light" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
-      <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" data-btn-id="btn-dq-zero" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
-      <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" data-btn-id="btn-dq-lock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
+    <div id="quick-grid" class="qg-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group" data-tile-id="quick-actions" data-tile-label="Quick Buttons" data-tile-no-editor="true">
+      <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" data-btn-id="btn-dq-light" data-bb-shortcut="dq-light" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
+      <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" data-btn-id="btn-dq-zero" data-bb-shortcut="dq-zero" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
+      <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" data-btn-id="btn-dq-lock" data-bb-shortcut="dq-lock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
+      <button type="button" class="dq-btn" data-dq="darkMode" data-cap="darkMode" data-btn-id="btn-dq-dark" data-bb-shortcut="dq-dark" aria-label="Toggle dark mode" data-i18n-aria="dash.drive.quick.darkmode.aria" data-i18n="dash.drive.quick.darkmode">Dark</button>
+      <button type="button" class="dq-btn" data-dq="mode" data-cap="mode" data-btn-id="btn-dq-mode" data-bb-shortcut="dq-mode" aria-label="Cycle ride mode" data-i18n-aria="dash.drive.quick.mode.aria" data-i18n="dash.drive.quick.mode">Mode</button>
+      <button type="button" class="dq-btn" data-dq="indicator" data-cap="indicator" data-btn-id="btn-dq-ind" data-bb-shortcut="dq-ind" aria-label="Toggle BLE status light" data-i18n-aria="dash.drive.quick.indicator.aria" data-i18n="dash.drive.quick.indicator">Status light</button>
+      <button type="button" class="dq-btn" data-dq="unit" data-cap="unit" data-btn-id="btn-dq-unit" data-bb-shortcut="dq-unit" aria-label="Toggle scooter display unit" data-i18n-aria="dash.drive.quick.unit.aria" data-i18n="dash.drive.quick.unit">Unit</button>
+      <button type="button" class="dq-btn" data-dq="battery" data-cap="battery" data-btn-id="btn-dq-bat" data-bb-shortcut="dq-bat" aria-label="Unlock battery" data-i18n-aria="dash.drive.quick.battery.aria" data-i18n="dash.drive.quick.battery">Battery</button>
     </div>
 
      </div>
     </div>
     <!-- end of fold -->
 
-    <!-- Data Grid -->
+    <!-- Data Grid - Vehicle & battery -->
+    <div id="sect-vehicle" data-section-container>
     <div class="section-hdr sub-hdr" data-i18n="dash.grid.vehicle.section">Vehicle &amp; battery</div>
     <div id="data-grid">
-      <div class="dg-row">
+      <div class="dg-row" data-tile-id="tile-dg-speed" data-tile-label="Avg / Max Speed" data-i18n-tile-label="tile.label.dg.speed">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.ride.speed.avg">Avg speed</span><span class="dg-value" id="dg-avg">-</span></div>
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.speed.max">Max speed</span><span class="dg-value" id="dg-max">-</span></div>
       </div>
-      <div class="dg-row">
+      <div class="dg-row" data-tile-id="tile-dg-volt" data-tile-label="Voltage / Current" data-i18n-tile-label="tile.label.dg.voltcur">
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.voltage">Voltage</span><button type="button" class="set-help" data-set-help="dg-volt" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-volt">-</span></div>
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.current">Current</span><span class="dg-value" id="dg-current">-</span></div>
       </div>
-      <div class="dg-row">
+      <div class="dg-row" data-tile-id="tile-dg-odo" data-tile-label="Total / RSSI" data-i18n-tile-label="tile.label.dg.odorssi">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.total">Total</span><span class="dg-value" id="dg-total">-</span></div>
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.rssi">RSSI</span><button type="button" class="set-help" data-set-help="dg-rssi" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-rssi">-</span></div>
       </div>
-      <div class="dg-row one-col">
+      <div class="dg-row one-col" data-tile-id="tile-dg-err" data-tile-label="Error" data-i18n-tile-label="tile.label.dg.err">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.error">Error</span><span class="dg-value" id="dg-err">-</span></div>
       </div>
     </div>
+    </div><!-- /sect-vehicle -->
 
     <!-- Current ride (GPS) -->
+    <div id="sect-ride" data-section-container>
     <div class="section-hdr sub-hdr" data-i18n="dash.ride.section">Current ride (GPS)</div>
-    <div id="data-grid">
-      <div class="dg-row">
+    <div id="data-grid-ride">
+      <div class="dg-row" data-tile-id="tile-ride-disttime" data-tile-label="Distance / Time" data-i18n-tile-label="tile.label.ride.disttime">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.ride.distance">Distance</span><span class="dg-value" id="dg-dist">-</span></div>
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.ride.time">Time</span><span class="dg-value" id="dg-time">-</span></div>
       </div>
-      <div class="dg-row one-col">
+      <div class="dg-row one-col" data-tile-id="tile-ride-avg" data-tile-label="Avg Speed (ride)" data-i18n-tile-label="tile.label.ride.avg">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.ride.speed.avg">Avg speed</span><span class="dg-value" id="dg-ride-avg">-</span></div>
       </div>
-      <div class="dg-row">
+      <div class="dg-row" data-tile-id="tile-ride-alt" data-tile-label="Altitude / Elevation" data-i18n-tile-label="tile.label.ride.alt">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.ride.altitude">Altitude</span><span class="dg-value" id="dg-alt">-</span></div>
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.ride.elevation">Elev +/-</span><span class="dg-value" id="dg-hm">-</span></div>
       </div>
-      <div class="dg-row">
+      <div class="dg-row" data-tile-id="tile-ride-gps" data-tile-label="GPS Fix / Points" data-i18n-tile-label="tile.label.ride.gps">
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.ride.gps.fix">GPS fix</span><button type="button" class="set-help" data-set-help="dg-gps" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-gps">-</span></div>
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.ride.points">Points</span><button type="button" class="set-help" data-set-help="dg-pts" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-pts">-</span></div>
       </div>
@@ -167,16 +190,22 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <button type="button" id="btn-stop-ride" class="ride-stop-btn" data-i18n="dash.ride.stop">Stop ride</button>
       </div>
     </div>
+    </div><!-- /sect-ride -->
 
     <!-- All battery/cell values (scrollable like Lite) -->
+    <div id="sect-allvals" data-section-container data-tile-id="tile-allvals" data-tile-label="All values" data-i18n-tile-label="tile.label.allvals">
     <div class="section-hdr sub-hdr" data-i18n="dash.allvalues.section">All values</div>
     <div id="all-values">
       <div class="no-routes" id="all-values-empty" data-i18n="dash.allvalues.empty">Connect the scooter to see all values</div>
     </div>
+    </div><!-- /sect-allvals -->
 
     <!-- Bottom Spacer -->
     <div class="icon-16"></div>
   </div><!-- /scroller -->
+  <!-- Standard tile pool: Standard-tile DOM nodes park here while a custom theme is active.
+       display:none keeps it invisible; element IDs stay live so data-update getElementById calls work. -->
+  <div id="std-tile-pool"></div>
 </div><!-- /app -->
 
 <!-- ── Routes page ────────────────────────────────── -->
@@ -235,13 +264,16 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
   <button type="button" id="rb-stop" aria-label="Stop ride" data-i18n-aria="dash.ride.stop" data-i18n="dash.ride.stop">Stop ride</button>
 </div>
 
-<!-- ── Settings Overlay ────────────────────────────── -->
-<div id="settings-overlay"></div>
+<!-- ── Settings page ───────────────────────────────── -->
 <div id="settings-sheet">
-  <div class="settings-topbar">
-    <h2 data-i18n="routes.settings.title">Settings</h2>
-    <button class="icon-btn" id="btn-close-settings" data-i18n="settings.close.symbol">&#10005;</button>
+  <div id="topbar">
+    <div class="tb-left">
+      <button class="icon-btn" id="btn-close-settings" aria-label="Back" data-i18n-aria="settings.connect.back.aria" data-i18n="settings.connect.back.symbol">&#8592;</button>
+    </div>
+    <span class="tb-title" data-i18n="routes.settings.title">Settings</span>
+    <div class="tb-right"><span class="tb-spacer"></span></div>
   </div>
+  <div id="settings-scroller">
 
   <div id="update-banners">
     <button type="button" id="upd-app" class="update-banner is-hidden">
@@ -365,7 +397,51 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <label class="toggle-label" for="toggle-fullscreen"></label>
       </div>
     </div>
-    <button id="btn-open-display" class="settings-btn mt-10"><span data-i18n="settings.display.colors.action">&#127912; Display settings</span></button>
+    <div class="settings-row mt-10">
+      <div class="settings-row-left">
+        <div class="settings-row-label" data-i18n="settings.streaming.label">Streaming-Icon</div>
+        <div class="settings-row-sublabel" data-i18n="settings.streaming.hint">📡-Button in der Topbar anzeigen</div>
+      </div>
+      <div class="toggle-wrap">
+        <input type="checkbox" class="toggle-input" id="toggle-streaming-btn">
+        <label class="toggle-label" for="toggle-streaming-btn"></label>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-left">
+        <div class="settings-row-label" data-i18n="settings.bottomnav.label">Navigation unten</div>
+        <div class="settings-row-sublabel" data-i18n="settings.bottomnav.hint">Menüleiste unten statt oben rechts</div>
+      </div>
+      <div class="toggle-wrap">
+        <input type="checkbox" class="toggle-input" id="toggle-bottom-nav">
+        <label class="toggle-label" for="toggle-bottom-nav"></label>
+      </div>
+    </div>
+    <div id="bb-shortcut-rows">
+      <div class="settings-row-sublabel note-gap" data-i18n="settings.bottomnav.sc.hint">Scooter-Buttons erst sichtbar nach Verbinden</div>
+      <div class="settings-row mt-6">
+        <div class="settings-row-left">
+          <div class="settings-row-label" data-i18n="settings.bottomnav.left.label">Shortcut links</div>
+        </div>
+        <select class="set-ctrl" id="bb-left-sel"></select>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-left">
+          <div class="settings-row-label" data-i18n="settings.bottomnav.right.label">Shortcut rechts</div>
+        </div>
+        <select class="set-ctrl" id="bb-right-sel"></select>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-row-left">
+        <div class="settings-row-label" data-i18n="settings.dashlock.label">Lock dashboard</div>
+        <div class="settings-row-sublabel" data-i18n="settings.dashlock.hint">Long-press tile drag disabled when active</div>
+      </div>
+      <div class="toggle-wrap">
+        <input type="checkbox" class="toggle-input" id="toggle-dash-lock">
+        <label class="toggle-label" for="toggle-dash-lock"></label>
+      </div>
+    </div>
     <button id="btn-open-theme" class="settings-btn mt-10" data-i18n="theme.settings.action">&#127912; Theme manager</button>
   </div>
 
@@ -393,6 +469,8 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div class="settings-row-sublabel note-gap" data-i18n="settings.whatsnew.sub">What changed in this version</div>
     <button id="btn-version-info" data-i18n="settings.version.info.action">&#8505; Version Info &amp; Disclaimer</button>
   </div>
+
+  </div><!-- /settings-scroller -->
 </div>
 
 <!-- ── Connect page ───────────────────────────────── -->
@@ -481,31 +559,31 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       <div class="section-hdr sub-hdr" data-i18n="scooter.options.section.title">Options</div>
       <div class="settings-group pt-4">
         <div class="settings-row" id="ss-row-lock" data-cap="vlock">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.lock.label">Immobilizer</div><div class="settings-row-sublabel" data-i18n="scooter.opt.lock.sub">Lock the scooter electronically</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.lock">Anti-Theft</div><div class="settings-row-sublabel" data-i18n="scooter.opt.lock.sub">Lock the scooter electronically</div></div>
           <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-lock"><label class="toggle-label" for="ss-lock"></label></div>
         </div>
         <div class="settings-row" id="ss-row-battery" data-cap="battery">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.battery.label">Battery unlock</div><div class="settings-row-sublabel" data-i18n="scooter.opt.battery.sub">Release the battery lock</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.battery">Battery</div><div class="settings-row-sublabel" data-i18n="scooter.opt.battery.sub">Release the battery lock</div></div>
           <button id="ss-battery" class="route-gpx-btn" data-i18n="scooter.opt.battery.action">Unlock</button>
         </div>
         <div class="settings-row" id="ss-row-frontlight" data-cap="frontLight">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.frontlight.label">Front light</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.frontlight">Light</div></div>
           <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-frontlight"><label class="toggle-label" for="ss-frontlight"></label></div>
         </div>
         <div class="settings-row" id="ss-row-darkmode" data-cap="darkMode">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.darkmode.label">Dark mode</div><div class="settings-row-sublabel" data-i18n="scooter.opt.darkmode.sub">Scooter display dark mode</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.darkmode">Dark</div><div class="settings-row-sublabel" data-i18n="scooter.opt.darkmode.sub">Scooter display dark mode</div></div>
           <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-darkmode"><label class="toggle-label" for="ss-darkmode"></label></div>
         </div>
         <div class="settings-row" id="ss-row-zerostart" data-cap="zeroStart">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.zerostart.label">Zero-start</div><div class="settings-row-sublabel" data-i18n="scooter.opt.zerostart.sub">Start without kicking off</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.zerostart">Zero-Start</div><div class="settings-row-sublabel" data-i18n="scooter.opt.zerostart.sub">Start without kicking off</div></div>
           <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-zerostart"><label class="toggle-label" for="ss-zerostart"></label></div>
         </div>
         <div class="settings-row" id="ss-row-unit" data-cap="unit">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.unit.label">Unit: mph</div><div class="settings-row-sublabel" data-i18n="scooter.opt.unit.sub">Scooter display unit (off = km/h)</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.unit">Unit</div><div class="settings-row-sublabel" data-i18n="scooter.opt.unit.sub">Scooter display unit (off = km/h)</div></div>
           <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-unit"><label class="toggle-label" for="ss-unit"></label></div>
         </div>
         <div class="settings-row no-bottom-rule" id="ss-row-indicator" data-cap="indicator">
-          <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.opt.indicator.label">Indicator light</div></div>
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="dash.drive.quick.indicator">Indicator</div></div>
           <div class="toggle-wrap"><input type="checkbox" class="toggle-input" id="ss-indicator"><label class="toggle-label" for="ss-indicator"></label></div>
         </div>
       </div>
@@ -788,9 +866,9 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <button type="button" id="btn-theme-import" class="settings-btn" data-i18n="theme.import.action">&#8682; Import theme (.zip)</button>
     <p class="settings-row-sublabel m-6-0-2" data-i18n="theme.import.hint">Pick a single .zip file - one zip = one theme.</p>
     <div id="theme-list"></div>
-    <div id="tile-editor" style="display:none"></div>
-    <div id="btn-row-editor" style="display:none"></div>
-    <div id="style-editor" style="display:none"></div>
+    <div id="tile-editor"></div>
+    <div id="btn-row-editor"></div>
+    <div id="style-editor"></div>
     <button type="button" id="btn-open-guide" class="settings-btn settings-btn-secondary" data-i18n="theme.guide.btn">&#128196; Theme creation guide</button>
   </div>
 </div>
@@ -807,6 +885,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
   <div id="guide-scroller">
     <div id="guide-body"></div>
   </div>
+  <button id="guide-totop" class="guide-totop" aria-hidden="true" data-i18n-aria="theme.guide.totop.aria">&#8679;</button>
 </div>
 
 <!-- ── Version Info & Disclaimer modal ─────────────── -->
@@ -1105,45 +1184,79 @@ function hexToHsl(hex) {
   return { h: h, s: s * 100, l: l * 100 };
 }
 
-function applyDisplay() {
-  const cfg = loadDisplayCfg();
-  const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-  const c = cfg[theme];
-  const root = document.documentElement;
-  root.style.setProperty('--card', c.card);
-  root.style.setProperty('--bg', c.bg);
-  const t = displayTextColors(theme, c.lum);
-  root.style.setProperty('--text', t.text);
-  root.style.setProperty('--label', t.label);
+// ── Bottom navigation bar ────────────────────────────────────
+var BB_SHORTCUTS = {
+  'none':       { label: '',         labelKey: 'settings.bottomnav.sc.none' },
+  'connect':    { label: 'Connect',  labelKey: 'settings.bottomnav.sc.connect', action: function() { openConnectPage(); } },
+  'theme':      { label: 'Theme',    labelKey: 'settings.bottomnav.sc.theme',   action: function() { openThemePage(); } },
+  'routes':     { label: 'Routes',   labelKey: 'settings.bottomnav.sc.routes',  action: function() { renderRoutes(); document.getElementById('routes-page').classList.add('open'); } },
+  'navigation': { label: 'Nav',      labelKey: 'settings.bottomnav.sc.nav',     action: function() { if (window.LB && LB.openNavigation) LB.openNavigation(); else showToast(t('msg.app.only.in.app')); } },
+};
 
-  // The same slider dims the coloured readouts: one brightness control for the whole screen.
-  // 100 leaves the palette exactly as designed; lower values pull every coloured readout towards
-  // the background, dark mode downwards and light mode upwards.
-  const a = Math.max(0, Math.min(100, Number(c.lum)));
-  const k = 0.35 + 0.65 * (a / 100);
-  const base = DISPLAY_ACCENTS[theme];
-  Object.keys(base).forEach(name => {
-    const hsl = hexToHsl(base[name]);
-    if (!hsl) return;
-    const l = theme === 'dark' ? hsl.l * k : 100 - (100 - hsl.l) * k;
-    root.style.setProperty('--' + name, `hsl(${hsl.h.toFixed(0)} ${hsl.s.toFixed(0)}% ${l.toFixed(1)}%)`);
+// Static sf scooter shortcuts - immune to theme HTML injection.
+// Action calls toggleDriveQuick directly (no DOM element needed).
+// Filter: all visible before connect; only capability-supported after.
+function _bbDashShortcuts() {
+  var result = [];
+  document.querySelectorAll('[data-bb-shortcut]').forEach(function(el) {
+    // Exclude elements that are structurally absent (e.g. inside a hidden theme section) or
+    // capability-hidden (a control the connected model does not support -> .is-hidden).
+    if (!el.isConnected || el.classList.contains('is-hidden')) return;
+    var key = el.dataset.bbShortcut;
+    result.push({
+      key: key,
+      label: el.dataset.bbLabel || el.textContent.trim(),
+      el: el
+    });
   });
+  return result;
 }
 
-// Push the rider's tile font sizes onto :root as CSS custom properties, then re-fit the fold so the
-// layout adapts. A key that is not set is removed, so the stylesheet falls back to the built-in size.
-function applyFontSizes() {
-  const f = loadDisplayCfg().fonts || {};
-  const root = document.documentElement;
-  FONT_META.forEach(m => {
-    if (f[m.key] != null) {
-      const px = Math.max(m.min, Math.min(m.max, Number(f[m.key]) || m.def));
-      root.style.setProperty(m.varName, px + 'px');
-    } else {
-      root.style.removeProperty(m.varName);
-    }
+function applyBottomShortcuts() {
+  var lKey = (typeof storage !== 'undefined' ? storage.get('lb_bb_left') : null) || 'none';
+  var rKey = (typeof storage !== 'undefined' ? storage.get('lb_bb_right') : null) || 'none';
+  // Build a merged lookup: fixed + currently visible scooter buttons
+  var allSc = {};
+  Object.keys(BB_SHORTCUTS).forEach(function(k) { allSc[k] = BB_SHORTCUTS[k]; });
+  _bbDashShortcuts().forEach(function(d) {
+    allSc[d.key] = { label: d.label, action: function() { d.el.click(); } };
   });
-  try { scheduleFitFold(); } catch (e) {}
+  function wire(btnId, key) {
+    var btn = document.getElementById(btnId);
+    if (!btn) return;
+    var sc = allSc[key] || BB_SHORTCUTS['none'];
+    btn.textContent = sc.label || '';
+    btn.style.visibility = sc.label ? 'visible' : 'hidden';
+    btn.onclick = sc.action || null;
+  }
+  wire('bb-btn-left', lKey);
+  wire('bb-btn-right', rKey);
+}
+
+function applyBottomNav(enabled) {
+  document.body.classList.toggle('bottom-nav-active', !!enabled);
+  var bb = document.getElementById('bottombar');
+  if (bb) bb.style.display = enabled ? 'flex' : 'none';
+  var rows = document.getElementById('bb-shortcut-rows');
+  if (rows) rows.style.display = enabled ? 'block' : 'none';
+  if (enabled) applyBottomShortcuts();
+  try { scheduleFitFold(); } catch(e) {}
+}
+
+function applySrtVisibility(show) {
+  var btn = document.getElementById('btn-streaming');
+  if (btn) btn.style.display = show ? '' : 'none';
+}
+
+// The theme engine owns the palette and the tile font sizes: injectThemeVars() resolves them per
+// active theme (style-editor override > theme default > DEFAULT_CSS_VARS) and re-fits the fold.
+// Both entry points stay so existing callers (applyTheme, the display page, startup) keep working.
+function applyDisplay() {
+  injectThemeVars();
+}
+
+function applyFontSizes() {
+  injectThemeVars();
 }
 
 function initDisplayPage() {
@@ -1523,9 +1636,11 @@ function updateBLEUI(data) {
   document.querySelector('.ble-drum .sd-unit').textContent = speedUnit();
   document.querySelector('.gps-drum .sd-unit').textContent = speedUnitGPS();
 
-  const DASH = ['ble-speed','soc-val','mode-val','dg-current','dg-avg','dg-max',
+  const DASH = ['ble-speed','soc-val','mode-val','current-val','dg-current','dg-avg','dg-max',
     'dg-volt','dg-total','dg-rssi','dg-err',
-    'tl-volt','tl-power','tl-energy','tl-total','tl-error','tl-lock'];
+    'tl-volt','tl-power','tl-energy','tl-total','tl-error','tl-lock',
+    // Custom-theme fold slots filled with SoFlow values (present only in Teverun-shaped themes).
+    'gear-val','mr-temp','mf-temp','m-power','mr-cur','mf-cur','m-total-cur'];
 
   if (!data) {
     DASH.forEach(id => setTxt(id, '-'));
@@ -1573,6 +1688,9 @@ function updateBLEUI(data) {
   // Hero: battery %, ride mode, pack current.
   setTxt('soc-val', Math.round(data.battery));
   setTxt('mode-val', data.modeText ? modeLabel(data.modeText) : (data.mode >= 0 ? String(data.mode) : '-'));
+  // Pack current for themes that carry a hero current cell (current-val); native hero has no such
+  // cell, so setTxt is a no-op there. Same source as the Vehicle grid's dg-current.
+  setTxt('current-val', isNaN(data.current) ? '-' : data.current.toFixed(1));
 
   // Live tiles: voltage, power, trip / total, error, lock.
   setTxt('tl-volt', data.voltage.toFixed(1));
@@ -1595,6 +1713,17 @@ function updateBLEUI(data) {
   if (rssiEl) rssiEl.style.color = data.rssi < -85 ? 'var(--danger)' : data.rssi < -70 ? 'var(--warn)' : 'var(--good)';
   setTxt('dg-err', errStr);
   const dgErrEl = document.getElementById('dg-err'); if (dgErrEl) dgErrEl.style.color = data.error ? 'var(--danger)' : '';
+
+  // Custom (Teverun-shaped) theme fold slots: the app fills the theme's own cell ids with real SoFlow
+  // values; applyThemeTelemetry() has already relabelled them (Mode/Voltage/Power/Energy/Total/Trip/
+  // Lock). Native/Default carries none of these ids, so setTxt is a harmless no-op there.
+  setTxt('gear-val', data.modeText ? modeLabel(data.modeText) : (data.mode >= 0 ? String(data.mode) : '-'));
+  setTxt('mr-temp', data.voltage.toFixed(1));
+  setTxt('mf-temp', Math.round(data.power));
+  setTxt('m-power', isNaN(data.energy) ? '-' : Math.round(data.energy));
+  setTxt('mr-cur', Math.round(convDist(data.totalKm)));
+  setTxt('mf-cur', isNaN(data.tripKm) ? '-' : Math.round(convDist(data.tripKm)));
+  setTxt('m-total-cur', (data.locked === true) ? t('msg.lock.locked') : (data.locked === false) ? t('msg.lock.open') : '-');
 
   // All values (SoFlow streams no cell/BMS arrays, so this stays empty).
   renderAllValues(data);
@@ -1623,7 +1752,8 @@ function tickBLE() {
   updateRideUI();
   // Mirror the SoFlow quick toggles onto the scooter state (~2x/s).
   reflectDriveQuick();
-  updateThemeHooks(data);
+  // A malformed theme hook must never abort the rest of the telemetry update.
+  try { updateThemeHooks(data); } catch (e) {}
   // Keep the scooter-settings page live while it is open.
   maybeLiveRefreshScooterSettings();
 }
@@ -2186,6 +2316,7 @@ function loadSettings() {
   const mphVal = storage.get('lb_units');
   state.useMph = mphVal === 'mph';
   document.getElementById('toggle-mph').checked = state.useMph;
+  document.documentElement.classList.toggle('lb-mph', state.useMph);
 
   // GPS auto
   const gpsAuto = storage.get('lb_gps_auto');
@@ -2342,12 +2473,11 @@ function stopSrtStream() {
 }
 
 function openSettings() {
-  document.getElementById('settings-overlay').classList.add('open');
   document.getElementById('settings-sheet').classList.add('open');
+  if (window._repopulateBbSelects) _repopulateBbSelects();
 }
 
 function closeSettings() {
-  document.getElementById('settings-overlay').classList.remove('open');
   document.getElementById('settings-sheet').classList.remove('open');
 }
 
@@ -2396,6 +2526,16 @@ function applyLang() {
   document.querySelectorAll('#lang-switch button').forEach(b => {
     b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
   });
+  // Tile labels stored in data-tile-label must follow the active language.
+  document.querySelectorAll('[data-i18n-tile-label]').forEach(n => {
+    const v = t(n.getAttribute('data-i18n-tile-label'));
+    if (v) n.dataset.tileLabel = v;
+  });
+  // Re-render the theme page editors if open so editor strings update immediately.
+  try {
+    var _tp = document.getElementById('theme-page');
+    if (_tp && _tp.classList.contains('open')) renderThemeList();
+  } catch(e) {}
   // Text the script owns: refresh the model banner + the cap-gated sections.
   try { applyModelUi(liveRaw().model); } catch (e) {}
   try { applyCaps(); } catch (e) {}
@@ -2746,9 +2886,11 @@ function applyCaps() {
   showEls('ss-options-section', optRows.some(capOn));
   // Main-screen quick toggles: always visible (greyed until connected, like navee). Only hide a
   // button once connected AND the connected model reports it unsupported.
-  document.querySelectorAll('#drive-quick .dq-btn[data-cap]').forEach(btn => {
+  document.querySelectorAll('#quick-grid .dq-btn[data-cap]').forEach(btn => {
     btn.classList.toggle('is-hidden', _connectedState && !capOn(btn.getAttribute('data-cap')));
   });
+  // Themed quick-grid: re-run the driver control filter so theme buttons track the connected caps.
+  if (_themeActive && _themeActive !== 'Default') applyThemeControlCaps();
   // Telemetry tiles: show only the values the connected model actually reports. Never invent a value
   // a scooter does not send (e.g. current/power on the display-based models). Full set shown until
   // connected, then trimmed to the model.
@@ -2903,6 +3045,7 @@ function renderErrorReports() {
 
 let _errTimer = null;
 function openErrorReports() {
+  closeSettings();
   renderErrorReports();
   document.getElementById('error-reports-page').classList.add('open');
   clearInterval(_errTimer);
@@ -3131,6 +3274,7 @@ function renderRideLog() {
 
 let _infoTimer = null;
 function openInfoPage() {
+  closeSettings();
   renderInfoPage();
   renderRideLog();                                  // toggle state + last-3-rides list, refreshed on open
   document.getElementById('info-page').classList.add('open');
@@ -3193,6 +3337,7 @@ function renderBatteryPage() {
 
 let _batteryTimer = null;
 function openBatteryPage() {
+  closeSettings();
   renderBatteryPage();
   document.getElementById('battery-page').classList.add('open');
   clearInterval(_batteryTimer);
@@ -3478,6 +3623,8 @@ function wireScooterSettings() {
    Same bridge methods as the scooter-settings options, sent immediately. Each button is shown only
    when its capability is supported (applyCaps) and greyed until connected. */
 let _zeroStartOn = false;
+let _indicatorOn = false;
+let _scooterUnitMph = false;
 
 function toggleDriveQuick(key) {
   if (!ssGuard()) return;
@@ -3492,22 +3639,39 @@ function toggleDriveQuick(key) {
     } else if (key === 'zeroStart') {
       _zeroStartOn = !_zeroStartOn;
       LB.setZeroStart(_zeroStartOn);
+    } else if (key === 'mode') {
+      // Ride mode eco(0) -> normal(1) -> sport(2) -> eco. setSpeedMode(0xA3).
+      const next = ((typeof d.mode === 'number' && d.mode >= 0 ? d.mode : -1) + 1) % 3;
+      LB.setSpeedMode(next);
+      if (typeof setSegActive === 'function') { try { setSegActive('#ss-mode-seg', next); } catch (e) {} }
+      showToast(t(next === 0 ? 'scooter.mode.eco' : next === 1 ? 'scooter.mode.normal' : 'scooter.mode.sport'), 2000);
+    } else if (key === 'indicator') {
+      _indicatorOn = !_indicatorOn;
+      LB.setIndicator(_indicatorOn);
+    } else if (key === 'unit') {
+      _scooterUnitMph = !_scooterUnitMph;
+      LB.setUnit(_scooterUnitMph);
+    } else if (key === 'battery') {
+      LB.batteryUnlock();
+      showToast(t('msg2.battery.toast.unlocked'), 2000);
     }
   } catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
 }
 
 // Mirror the scooter state onto the quick buttons (called every tickBLE).
 function reflectDriveQuick() {
-  const wrap = document.getElementById('drive-quick');
+  const wrap = document.getElementById('quick-grid');
   if (!wrap) return;
   const connected = !!state.bleConnected;
-  wrap.classList.toggle('dq-disabled', !connected);
+  wrap.classList.toggle('qg-disabled', !connected);
   const d = liveRaw();
   const on = {
     frontLight: (d.headlight === true),
     darkMode: (d.darkMode === true),
     lock: (d.locked === true),
-    zeroStart: _zeroStartOn
+    zeroStart: _zeroStartOn,
+    indicator: _indicatorOn,
+    unit: _scooterUnitMph
   };
   wrap.querySelectorAll('.dq-btn[data-dq]').forEach(btn => {
     btn.classList.toggle('active', connected && !!on[btn.dataset.dq]);
@@ -3526,14 +3690,8 @@ function reflectDriveQuick() {
    on the right value. */
 
 const FOLD_MIN_SCALE = 0.55;   // below this the labels stop being readable, so allow a scroll instead
-const FOLD_MAX_SCALE = 1.35;   // the font MAY grow to fill a tall screen, but only up to this cap
-                               // (effective max value size ~= 32px CSS * 1.35). Beyond the cap the
-                               // leftover height is shared out as row spacing (space-between), so text
-                               // never balloons the way the old 2.6 cap let it.
-const FOLD_BOTTOM_GAP = 10;    // breathing room between the last button row and the screen edge
-const FOLD_BASE_GAP = 10;      // the CSS --gap: the minimum row gap
-const FOLD_MAX_GAP = 34;       // the row gap never grows past this: tiles scale to fill, the leftover
-                               // tops up the gap only to here, so gaps stay a defined size not a void
+const FOLD_MAX_SCALE = 1.5;    // above this the tiles look inflated on a tall screen
+const FOLD_BOTTOM_GAP = 5;     // breathing room between the last button row and the screen edge
 
 let _foldScale = 0;            // last applied factor, 0 = never fitted
 
@@ -3545,37 +3703,35 @@ function fitFold() {
 
   const cs = getComputedStyle(scroller);
   // clientHeight includes the padding box; the fold starts below the top padding and its bottom
-  // edge is meant to sit on the screen edge, so only the top padding comes off.
-  const avail = scroller.clientHeight - parseFloat(cs.paddingTop || '0') - FOLD_BOTTOM_GAP;
+  // edge must sit at the top edge of the bottom bar (or the screen edge when the bar is hidden).
+  const bbEl = document.getElementById('bottombar');
+  const bbH = (bbEl && getComputedStyle(bbEl).display !== 'none') ? (bbEl.offsetHeight || 0) : 0;
+  const avail = scroller.clientHeight - parseFloat(cs.paddingTop || '0') - FOLD_BOTTOM_GAP - bbH;
   if (!(avail > 0)) return;
 
-  // Measure the natural content height at the base row gap, then derive the scale factor. Scaling up
-  // is allowed (tiles grow to fill) but capped at FOLD_MAX_SCALE so the font never balloons.
+  // offsetHeight is the LAYOUT height and ignores the transform, so the factor can be recomputed
+  // without first removing the one already applied.
   let scale = _foldScale || 1;
-  let natural = 0;
   for (let pass = 0; pass < 2; pass++) {
     inner.style.width = (100 / scale) + '%';
-    inner.style.rowGap = FOLD_BASE_GAP + 'px';
-    natural = inner.offsetHeight;
+    const natural = inner.offsetHeight;
     if (!(natural > 0)) return;
     scale = Math.max(FOLD_MIN_SCALE, Math.min(FOLD_MAX_SCALE, avail / natural));
   }
 
+  // Already there: rewriting the same values would resize the observed children again, and a
+  // factor that lands either side of a text-wrap boundary could then oscillate forever.
+  if (Math.abs(scale - _foldScale) < 0.005) {
+    inner.style.width = (100 / _foldScale) + '%';
+    return;
+  }
   _foldScale = scale;
   inner.style.width = (100 / scale) + '%';
   inner.style.transform = 'scale(' + scale + ')';
-  // After scaling the tiles, top up the row gap to fill the leftover height - but only up to
-  // FOLD_MAX_GAP, so on a very tall screen the gaps stay a defined size instead of opening into a
-  // void. Count only the visible rows (hidden tiles are not flex items).
-  let visible = 0;
-  for (let i = 0; i < inner.children.length; i++) {
-    if (inner.children[i].offsetParent !== null) visible++;
-  }
-  const boundaries = Math.max(1, visible - 1);
-  const leftover = Math.max(0, (avail / scale) - natural);          // unscaled px still to fill
-  const gap = Math.min(FOLD_MAX_GAP, FOLD_BASE_GAP + leftover / boundaries);
-  inner.style.rowGap = gap + 'px';
-  fold.style.height = Math.round(avail) + 'px';
+  // Never shorter than the screen: when the factor runs into the upper cap the scaled block
+  // stops short of the bottom edge, and the next section's heading would peek in. Claiming the
+  // full height keeps everything after the fold below the edge either way.
+  fold.style.height = Math.round(Math.max(avail, inner.offsetHeight * scale)) + 'px';
 }
 
 /* Re-fit whenever the viewport or the fold's own content changes (a gear tag appearing, a
@@ -3616,37 +3772,106 @@ function initFold() {
 // group: 'dark'|'light'|'accents'|'fonts' drives section headers in renderStyleEditor.
 const DEFAULT_CSS_VARS = {
   // Dark mode colours
-  '--dark-card': { label: 'Kachel-HG',    type: 'color', default: '#111420', group: 'dark'    },
-  '--dark-bg':   { label: 'Hintergrund',  type: 'color', default: '#0A0C10', group: 'dark'    },
-  '--dark-lum':  { label: 'Helligkeit',   type: 'range', default: 90, min: 0, max: 100,        group: 'dark'    },
+  '--dark-card':   { label: 'style.var.dark-card',   type: 'color', default: '#111420', group: 'dark'    },
+  '--dark-bg':     { label: 'style.var.dark-bg',     type: 'color', default: '#0A0C10', group: 'dark'    },
+  '--dark-border': { label: 'style.var.dark-border', type: 'color', default: '#1C2035', group: 'dark'    },
+  '--dark-text':   { label: 'style.var.dark-text',   type: 'color', default: '#E4EDF6', group: 'dark'    },
+  '--dark-label':  { label: 'style.var.dark-label',  type: 'color', default: '#C6D2E2', group: 'dark'    },
+  '--dark-lum':    { label: 'style.var.dark-lum',    type: 'range', default: 90, min: 0, max: 100,        group: 'dark'    },
   // Light mode colours
-  '--light-card': { label: 'Kachel-HG',  type: 'color', default: '#ffffff',  group: 'light'   },
-  '--light-bg':   { label: 'Hintergrund',type: 'color', default: '#e8edf5',  group: 'light'   },
-  '--light-lum':  { label: 'Helligkeit', type: 'range', default: 100, min: 0, max: 100,        group: 'light'   },
+  '--light-card':   { label: 'style.var.light-card',   type: 'color', default: '#ffffff',  group: 'light'   },
+  '--light-bg':     { label: 'style.var.light-bg',     type: 'color', default: '#e8edf5',  group: 'light'   },
+  '--light-border': { label: 'style.var.light-border', type: 'color', default: '#CDD5E4',  group: 'light'   },
+  '--light-text':   { label: 'style.var.light-text',   type: 'color', default: '#0A0D18',  group: 'light'   },
+  '--light-label':  { label: 'style.var.light-label',  type: 'color', default: '#0A0D18',  group: 'light'   },
+  '--light-lum':    { label: 'style.var.light-lum',    type: 'range', default: 100, min: 0, max: 100,        group: 'light'   },
   // Accent colours (applied in both modes; influence dark/light brightness automatically)
-  '--value':  { label: 'Werte-Farbe',      type: 'color', default: '#BCEB39', group: 'accents' },
-  '--ble':    { label: 'BLE-Speed-Farbe',  type: 'color', default: '#B8F020', group: 'accents' },
-  '--gps':    { label: 'GPS-Speed-Farbe',  type: 'color', default: '#3DB8FF', group: 'accents' },
-  '--good':   { label: 'Akzent/Gut-Farbe', type: 'color', default: '#1EE89A', group: 'accents' },
-  '--unlock': { label: 'Entsperrt-Farbe',  type: 'color', default: '#FF5050', group: 'accents' },
+  '--value':   { label: 'style.var.value',   type: 'color', default: '#BCEB39', group: 'accents' },
+  '--ble':     { label: 'style.var.ble',     type: 'color', default: '#B8F020', group: 'accents' },
+  '--gps':     { label: 'style.var.gps',     type: 'color', default: '#3DB8FF', group: 'accents' },
+  '--good':    { label: 'style.var.good',    type: 'color', default: '#1EE89A', group: 'accents' },
+  '--btnfill': { label: 'style.var.btnfill', type: 'color', default: '#B8F020', group: 'accents' },
+  '--warn':    { label: 'style.var.warn',    type: 'color', default: '#FFAA18', group: 'accents' },
+  '--danger':  { label: 'style.var.danger',  type: 'color', default: '#FF5050', group: 'accents' },
+  '--unlock':  { label: 'style.var.unlock',  type: 'color', default: '#FF5050', group: 'accents' },
   // Font sizes
-  '--sz-speed-val': { label: 'Speed-Wert',    type: 'number', default: 64, min: 20, max: 72, unit: 'px', group: 'fonts' },
-  '--sz-speed-lbl': { label: 'Speed-Label',   type: 'number', default: 14, min: 10, max: 40, unit: 'px', group: 'fonts' },
-  '--sz-hero-val':  { label: 'Hero-Wert',     type: 'number', default: 38, min: 10, max: 48, unit: 'px', group: 'fonts' },
-  '--sz-hero-lbl':  { label: 'Hero-Label',    type: 'number', default: 13, min: 10, max: 40, unit: 'px', group: 'fonts' },
-  '--sz-m1-top':    { label: 'Kachel1-Titel', type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
-  '--sz-m1-mid':    { label: 'Kachel1-Wert',  type: 'number', default: 32, min: 10, max: 48, unit: 'px', group: 'fonts' },
-  '--sz-m1-bot':    { label: 'Kachel1-Unit',  type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
-  '--sz-m2-top':    { label: 'Kachel2-Titel', type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
-  '--sz-m2-mid':    { label: 'Kachel2-Wert',  type: 'number', default: 32, min: 10, max: 48, unit: 'px', group: 'fonts' },
-  '--sz-m2-bot':    { label: 'Kachel2-Unit',  type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-speed-val': { label: 'style.var.sz-speed-val', type: 'number', default: 64, min: 20, max: 72, unit: 'px', group: 'fonts' },
+  '--sz-speed-lbl': { label: 'style.var.sz-speed-lbl', type: 'number', default: 14, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-hero-val':  { label: 'style.var.sz-hero-val',  type: 'number', default: 38, min: 10, max: 48, unit: 'px', group: 'fonts' },
+  '--sz-hero-lbl':  { label: 'style.var.sz-hero-lbl',  type: 'number', default: 13, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m1-top':    { label: 'style.var.sz-m1-top',    type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m1-mid':    { label: 'style.var.sz-m1-mid',    type: 'number', default: 32, min: 10, max: 48, unit: 'px', group: 'fonts' },
+  '--sz-m1-bot':    { label: 'style.var.sz-m1-bot',    type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m2-top':    { label: 'style.var.sz-m2-top',    type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
+  '--sz-m2-mid':    { label: 'style.var.sz-m2-mid',    type: 'number', default: 32, min: 10, max: 48, unit: 'px', group: 'fonts' },
+  '--sz-m2-bot':    { label: 'style.var.sz-m2-bot',    type: 'number', default: 12, min: 10, max: 40, unit: 'px', group: 'fonts' },
   // Tile min-heights (0 = natural content height; increase to make a tile taller)
-  '--tile-h-speed':   { label: 'Speed-Kachel',   type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
-  '--tile-h-hero':    { label: 'Hero-Kachel',     type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
-  '--tile-h-motors':  { label: 'Motor-Kachel',    type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+  '--tile-h-speed':   { label: 'style.var.tile-h-speed',   type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+  '--tile-h-hero':    { label: 'style.var.tile-h-hero',     type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+  '--tile-h-motors':  { label: 'style.var.tile-h-motors',   type: 'number', default: 0, min: 0, max: 400, unit: 'px', group: 'tiles' },
+  // Transparency: slider stores t (0=solid, 100=fully transparent); CSS var = OPACITY = 1 - t/100.
+  '--tile-alpha':  { label: 'style.var.tile-alpha',  type: 'range', default: 0, min: 0, max: 100, unit: '%', group: 'tiles' },
+  '--btn-alpha':   { label: 'style.var.btn-alpha',   type: 'range', default: 0, min: 0, max: 100, unit: '%', group: 'tiles' },
+  '--gauge-alpha': { label: 'style.var.gauge-alpha', type: 'range', default: 0, min: 0, max: 100, unit: '%', group: 'tiles' },
 };
 
 let _themeActive = '';   // mirrors prefs at page-load and after activate/reload
+var _themeScope = 'fold'; // 'fold' = injects into #fold-inner; 'full' = replaces #scroller
+
+/* ── Android back-button navigation ─────────────────────────────────────
+   LB.setCanGoBack(bool) tells the native side whether a back press should
+   navigate within the WebView (true) or exit the app (false).
+   window.__navBack() is called by MainActivity when canGoBack is true;
+   it closes the topmost open page/overlay and returns immediately. */
+var _navCanGoBack = false;
+function _updateNavState() {
+  var open = false;
+  if (!open && avHelpModal && avHelpModal.classList && avHelpModal.classList.contains('open')) open = true;
+  if (!open) {
+    ['confirm-overlay','whatsnew-overlay','verinfo-overlay','disclaimer-overlay',
+     'guide-page','battery-page','error-reports-page','info-page',
+     'scooter-page','connect-page','theme-page','display-page','routes-page',
+     'streaming-page','settings-sheet'].some(function(id) {
+      var el = document.getElementById(id);
+      if (el && el.classList.contains('open')) { open = true; return true; }
+    });
+  }
+  if (open === _navCanGoBack) return;
+  _navCanGoBack = open;
+  try { if (typeof LB !== 'undefined' && LB.setCanGoBack) LB.setCanGoBack(open); } catch(e) {}
+}
+window.__navBack = function() {
+  // Modals / overlays (deepest first)
+  if (avHelpModal && avHelpModal.classList.contains('open')) { closeAvHelp(); return; }
+  var overlayMap = [
+    ['confirm-overlay',    function() { document.getElementById('confirm-overlay').classList.remove('open'); }],
+    ['whatsnew-overlay',   closeWhatsNew],
+    ['verinfo-overlay',    closeVersionInfo],
+    ['disclaimer-overlay', function() { if (!disclaimerIsAsking()) closeDisclaimer(); }],
+  ];
+  for (var i = 0; i < overlayMap.length; i++) {
+    var el = document.getElementById(overlayMap[i][0]);
+    if (el && el.classList.contains('open')) { overlayMap[i][1](); return; }
+  }
+  // Sub-pages first (deeper in the nav hierarchy), then top-level sheets
+  var pageMap = [
+    ['guide-page',         closeGuidePage],
+    ['battery-page',       closeBatteryPage],
+    ['error-reports-page', closeErrorReports],
+    ['info-page',          closeInfoPage],
+    ['scooter-page',       closeScooterPage],
+    ['connect-page',       closeConnectPage],
+    ['theme-page',         closeThemePage],
+    ['display-page',       closeDisplayPage],
+    ['routes-page',        function() { document.getElementById('routes-page').classList.remove('open'); }],
+    ['streaming-page',     function() { document.getElementById('streaming-page').classList.remove('open'); }],
+    ['settings-sheet',     closeSettings],
+  ];
+  for (var j = 0; j < pageMap.length; j++) {
+    var pe = document.getElementById(pageMap[j][0]);
+    if (pe && pe.classList.contains('open')) { pageMap[j][1](); return; }
+  }
+};
 
 function openThemePage() {
   document.getElementById('theme-page').classList.add('open');
@@ -3672,6 +3897,20 @@ function closeGuidePage() {
   document.getElementById('guide-page').classList.remove('open');
 }
 
+(function() {
+  var _gs = document.getElementById('guide-scroller');
+  var _gt = document.getElementById('guide-totop');
+  if (!_gs || !_gt) return;
+  _gs.addEventListener('scroll', function() {
+    var show = _gs.scrollTop > 200;
+    _gt.classList.toggle('guide-totop--visible', show);
+    _gt.setAttribute('aria-hidden', show ? 'false' : 'true');
+  });
+  _gt.addEventListener('click', function() {
+    _gs.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
 function renderThemeList() {
   const list = document.getElementById('theme-list');
   if (!list) return;
@@ -3681,15 +3920,53 @@ function renderThemeList() {
   } catch (e) {}
   list.innerHTML = '';
   let activeCustomTheme = null;
+
+  // Single collapsible section wrapping all theme rows
+  const toggle = document.createElement('div');
+  toggle.className = 'theme-list-toggle open';
+  const toggleLabel = document.createElement('span');
+  toggleLabel.className = 'theme-list-toggle-label';
+  toggleLabel.textContent = t('theme.list.label') || 'Themes';
+  const chevron = document.createElement('span');
+  chevron.className = 'theme-list-chevron';
+  chevron.textContent = '▶';
+  toggle.appendChild(toggleLabel);
+  toggle.appendChild(chevron);
+
+  const body = document.createElement('div');
+  body.className = 'theme-list-body open';
+
+  toggle.addEventListener('click', () => {
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+  });
+
+  list.appendChild(toggle);
+  list.appendChild(body);
+
   themes.forEach(item => {
     const row = document.createElement('div');
     row.className = 'theme-row';
+
     const left = document.createElement('div');
     left.className = 'theme-row-left';
     const namEl = document.createElement('span');
     namEl.className = 'theme-name';
-    namEl.textContent = item.name;
+    namEl.textContent = item.name.replace(/\s+v\d+(\.\d+)*\s*$/i, '').trim() || item.name;
     left.appendChild(namEl);
+    if (item.name !== 'Default') {
+      try {
+        var _tmv = {};
+        if (typeof LB !== 'undefined' && LB.getThemeMeta)
+          _tmv = JSON.parse(LB.getThemeMeta(item.name) || '{}');
+        {
+          const verEl = document.createElement('span');
+          verEl.className = 'theme-version';
+          verEl.textContent = _tmv.version ? ('v' + _tmv.version) : 'none';
+          left.appendChild(verEl);
+        }
+      } catch(e) {}
+    }
     if (item.active) {
       const badge = document.createElement('span');
       badge.className = 'theme-active-badge';
@@ -3699,10 +3976,12 @@ function renderThemeList() {
       if (item.name !== 'Default') activeCustomTheme = item.name;
     }
     row.appendChild(left);
+
     const actions = document.createElement('div');
     actions.className = 'theme-row-actions';
     if (!item.active) {
       const btnAct = document.createElement('button');
+      btnAct.className = 'tm-btn-primary';
       btnAct.textContent = t('theme.action.activate');
       btnAct.addEventListener('click', () => activateTheme(item.name));
       actions.appendChild(btnAct);
@@ -3716,12 +3995,13 @@ function renderThemeList() {
       });
       actions.appendChild(btnExp);
       const btnDel = document.createElement('button');
+      btnDel.className = 'tm-btn-danger';
       btnDel.textContent = t('theme.action.delete');
       btnDel.addEventListener('click', () => confirmDeleteTheme(item.name));
       actions.appendChild(btnDel);
     }
     row.appendChild(actions);
-    list.appendChild(row);
+    body.appendChild(row);
   });
   // Show tile + style editors for the active theme (custom or Default)
   const editorTheme = activeCustomTheme || 'Default';
@@ -3740,9 +4020,9 @@ function activateTheme(name) {
 function renderTileEditor(themeName) {
   var el = document.getElementById('tile-editor');
   if (!el) return;
-  var tiles = Array.from(document.querySelectorAll('#scroller [data-tile-id]')).filter(function(t) { return !t.dataset.tileNoEditor; });
+  var tiles = Array.from(document.querySelectorAll('#scroller [data-tile-id]')).filter(function(t) { return !t.dataset.tileNoEditor && !t.dataset.capHidden; });
   if (tiles.length === 0) { el.style.display = 'none'; return; }
-  el.style.display = '';
+  el.style.display = 'block';
 
   var cfg = {};
   try {
@@ -3755,16 +4035,7 @@ function renderTileEditor(themeName) {
 
   el.innerHTML = '';
 
-  var resetBtn = document.createElement('button');
-  resetBtn.type = 'button';
-  resetBtn.className = 'tile-editor-reset-btn';
-  resetBtn.textContent = 'Alle einblenden';
-  resetBtn.addEventListener('click', function() {
-    el.querySelectorAll('.tile-toggle').forEach(function(cb) { cb.checked = true; });
-    _saveTileEditorState(themeName, el, order);
-  });
-  el.appendChild(resetBtn);
-
+  // Split tiles into fold-section (visible above fold) and scroll-section
   var foldEl = document.getElementById('fold');
   var foldMap = {};
   tiles.forEach(function(t) { if (foldEl && foldEl.contains(t)) foldMap[t.dataset.tileId] = true; });
@@ -3784,8 +4055,18 @@ function renderTileEditor(themeName) {
     lbl.className = 'tile-edit-lbl'; lbl.textContent = rowLabel;
     var handle = document.createElement('span');
     handle.className = 'tile-drag-handle'; handle.textContent = '≡';
-    handle.setAttribute('aria-label', 'Verschieben');
-    row.appendChild(cb); row.appendChild(lbl); row.appendChild(handle);
+    handle.setAttribute('aria-label', t('theme.drag.handle.aria'));
+    row.appendChild(cb); row.appendChild(lbl);
+    if (tile.dataset.tilePooled) {
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button'; removeBtn.className = 'tile-remove-btn';
+      removeBtn.textContent = '×'; removeBtn.title = t('theme.editor.remove.title');
+      (function(tileId) {
+        removeBtn.addEventListener('click', function() { _deactivatePoolTile(tileId, themeName); });
+      })(id);
+      row.appendChild(removeBtn);
+    }
+    row.appendChild(handle);
     el.appendChild(row);
     cb.addEventListener('change', function() { _saveTileEditorState(themeName, el, order); });
     _initEditorRowDrag(handle, row, el, order, themeName);
@@ -3794,7 +4075,9 @@ function renderTileEditor(themeName) {
   if (hasBothGroups) {
     var hdr1 = document.createElement('div');
     hdr1.className = 'theme-section-title';
-    hdr1.innerHTML = 'Fold-Kacheln <span class="theme-hint">- im Sichtfeld, lang drücken zum Sortieren</span>';
+    hdr1.textContent = t('theme.editor.section.fold');
+    var h1hint = document.createElement('span'); h1hint.className = 'theme-hint'; h1hint.textContent = ' - ' + t('theme.editor.section.fold.hint');
+    hdr1.appendChild(h1hint);
     el.appendChild(hdr1);
     order.forEach(function(id) {
       var tile = tiles.find(function(t) { return t.dataset.tileId === id; });
@@ -3802,7 +4085,9 @@ function renderTileEditor(themeName) {
     });
     var hdr2 = document.createElement('div');
     hdr2.className = 'theme-section-title';
-    hdr2.innerHTML = 'Scrollbereich <span class="theme-hint">- nach unten wischen</span>';
+    hdr2.textContent = t('theme.editor.section.scroll');
+    var h2hint = document.createElement('span'); h2hint.className = 'theme-hint'; h2hint.textContent = ' - ' + t('theme.editor.section.scroll.hint');
+    hdr2.appendChild(h2hint);
     el.appendChild(hdr2);
     order.forEach(function(id) {
       var tile = tiles.find(function(t) { return t.dataset.tileId === id; });
@@ -3811,13 +4096,76 @@ function renderTileEditor(themeName) {
   } else {
     var hdr = document.createElement('div');
     hdr.className = 'theme-section-title';
-    hdr.innerHTML = 'Kacheln <span class="theme-hint">- auf Dashboard lang drücken zum Sortieren</span>';
+    hdr.textContent = t('theme.editor.section.tiles');
+    var hhint = document.createElement('span'); hhint.className = 'theme-hint'; hhint.textContent = ' - ' + t('theme.editor.section.tiles.hint');
+    hdr.appendChild(hhint);
     el.appendChild(hdr);
     order.forEach(function(id) {
       var tile = tiles.find(function(t) { return t.dataset.tileId === id; });
       if (tile) _addTileRow(id, tile);
     });
   }
+
+  // "Available to add" section: catalog concepts whose pool tile(s) exist and aren't yet placed
+  var _pool = document.getElementById('std-tile-pool');
+  if (_pool) {
+    var _cfg2 = {};
+    try { if (typeof LB !== 'undefined' && LB.getTileConfig) _cfg2 = JSON.parse(LB.getTileConfig(themeName) || '{}'); } catch(e) {}
+    var _poolSrc = _cfg2.poolSources || {};
+    var _availCatalog = TILE_CATALOG.filter(function(concept) {
+      if (concept.sources) {
+        return concept.sources.some(function(s) { return _tileIsInPool(s.domId); });
+      }
+      return _tileIsInPool(concept.id);
+    });
+    if (_availCatalog.length > 0) {
+      var hdrAdd = document.createElement('div');
+      hdrAdd.className = 'theme-section-title';
+      hdrAdd.textContent = t('theme.editor.section.add');
+      var hdrAddHint = document.createElement('span'); hdrAddHint.className = 'theme-hint'; hdrAddHint.textContent = ' - ' + t('theme.editor.section.add.hint');
+      hdrAdd.appendChild(hdrAddHint);
+      el.appendChild(hdrAdd);
+      _availCatalog.forEach(function(concept) {
+        var row = document.createElement('div');
+        row.className = 'tile-editor-row tile-editor-add-row';
+        var lbl = document.createElement('span');
+        lbl.className = 'tile-edit-lbl'; lbl.textContent = _resolveVarLabel(concept.label);
+        row.appendChild(lbl);
+        var _srcSel = null;
+        if (concept.sources) {
+          var availSrc = concept.sources.filter(function(s) { return _tileIsInPool(s.domId); });
+          _srcSel = document.createElement('select');
+          _srcSel.className = 'tile-source-sel';
+          availSrc.forEach(function(s) {
+            var opt = document.createElement('option');
+            opt.value = s.val; opt.textContent = _resolveVarLabel(s.label);
+            if ((_poolSrc[concept.id] || 'ble') === s.val) opt.selected = true;
+            _srcSel.appendChild(opt);
+          });
+          row.appendChild(_srcSel);
+        }
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button'; addBtn.className = 'tile-add-btn'; addBtn.textContent = '+';
+        var _cid = concept.id, _sel = _srcSel;
+        addBtn.addEventListener('click', function() {
+          _activatePoolTile(_cid, _sel ? _sel.value : null, themeName);
+        });
+        row.appendChild(addBtn);
+        el.appendChild(row);
+      });
+    }
+  }
+
+  // "Show all" reset: one tap re-shows every hidden tile (checks all toggles, saves, applies live).
+  var resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.className = 'tile-editor-reset-btn';
+  resetBtn.textContent = t('theme.editor.tiles.show.all');
+  resetBtn.addEventListener('click', function() {
+    el.querySelectorAll('.tile-toggle').forEach(function(cb) { cb.checked = true; });
+    _saveTileEditorState(themeName, el, order);
+  });
+  el.appendChild(resetBtn);
 }
 
 function _saveTileEditorState(themeName, el, order) {
@@ -3825,14 +4173,19 @@ function _saveTileEditorState(themeName, el, order) {
   el.querySelectorAll('.tile-toggle').forEach(function(cb) {
     if (!cb.checked) hidden.push(cb.dataset.id);
   });
-  var cfg = JSON.stringify({ order: order.slice(), hidden: hidden });
+  // Preserve placements/poolEnabled/poolSources that the dashboard drag and the pool helpers manage
+  var existing = {};
+  try { if (typeof LB !== 'undefined' && LB.getTileConfig) existing = JSON.parse(LB.getTileConfig(themeName) || '{}'); } catch(e) {}
+  var cfg = JSON.stringify(Object.assign({}, existing, { order: order.slice(), hidden: hidden }));
   if (typeof LB !== 'undefined' && LB.saveTileConfig) LB.saveTileConfig(themeName, cfg);
   applyTileConfig();
 }
 
 /* ── Button-row configurator (per theme) ─────────────────────── */
-var _BTN_ROW_MAX = 8;
-var _BTN_ROW_DEFAULT = ['btn-dq-light', 'btn-dq-zero', 'btn-dq-lock'];
+// Default shows the FULL SoFlow control set (same contract shape as tr, which defaults to all 8 of
+// its theme buttons). With 8 visible, applyButtonRowConfig caps the grid at 4 columns -> 4+4 rows,
+// matching the theme's 4-per-row grid. The user can still hide some via the button-row editor.
+var _BTN_ROW_DEFAULT = ['btn-dq-light', 'btn-dq-zero', 'btn-dq-lock', 'btn-dq-dark', 'btn-dq-mode', 'btn-dq-ind', 'btn-dq-unit', 'btn-dq-bat'];
 
 function _getBtnRowConfig(theme) {
   var key = 'lb_btn_row_' + (theme || 'Default');
@@ -3844,18 +4197,47 @@ function _getBtnRowConfig(theme) {
   return _BTN_ROW_DEFAULT.slice();
 }
 
+function _saveBtnRowConfig(theme, cfg) {
+  var key = 'lb_btn_row_' + (theme || 'Default');
+  if (typeof storage !== 'undefined') storage.set(key, JSON.stringify(cfg));
+}
+
 function applyButtonRowConfig(theme) {
   var grid = document.getElementById('quick-grid');
   if (!grid) return;
   var cfg = _getBtnRowConfig(theme || _themeActive || 'Default');
+  var btns = {};
+  grid.querySelectorAll('[data-btn-id]').forEach(function(b) { btns[b.dataset.btnId] = b; });
+  cfg.forEach(function(id) { if (btns[id]) grid.appendChild(btns[id]); });
+
   var anyVisible = false, visCount = 0;
   grid.querySelectorAll('[data-btn-id]').forEach(function(b) {
     var visible = cfg.indexOf(b.dataset.btnId) >= 0;
     b.style.display = visible ? '' : 'none';
     if (visible) { anyVisible = true; visCount++; }
   });
+  if (!anyVisible) {
+    grid.querySelectorAll('[data-btn-id]').forEach(function(b) {
+      b.style.display = '';
+      anyVisible = true; visCount++;
+    });
+  }
   grid.style.display = anyVisible ? '' : 'none';
-  if (anyVisible) grid.style.gridTemplateColumns = 'repeat(' + visCount + ', 1fr)';
+  if (anyVisible) {
+    var cols = Math.min(visCount, 4);
+    var align = '';
+    try { align = (typeof storage !== 'undefined' ? storage.get('lb_btn_row_align') : '') || ''; } catch(e) {}
+    if (align === 'center') {
+      grid.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, auto))';
+      grid.style.justifyContent = 'center';
+    } else if (align === 'edges') {
+      grid.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, auto))';
+      grid.style.justifyContent = 'space-between';
+    } else {
+      grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+      grid.style.justifyContent = '';
+    }
+  }
 }
 
 function renderButtonRowEditor(theme) {
@@ -3865,51 +4247,198 @@ function renderButtonRowEditor(theme) {
   if (!grid) { el.style.display = 'none'; return; }
   var allBtns = Array.from(grid.querySelectorAll('[data-btn-id]'));
   if (allBtns.length === 0) { el.style.display = 'none'; return; }
-  el.style.display = '';
-  var cfg = _getBtnRowConfig(theme);
-  var atMax = cfg.length >= _BTN_ROW_MAX;
+  el.style.display = 'block';
+
+  var labelMap = {};
+  allBtns.forEach(function(b) {
+    labelMap[b.dataset.btnId] = b.dataset.bbLabel || b.textContent.trim();
+  });
+  var maxSlots = allBtns.length;
 
   el.innerHTML = '';
   var hdr = document.createElement('div');
   hdr.className = 'theme-section-title';
-  hdr.innerHTML = 'Quick Buttons <span class="theme-hint">- max. ' + _BTN_ROW_MAX + '</span>';
+  hdr.textContent = t('theme.btnrow.section');
   el.appendChild(hdr);
 
-  allBtns.forEach(function(btn) {
-    var id = btn.dataset.btnId;
-    var label = btn.dataset.bbLabel || btn.textContent.trim();
-    var checked = cfg.indexOf(id) >= 0;
-    var row = document.createElement('div');
-    row.className = 'tile-editor-row';
-    var cb = document.createElement('input');
-    cb.type = 'checkbox'; cb.className = 'tile-toggle';
-    cb.checked = checked;
-    if (!checked && atMax) cb.disabled = true;
-    var lbl = document.createElement('span');
-    lbl.className = 'tile-edit-lbl'; lbl.textContent = label;
-    row.appendChild(cb); row.appendChild(lbl);
-    el.appendChild(row);
+  function _rebuildSlotRows() {
+    el.querySelectorAll('.btn-slot-row, .btn-slot-add').forEach(function(r) { r.remove(); });
+    var cfg = _getBtnRowConfig(theme);
 
-    cb.addEventListener('change', function() {
-      var current = _getBtnRowConfig(theme);
-      if (cb.checked) {
-        if (current.length >= _BTN_ROW_MAX) { cb.checked = false; return; }
-        if (current.indexOf(id) < 0) current.push(id);
-      } else {
-        current = current.filter(function(x) { return x !== id; });
-      }
-      var key = 'lb_btn_row_' + (theme || 'Default');
-      if (typeof storage !== 'undefined') storage.set(key, JSON.stringify(current));
-      applyButtonRowConfig(theme);
-      var newAtMax = current.length >= _BTN_ROW_MAX;
-      el.querySelectorAll('.tile-toggle').forEach(function(c) {
-        if (!c.checked) c.disabled = newAtMax;
+    cfg.forEach(function(btnId, idx) {
+      var row = document.createElement('div');
+      row.className = 'tile-editor-row btn-slot-row';
+      row.dataset.id = btnId;
+
+      var sel = document.createElement('select');
+      sel.className = 'theme-sel btn-slot-sel';
+      allBtns.forEach(function(b) {
+        var opt = document.createElement('option');
+        opt.value = b.dataset.btnId;
+        opt.textContent = labelMap[b.dataset.btnId];
+        sel.appendChild(opt);
       });
+      sel.value = btnId;
+
+      var handle = document.createElement('span');
+      handle.className = 'tile-drag-handle'; handle.textContent = '≡';
+      handle.setAttribute('aria-label', t('theme.drag.handle.aria'));
+
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button'; delBtn.className = 'btn-slot-del'; delBtn.textContent = '×';
+      delBtn.addEventListener('click', function() {
+        var c = _getBtnRowConfig(theme);
+        c.splice(idx, 1);
+        _saveBtnRowConfig(theme, c);
+        applyButtonRowConfig(theme);
+        _rebuildSlotRows();
+      });
+
+      row.appendChild(handle); row.appendChild(sel); row.appendChild(delBtn);
+      el.appendChild(row);
+
+      sel.addEventListener('change', function() {
+        var c = _getBtnRowConfig(theme);
+        c[idx] = sel.value;
+        _saveBtnRowConfig(theme, c);
+        applyButtonRowConfig(theme);
+      });
+
+      var order = _getBtnRowConfig(theme);
+      _initBtnSlotDrag(handle, row, el, order, theme);
     });
+
+    if (cfg.length < maxSlots) {
+      var addRow = document.createElement('div');
+      addRow.className = 'tile-editor-row btn-slot-add';
+      var addSel = document.createElement('select');
+      addSel.className = 'theme-sel btn-slot-add-sel';
+      var emptyOpt = document.createElement('option');
+      emptyOpt.value = ''; emptyOpt.textContent = t('theme.editor.add.placeholder');
+      addSel.appendChild(emptyOpt);
+      var usedIds = _getBtnRowConfig(theme);
+      allBtns.forEach(function(b) {
+        if (usedIds.indexOf(b.dataset.btnId) < 0) {
+          var opt = document.createElement('option');
+          opt.value = b.dataset.btnId;
+          opt.textContent = labelMap[b.dataset.btnId];
+          addSel.appendChild(opt);
+        }
+      });
+      addSel.addEventListener('change', function() {
+        if (!addSel.value) return;
+        var c = _getBtnRowConfig(theme);
+        if (c.indexOf(addSel.value) < 0 && c.length < maxSlots) {
+          c.push(addSel.value);
+          _saveBtnRowConfig(theme, c);
+          applyButtonRowConfig(theme);
+          _rebuildSlotRows();
+        }
+        addSel.value = '';
+      });
+      addRow.appendChild(addSel);
+      el.appendChild(addRow);
+    }
+  }
+
+  _rebuildSlotRows();
+
+  var alignHdr = document.createElement('div');
+  alignHdr.className = 'theme-section-title';
+  alignHdr.textContent = t('theme.btnrow.align.section');
+  var alignHint = document.createElement('span'); alignHint.className = 'theme-hint'; alignHint.textContent = ' - ' + t('theme.btnrow.align.section.hint');
+  alignHdr.appendChild(alignHint);
+  el.appendChild(alignHdr);
+
+  var alignRow = document.createElement('div');
+  alignRow.className = 'settings-row';
+  var alignSel = document.createElement('select');
+  alignSel.className = 'theme-sel';
+  [
+    ['fill', 'Verteilt (Reihe füllen)', 'settings.btnrow.align.fill'],
+    ['center', 'Zentriert', 'settings.btnrow.align.center'],
+    ['edges', 'Rand an Rand', 'settings.btnrow.align.edges']
+  ].forEach(function(opt) {
+    var o = document.createElement('option');
+    o.value = opt[0]; o.textContent = opt[1]; o.setAttribute('data-i18n', opt[2]);
+    alignSel.appendChild(o);
+  });
+  var storedAlign = '';
+  try { storedAlign = (typeof storage !== 'undefined' ? storage.get('lb_btn_row_align') : '') || ''; } catch(e) {}
+  alignSel.value = storedAlign || 'fill';
+  alignRow.appendChild(alignSel);
+  el.appendChild(alignRow);
+
+  alignSel.addEventListener('change', function() {
+    if (typeof storage !== 'undefined') storage.set('lb_btn_row_align', alignSel.value);
+    applyButtonRowConfig(theme);
   });
 }
 
+/* Drag-reorder for button slots in the editor. */
+function _initBtnSlotDrag(handle, row, listEl, order, theme) {
+  var _edTarget = null;
+  handle.addEventListener('touchstart', function(e) {
+    e.stopPropagation();
+    row.classList.add('tile-drag-active');
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd, { once: true });
+  }, { passive: true });
+
+  function onMove(e) {
+    e.preventDefault();
+    var y = e.touches[0].clientY;
+    var rows = Array.from(listEl.querySelectorAll('.btn-slot-row')).filter(function(r) { return r !== row; });
+    rows.forEach(function(r) { r.classList.remove('tile-drop-above', 'tile-drop-below'); });
+    var best = null, bestDist = Infinity;
+    rows.forEach(function(r) {
+      var rect = r.getBoundingClientRect();
+      var mid = rect.top + rect.height / 2;
+      var d = Math.abs(y - mid);
+      if (d < bestDist) { bestDist = d; best = { el: r, above: y < mid }; }
+    });
+    if (best) best.el.classList.add(best.above ? 'tile-drop-above' : 'tile-drop-below');
+    _edTarget = best;
+  }
+
+  function onEnd() {
+    row.classList.remove('tile-drag-active');
+    document.removeEventListener('touchmove', onMove);
+    listEl.querySelectorAll('.tile-drop-above, .tile-drop-below').forEach(function(r) {
+      r.classList.remove('tile-drop-above', 'tile-drop-below');
+    });
+    if (_edTarget) {
+      var id = row.dataset.id;
+      var targetId = _edTarget.el.dataset.id;
+      var cfg = _getBtnRowConfig(theme);
+      var i = cfg.indexOf(id), ti = cfg.indexOf(targetId);
+      if (i >= 0 && ti >= 0 && i !== ti) {
+        cfg.splice(i, 1);
+        var ni = cfg.indexOf(targetId);
+        _edTarget.above ? cfg.splice(ni, 0, id) : cfg.splice(ni + 1, 0, id);
+        _saveBtnRowConfig(theme, cfg);
+        applyButtonRowConfig(theme);
+        renderButtonRowEditor(theme);
+      }
+    }
+    _edTarget = null;
+  }
+}
+
 /* ── Style editor (CSS variable overrides) ─────────────────── */
+// Read a CSS custom-property from the live document - returns the theme's actual value.
+// Used to seed editor defaults so they match the active theme, not the global fallback palette.
+function _readCssVar(varName) {
+  try {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    return v || null;
+  } catch(e) { return null; }
+}
+function _resolveVarLabel(label) {
+  if (!label) return label;
+  if (typeof label === 'object') { return label[lang] || label.en || Object.values(label)[0] || ''; }
+  return t(label);
+}
 function renderStyleEditor(themeName) {
   var el = document.getElementById('style-editor');
   if (!el) return;
@@ -3921,8 +4450,8 @@ function renderStyleEditor(themeName) {
       meta = JSON.parse(LB.getThemeMeta(themeName) || '{}');
     }
   } catch(e) {}
-  // All themes always use the full DEFAULT_CSS_VARS set (brightness, colors, fonts).
-  // Custom theme cssVars override Default definitions where they share a key.
+  // All themes always get the full DEFAULT_CSS_VARS set (fonts, brightness, tile heights, base colors).
+  // Custom theme cssVars add or override any key they declare; this is how themes expose their own tokens.
   var cssVars = {};
   Object.keys(DEFAULT_CSS_VARS).forEach(function(k) { cssVars[k] = DEFAULT_CSS_VARS[k]; });
   if (themeName !== 'Default') {
@@ -3931,7 +4460,7 @@ function renderStyleEditor(themeName) {
   }
   var keys = Object.keys(cssVars);
   if (keys.length === 0) { el.style.display = 'none'; return; }
-  el.style.display = '';
+  el.style.display = 'block';
 
   var saved = {};
   try {
@@ -3939,23 +4468,31 @@ function renderStyleEditor(themeName) {
       saved = JSON.parse(LB.getThemeVars(themeName) || '{}');
   } catch(e) {}
 
-  var _groupLabels = { dark: 'Dark Mode', light: 'Light Mode', accents: 'Akzentfarben', fonts: 'Schriftgrößen', tiles: 'Kachelgröße' };
+  var _groupLabels = { dark: 'style.group.dark', light: 'style.group.light', accents: 'style.group.accents', fonts: 'style.group.fonts', tiles: 'style.group.tiles' };
   var _lastGroup = null;
   el.innerHTML = '';
   keys.forEach(function(varName) {
     var def = cssVars[varName];
+    // Hide the gauge-transparency slider when the active theme has no gauge (e.g. Default).
+    if (varName === '--gauge-alpha' && !document.querySelector('#scroller .speed-drum svg, #scroller #speed-row svg')) return;
     if (def.group && def.group !== _lastGroup) {
       _lastGroup = def.group;
       var ghdr = document.createElement('div');
       ghdr.className = 'theme-section-title';
-      ghdr.textContent = _groupLabels[def.group] || def.group;
+      ghdr.textContent = t(_groupLabels[def.group]) || def.group;
       el.appendChild(ghdr);
     }
-    var current = saved[varName] !== undefined ? saved[varName] : (def.default !== undefined ? String(def.default) : '');
+    // Unsaved var: seed from what the active theme actually shows, not the global fallback palette.
+    // A colour input only takes #rrggbb, so a computed hsl()/rgb() value falls back to the default.
+    var live = _readCssVar(varName);
+    if (live && def.type === 'color' && !/^#[0-9a-fA-F]{6}$/.test(live)) live = null;
+    var current = saved[varName] !== undefined
+      ? String(saved[varName])
+      : (live || (def.default !== undefined ? String(def.default) : ''));
     var row = document.createElement('div');
     row.className = 'style-editor-row';
     var lbl = document.createElement('label');
-    lbl.className = 'style-var-lbl'; lbl.textContent = def.label || varName;
+    lbl.className = 'style-var-lbl'; lbl.textContent = _resolveVarLabel(def.label) || varName;
     row.appendChild(lbl);
 
     if (def.type === 'color') {
@@ -3983,37 +4520,32 @@ function renderStyleEditor(themeName) {
       })(numInp, def, unit);
       row.appendChild(numInp);
       if (unit) { var uSpan = document.createElement('span'); uSpan.className = 'style-var-unit'; uSpan.textContent = unit; row.appendChild(uSpan); }
-    } else if (def.type === 'range' && def.unit) {
-      var unit = def.unit;
-      var numInp2 = document.createElement('input');
-      numInp2.type = 'number';
-      numInp2.min = def.min !== undefined ? def.min : 1;
-      numInp2.max = def.max !== undefined ? def.max : 999;
-      numInp2.value = parseInt(current) || def.default || 16;
-      numInp2.className = 'style-var-num';
-      (function(inp, d, u) {
-        inp.addEventListener('change', function() {
-          var mn = d.min !== undefined ? d.min : 1;
-          var mx = d.max !== undefined ? d.max : 999;
-          var v = Math.max(mn, Math.min(mx, parseInt(inp.value) || d.default || 16));
-          inp.value = v;
-          _saveStyleVar(themeName, varName, v + u);
-        });
-      })(numInp2, def, unit);
-      row.appendChild(numInp2);
-      var uSpan2 = document.createElement('span'); uSpan2.className = 'style-var-unit'; uSpan2.textContent = unit; row.appendChild(uSpan2);
     } else if (def.type === 'range') {
       var unit = def.unit || '';
       var wrap = document.createElement('div');
       wrap.className = 'style-var-range-wrap';
       var rng = document.createElement('input');
       rng.type = 'range';
-      rng.min = def.min || 8; rng.max = def.max || 120;
-      rng.value = parseInt(current) || def.default || 16;
+      rng.min = def.min !== undefined ? def.min : 8;
+      rng.max = def.max !== undefined ? def.max : 120;
+      // Alpha vars: slider shows TRANSPARENCY t (0=solid, 100=see-through).
+      // Saved override: "50%" → parseInt → 50 (transparency). No override: CSS var is OPACITY
+      // 0-1 float → convert to transparency: t = (1 - opacity) * 100.
+      rng.value = (varName === '--tile-alpha' || varName === '--btn-alpha' || varName === '--gauge-alpha')
+        ? (saved[varName] !== undefined
+            ? (parseInt(current) || 0)
+            : Math.round((1 - (parseFloat(current) || 1)) * 100))
+        : (parseInt(current) || def.default || 16);
       rng.className = 'style-var-range';
       var valLbl = document.createElement('span');
       valLbl.className = 'style-var-val'; valLbl.textContent = rng.value + unit;
-      rng.addEventListener('input', function() { valLbl.textContent = rng.value + unit; });
+      rng.addEventListener('input', function() {
+        valLbl.textContent = rng.value + unit;
+        if (varName === '--tile-alpha' || varName === '--btn-alpha' || varName === '--gauge-alpha') {
+          var opacity = 1 - Math.max(0, Math.min(100, parseInt(rng.value) || 0)) / 100;
+          document.documentElement.style.setProperty(varName, String(opacity));
+        }
+      });
       rng.addEventListener('change', function() { _saveStyleVar(themeName, varName, rng.value + unit); });
       wrap.appendChild(rng); wrap.appendChild(valLbl);
       row.appendChild(wrap);
@@ -4021,8 +4553,9 @@ function renderStyleEditor(themeName) {
     el.appendChild(row);
   });
 
+  // Reset button
   var btnReset = document.createElement('button');
-  btnReset.textContent = 'Reset'; btnReset.className = 'style-reset-btn';
+  btnReset.textContent = t('style.editor.reset'); btnReset.className = 'style-reset-btn';
   btnReset.addEventListener('click', function() {
     if (typeof LB !== 'undefined' && LB.saveThemeVars) LB.saveThemeVars(themeName, '{}');
     injectThemeVars();
@@ -4047,6 +4580,9 @@ function confirmDeleteTheme(name) {
   document.getElementById('confirm-msg').textContent = name;
   state.confirmCb = () => {
     if (typeof LB !== 'undefined' && LB.deleteTheme) LB.deleteTheme(name);
+    // If the deleted theme was active, the injected HTML is still in the DOM.
+    // Reload to restore the native Default dashboard cleanly.
+    if (name === _themeActive) { location.reload(); return; }
     renderThemeList();
   };
   document.getElementById('confirm-overlay').classList.add('open');
@@ -4055,14 +4591,15 @@ function confirmDeleteTheme(name) {
 /* Fill data-lb attribute hooks in the currently-active theme HTML. Called every tick. */
 function updateThemeHooks(data) {
   if (!data) return;
+  var _themeQueryRoot = _themeScope === 'full' ? '#scroller' : '#fold-inner';
   // data-lb="key" -> textContent = data[key]
-  document.querySelectorAll('#fold-inner [data-lb]').forEach(el => {
+  document.querySelectorAll(_themeQueryRoot + ' [data-lb]').forEach(el => {
     const key = el.getAttribute('data-lb');
     const val = data[key];
     if (val !== undefined && val !== null) el.textContent = val;
   });
   // data-lb-state="key:class" -> toggle class based on truthy data[key]
-  document.querySelectorAll('#fold-inner [data-lb-state]').forEach(el => {
+  document.querySelectorAll(_themeQueryRoot + ' [data-lb-state]').forEach(el => {
     const spec = el.getAttribute('data-lb-state');
     const sep = spec.indexOf(':');
     if (sep < 0) return;
@@ -4072,11 +4609,124 @@ function updateThemeHooks(data) {
   });
 }
 
-/* Re-attach the triple-tap speed-unlock listener to [data-lb-action="speed-unlock"]
-   in the injected theme HTML. Called after theme injection. */
+/* Re-attach the triple-tap speed-unlock listener after theme injection.
+   Targets all [data-lb-action="speed-unlock"] elements (VCU + GPS drums). */
 function reattachSpeedUnlock() {
-  const el = document.querySelector('#fold-inner [data-lb-action="speed-unlock"]');
-  if (el) el.addEventListener('click', onVcuTileTap);
+  const root = _themeScope === 'full' ? '#scroller' : '#fold-inner';
+  document.querySelectorAll(root + ' [data-lb-action="speed-unlock"]').forEach(function(el) {
+    el.removeEventListener('click', onVcuTileTap);
+    el.addEventListener('click', onVcuTileTap);
+  });
+}
+
+/* The app owns the quick-control set (= the real SoFlow capabilities); a theme supplies ONLY the
+   skin (#quick-grid / .dq-btn CSS). This is the canonical SoFlow quick-bar - byte-for-byte the native
+   #quick-grid markup - injected into whatever #quick-grid a theme provides, so the FULL real SoFlow
+   control set shows in every theme, styled by the active theme, with one canonical label per function
+   from a single app i18n key. The same function then reads identically everywhere (quick-bar,
+   bottom-nav, shortcuts, settings) - e.g. always "Zero-Start", never a theme's "Kickstart" - and a
+   Teverun-shaped theme never collapses to a near-empty bar. */
+var _SF_QUICKBAR_HTML =
+  '<button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" data-btn-id="btn-dq-light" data-bb-shortcut="dq-light" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>' +
+  '<button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" data-btn-id="btn-dq-zero" data-bb-shortcut="dq-zero" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>' +
+  '<button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" data-btn-id="btn-dq-lock" data-bb-shortcut="dq-lock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>' +
+  '<button type="button" class="dq-btn" data-dq="darkMode" data-cap="darkMode" data-btn-id="btn-dq-dark" data-bb-shortcut="dq-dark" aria-label="Toggle dark mode" data-i18n-aria="dash.drive.quick.darkmode.aria" data-i18n="dash.drive.quick.darkmode">Dark</button>' +
+  '<button type="button" class="dq-btn" data-dq="mode" data-cap="mode" data-btn-id="btn-dq-mode" data-bb-shortcut="dq-mode" aria-label="Cycle ride mode" data-i18n-aria="dash.drive.quick.mode.aria" data-i18n="dash.drive.quick.mode">Mode</button>' +
+  '<button type="button" class="dq-btn" data-dq="indicator" data-cap="indicator" data-btn-id="btn-dq-ind" data-bb-shortcut="dq-ind" aria-label="Toggle BLE status light" data-i18n-aria="dash.drive.quick.indicator.aria" data-i18n="dash.drive.quick.indicator">Status light</button>' +
+  '<button type="button" class="dq-btn" data-dq="unit" data-cap="unit" data-btn-id="btn-dq-unit" data-bb-shortcut="dq-unit" aria-label="Toggle scooter display unit" data-i18n-aria="dash.drive.quick.unit.aria" data-i18n="dash.drive.quick.unit">Unit</button>' +
+  '<button type="button" class="dq-btn" data-dq="battery" data-cap="battery" data-btn-id="btn-dq-bat" data-bb-shortcut="dq-bat" aria-label="Unlock battery" data-i18n-aria="dash.drive.quick.battery.aria" data-i18n="dash.drive.quick.battery">Battery</button>';
+
+/* Re-attach the quick-toggle click handlers to the #quick-grid buttons. For a custom theme we first
+   replace the theme's own (Teverun-shaped) buttons with the app's SoFlow bar above; then wire every
+   button and capability-gate it. Called after theme injection (reattachSpeedUnlock()). */
+function reattachQuickGridHandlers() {
+  var grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  if (_themeActive && _themeActive !== 'Default') grid.innerHTML = _SF_QUICKBAR_HTML;
+  grid.querySelectorAll('.dq-btn[data-dq]').forEach(function(btn) {
+    btn.removeEventListener('click', btn._dqHandler);
+    btn._dqHandler = function() { toggleDriveQuick(btn.dataset.dq); };
+    btn.addEventListener('click', btn._dqHandler);
+  });
+  // Apply the per-theme button-row config to the freshly injected buttons (defaults to all 8 -> the
+  // theme's 4-per-row grid), then capability-gate, then (re)bind long-press reorder.
+  try { applyButtonRowConfig(); } catch(e) {}
+  try { initBtnDrag(); } catch(e) {}
+  applyThemeControlCaps();
+}
+
+/* Capability-gate the SoFlow quick-bar: a control is greyed until connected and hidden only once
+   connected AND the connected model reports it unsupported (identical to the native bar, applyCaps). */
+function applyThemeControlCaps() {
+  var grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  grid.querySelectorAll('.dq-btn[data-cap]').forEach(function(btn) {
+    btn.classList.toggle('is-hidden', _connectedState && !capOn(btn.getAttribute('data-cap')));
+  });
+}
+
+/* The app OWNS the telemetry set (like the controls); a custom (Teverun-shaped) theme supplies only
+   the fold LAYOUT (gauge + hero + two 3-cell rows). The app fills every fold telemetry slot with a
+   real SoFlow live value AND its correct SoFlow label, so the FULL SoFlow set shows in the theme's
+   exact layout - same tile count/size/arrangement as tr, so the gauge keeps its tr size - and no
+   Teverun-only field appears. The values are written to the theme's own cell ids by updateBLEUI
+   (Default/native has no these ids, so those writes are no-ops there and never collide). Below the
+   fold the Teverun-only / now-duplicate grid tiles are dropped. Each slot maps a theme data-cell-id to
+   the label to show; the value id is the cell's own (gear-val / mr-temp / mf-temp / m-power / mr-cur /
+   mf-cur / m-total-cur), filled in updateBLEUI with: Mode, Voltage, Power, Energy, Total, Trip, Lock. */
+var _SF_FOLD_MAP = [
+  { cell: 'hero-gear',    lbl: '.hc-unit',  lblKey: 'dash.hero.mode.label'   },
+  { cell: 'motor-rear-t', lbl: '.mc-title', lblKey: 'dash.tele.volt.title',   unit: 'dash.tele.volt.unit'   },
+  { cell: 'motor-front-t',lbl: '.mc-title', lblKey: 'dash.tele.power.title',  unit: 'dash.tele.power.unit'  },
+  { cell: 'motor-power',  lbl: '.mc-title', lblKey: 'dash.tele.energy.title', unit: 'dash.tele.energy.unit' },
+  { cell: 'motor-rear-a', lbl: '.mc-title', lblKey: 'dash.tele.total.title',  unit: 'dash.tele.total.unit'  },
+  { cell: 'motor-front-a',lbl: '.mc-title', lblKey: 'dash.grid.odo.trip',     unit: 'dash.tele.total.unit'  },
+  { cell: 'motor-total-a',lbl: '.mc-title', lblKey: 'dash.tele.lock.title',   unit: 'dash.tele.lock.unit'   }
+];
+/* Below-the-fold tiles that are Teverun-only or now duplicate a value shown in the fold -> drop. */
+var _SF_THEME_DROP = ['sect-gear', 'tile-dg-soh', 'tile-dg-volt', 'tile-dg-odo'];
+
+/* Fill the theme's fold telemetry slots with the SoFlow labels, drop the Teverun/duplicate grid tiles
+   and collapse emptied sections. Static (label/layout only; values come from updateBLEUI), so a run at
+   theme-apply time is enough; re-run from applyTileConfig() after any tile-config change. Default
+   theme keeps its native tiles untouched (no-op). */
+function applyThemeTelemetry() {
+  if (!(_themeActive && _themeActive !== 'Default')) return;
+  var scr = document.getElementById('scroller'); if (!scr) return;
+
+  // (0) The theme's "Motors" section now carries SoFlow live values, not motor data -> relabel its
+  //     header to the SoFlow live-values header (content only; the section geometry is untouched).
+  var mh = scr.querySelector('#motors-section .section-hdr [data-i18n], #motors-section .section-hdr span');
+  if (mh) { mh.setAttribute('data-i18n', 'dash.tele.section'); mh.textContent = t('dash.tele.section'); }
+
+  // (1) Relabel each fold slot to the SoFlow value updateBLEUI writes into it; keep it visible.
+  _SF_FOLD_MAP.forEach(function(m) {
+    var cell = scr.querySelector('[data-cell-id="' + m.cell + '"]'); if (!cell) return;
+    cell.style.display = '';
+    var lbl = cell.querySelector(m.lbl);
+    if (lbl) { lbl.setAttribute('data-i18n', m.lblKey); lbl.textContent = t(m.lblKey); }
+    if (m.unit) {
+      var u = cell.querySelector('.mc-unit');
+      if (u) { u.setAttribute('data-i18n', m.unit); u.textContent = t(m.unit); }
+    }
+  });
+
+  // (2) Drop the Teverun-only / duplicate tiles below the fold; keep them out of the tile editor too.
+  _SF_THEME_DROP.forEach(function(id) {
+    var el = document.getElementById(id) || scr.querySelector('[data-tile-id="' + id + '"]');
+    if (el) { el.style.display = 'none'; el.dataset.capHidden = '1'; }
+  });
+
+  // (3) Collapse section wrappers (and their headers) whose tiles are all hidden.
+  scr.querySelectorAll('[data-section-container]').forEach(function(sect) {
+    if (sect.dataset.tileId) return;
+    var tiles = sect.querySelectorAll('[data-tile-id]');
+    var anyVis = tiles.length === 0;
+    Array.prototype.forEach.call(tiles, function(t) { if (t.style.display !== 'none') anyVis = true; });
+    sect.style.display = anyVis ? '' : 'none';
+  });
+
+  try { scheduleFitFold(); } catch(e) {}
 }
 
 /* Apply saved tile visibility + order to all [data-tile-id] elements in #scroller. */
@@ -4089,10 +4739,41 @@ function applyTileConfig() {
   } catch(e) {}
   var hidden = cfg.hidden || [];
   var order  = cfg.order  || [];
+  // Restore cross-parent placements: move each tile to its saved container before ordering
+  if (cfg.placements && typeof cfg.placements === 'object') {
+    Object.keys(cfg.placements).forEach(function(tileId) {
+      var savedParentId = cfg.placements[tileId];
+      var tile = document.querySelector('#scroller [data-tile-id="' + tileId + '"]');
+      var savedParent = document.getElementById(savedParentId);
+      if (tile && savedParent && tile.parentElement !== savedParent) {
+        savedParent.appendChild(tile);
+      }
+    });
+  }
+  // Visibility (skip data-tile-no-editor tiles - those manage their own visibility)
   document.querySelectorAll('#scroller [data-tile-id]').forEach(function(el) {
     if (el.dataset.tileNoEditor) return;
     el.style.display = hidden.indexOf(el.dataset.tileId) >= 0 ? 'none' : '';
   });
+  // Auto-collapse section-container wrappers when all their tile children are hidden.
+  // A container that is itself a tile (#sect-allvals) keeps the visibility set just above.
+  document.querySelectorAll('[data-section-container]').forEach(function(sect) {
+    if (sect.dataset.tileId) return;
+    var tiles = Array.from(sect.querySelectorAll('[data-tile-id]')).filter(function(t) { return !t.dataset.tileNoEditor; });
+    var anyVisible = tiles.length === 0 || tiles.some(function(t) { return t.style.display !== 'none'; });
+    sect.style.display = anyVisible ? '' : 'none';
+  });
+  // The "Live values" header has no wrapper (its rows are direct fold rows for fitFold), so it
+  // follows its three rows by hand.
+  var teleHdr = document.getElementById('tele-hdr');
+  if (teleHdr) {
+    var anyTele = ['motor-row', 'motor-row-2', 'motor-row-3'].some(function(id) {
+      var r = document.getElementById(id);
+      return r && r.style.display !== 'none' && r.parentElement && r.parentElement.id === 'fold-inner';
+    });
+    teleHdr.style.display = anyTele ? '' : 'none';
+  }
+  // Order within each parent group independently (fold-inner + scroller)
   if (order.length > 0) {
     var parents = [];
     document.querySelectorAll('#scroller [data-tile-id]').forEach(function(el) {
@@ -4108,7 +4789,267 @@ function applyTileConfig() {
       children.forEach(function(c) { parent.appendChild(c); });
     });
   }
+  // Fill a custom theme's fold telemetry slots with the SoFlow value labels (no-op on Default); runs
+  // here so it re-applies after any theme injection / tile show/hide/reorder. Never hides fold slots,
+  // so the theme's geometry (gauge size, slot count) is preserved exactly as tr renders it.
+  applyThemeTelemetry();
+  initTileDrag();
   try { scheduleFitFold(); } catch(e2) {}
+}
+
+/* ── Dashboard lock ─────────────────────────────────────────── */
+function _isDashLocked() {
+  try { return (typeof storage !== 'undefined' ? storage.get('lb_dash_locked') : null) === 'true'; } catch(e) { return false; }
+}
+
+/* ── Dashboard long-press drag (tiles) ─────────────────────── */
+var _foldDragEl = null, _foldDragTarget = null, _foldLongTimer = null;
+
+function initTileDrag() {
+  document.querySelectorAll('#scroller [data-tile-id]').forEach(function(el) {
+    el.removeEventListener('touchstart', _onFoldTouchStart);
+    el.addEventListener('touchstart', _onFoldTouchStart, { passive: true });
+  });
+}
+
+function _onFoldTouchStart(e) {
+  if (_isDashLocked() || _foldDragEl) return;
+  // A hero card is both a tile and a cell: its long-press belongs to the cell drag (which can also
+  // move it into another row), so a second, competing tile drag is not started on it.
+  if (this.dataset && this.dataset.cellId) return;
+  if (_foldLongTimer) { clearTimeout(_foldLongTimer); _foldLongTimer = null; }
+  var el = this;
+  var t0 = e.touches[0];
+  var ox = t0.clientX, oy = t0.clientY;
+  function _cancelFoldLong(e2) {
+    if (e2.type === 'touchmove' && e2.touches && e2.touches[0]) {
+      var t2 = e2.touches[0];
+      if (Math.abs(t2.clientX - ox) < 12 && Math.abs(t2.clientY - oy) < 12) return;
+    }
+    if (_foldLongTimer) { clearTimeout(_foldLongTimer); _foldLongTimer = null; }
+    document.removeEventListener('touchmove', _cancelFoldLong);
+    document.removeEventListener('touchend', _cancelFoldLong);
+    document.removeEventListener('touchcancel', _cancelFoldLong);
+  }
+  _foldLongTimer = setTimeout(function() {
+    _foldLongTimer = null;
+    document.removeEventListener('touchmove', _cancelFoldLong);
+    document.removeEventListener('touchend', _cancelFoldLong);
+    document.removeEventListener('touchcancel', _cancelFoldLong);
+    _beginFoldDrag(el);
+  }, 500);
+  document.addEventListener('touchmove', _cancelFoldLong, { passive: true });
+  document.addEventListener('touchend', _cancelFoldLong, { once: true });
+  document.addEventListener('touchcancel', _cancelFoldLong, { once: true });
+}
+
+function _beginFoldDrag(el) {
+  _foldDragEl = el;
+  el.classList.add('tile-drag-active');
+  document.addEventListener('touchmove', _onFoldDragMove, { passive: false });
+  document.addEventListener('touchend', _onFoldDragEnd, { once: true });
+  document.addEventListener('touchcancel', _onFoldDragEnd, { once: true });
+}
+
+function _onFoldDragMove(e) {
+  if (!_foldDragEl) return;
+  e.preventDefault();
+  var t = e.touches[0];
+  var tx = t.clientX, ty = t.clientY;
+
+  // Find the tile whose visual bounding box contains the touch point.
+  // getBoundingClientRect() returns viewport coords that already account for CSS transforms,
+  // so this works correctly even when #fold-inner has transform:scale applied.
+  var under = null;
+  document.querySelectorAll('#scroller [data-tile-id]').forEach(function(tile) {
+    // Cards (data-cell-id) are moved by the cell drag only, so they are no drop target here.
+    if (tile === _foldDragEl || tile.dataset.tileNoEditor || tile.dataset.cellId) return;
+    var r = tile.getBoundingClientRect();
+    if (tx >= r.left && tx <= r.right && ty >= r.top && ty <= r.bottom) under = tile;
+  });
+
+  document.querySelectorAll('.tile-drop-target').forEach(function(s) {
+    s.classList.remove('tile-drop-target');
+  });
+  if (!under) { _foldDragTarget = null; return; }
+  under.classList.add('tile-drop-target');
+  _foldDragTarget = under;
+}
+
+function _onFoldDragEnd(e) {
+  if (!_foldDragEl) return;
+  var el = _foldDragEl;
+  el.classList.remove('tile-drag-active');
+  document.removeEventListener('touchmove', _onFoldDragMove);
+  document.removeEventListener('touchcancel', _onFoldDragEnd);
+  document.querySelectorAll('.tile-drop-target').forEach(function(s) {
+    s.classList.remove('tile-drop-target');
+  });
+  var cancelled = e && e.type === 'touchcancel';
+  if (_foldDragTarget && !cancelled) {
+    if (_foldDragTarget.parentElement === el.parentElement) {
+      var parent = el.parentElement;
+      var nodes = Array.from(parent.querySelectorAll(':scope > [data-tile-id]'));
+      var iDrag = nodes.indexOf(el), iTarget = nodes.indexOf(_foldDragTarget);
+      if (iDrag > iTarget) {
+        parent.insertBefore(el, _foldDragTarget);
+      } else {
+        var nxt = _foldDragTarget.nextSibling;
+        nxt ? parent.insertBefore(el, nxt) : parent.appendChild(el);
+      }
+    } else {
+      // Cross-parent swap: placeholders prevent any duplication
+      var phA = document.createElement('span');
+      var phB = document.createElement('span');
+      el.parentElement.replaceChild(phA, el);
+      _foldDragTarget.parentElement.replaceChild(phB, _foldDragTarget);
+      phA.parentElement.replaceChild(_foldDragTarget, phA);
+      phB.parentElement.replaceChild(el, phB);
+    }
+    _saveTileOrder();
+    var eTheme = (_themeActive && _themeActive !== 'Default') ? _themeActive : 'Default';
+    renderTileEditor(eTheme);
+    try { scheduleFitFold(); } catch(e2) {}
+  }
+  _foldDragEl = null; _foldDragTarget = null;
+}
+
+function _saveTileOrder() {
+  var name = _themeActive || 'Default';
+  var cfg = {};
+  try { if (typeof LB !== 'undefined' && LB.getTileConfig) cfg = JSON.parse(LB.getTileConfig(name) || '{}'); } catch(e) {}
+  var allTiles = Array.from(document.querySelectorAll('#scroller [data-tile-id]'));
+  cfg.order = allTiles.map(function(t) { return t.dataset.tileId; });
+  // Record each tile's current parent container id so cross-parent moves survive restarts
+  var placements = {};
+  allTiles.forEach(function(t) {
+    var p = t.parentElement;
+    if (p && p.id) placements[t.dataset.tileId] = p.id;
+  });
+  cfg.placements = placements;
+  if (typeof LB !== 'undefined' && LB.saveTileConfig) LB.saveTileConfig(name, JSON.stringify(cfg));
+}
+
+/* ── Individual card drag (hero-cell / motor-cell via data-cell-id) ────────── */
+var _cellDragEl = null, _cellDropTarget = null, _cellLongTimer = null;
+var _CELL_ROWS = ['hero-row', 'motor-row', 'motor-row-2', 'motor-row-3'];
+
+function applyQuickCellOrder() {
+  var stored;
+  try { stored = JSON.parse((typeof storage !== 'undefined' ? storage.get('lb_cell_order') : null) || 'null'); } catch(e) {}
+  if (!stored) return;
+  var allCells = {};
+  document.querySelectorAll('[data-cell-id]').forEach(function(c) { allCells[c.dataset.cellId] = c; });
+  _CELL_ROWS.forEach(function(rowId) {
+    var row = document.getElementById(rowId);
+    if (!row || !stored[rowId]) return;
+    stored[rowId].forEach(function(id) { if (allCells[id]) row.appendChild(allCells[id]); });
+  });
+}
+
+function initCellDrag() {
+  document.querySelectorAll('[data-cell-id]').forEach(function(el) {
+    el.removeEventListener('touchstart', _onCellTouchStart);
+    el.addEventListener('touchstart', _onCellTouchStart, { passive: true });
+  });
+}
+
+function _onCellTouchStart(e) {
+  e.stopPropagation(); // prevent tile drag from also firing on parent [data-tile-id]
+  if (_isDashLocked() || _cellDragEl) return;
+  if (_cellLongTimer) { clearTimeout(_cellLongTimer); _cellLongTimer = null; }
+  var el = this;
+  var t0 = e.touches[0];
+  var ox = t0.clientX, oy = t0.clientY;
+  function _cancelCellLong(e2) {
+    if (e2.type === 'touchmove' && e2.touches && e2.touches[0]) {
+      var t2 = e2.touches[0];
+      if (Math.abs(t2.clientX - ox) < 12 && Math.abs(t2.clientY - oy) < 12) return;
+    }
+    if (_cellLongTimer) { clearTimeout(_cellLongTimer); _cellLongTimer = null; }
+    document.removeEventListener('touchmove', _cancelCellLong);
+    document.removeEventListener('touchend', _cancelCellLong);
+    document.removeEventListener('touchcancel', _cancelCellLong);
+  }
+  _cellLongTimer = setTimeout(function() {
+    _cellLongTimer = null;
+    document.removeEventListener('touchmove', _cancelCellLong);
+    document.removeEventListener('touchend', _cancelCellLong);
+    document.removeEventListener('touchcancel', _cancelCellLong);
+    _beginCellDrag(el);
+  }, 500);
+  document.addEventListener('touchmove', _cancelCellLong, { passive: true });
+  document.addEventListener('touchend', _cancelCellLong, { once: true });
+  document.addEventListener('touchcancel', _cancelCellLong, { once: true });
+}
+
+function _beginCellDrag(el) {
+  _cellDragEl = el;
+  el.classList.add('cell-drag-active');
+  document.addEventListener('touchmove', _onCellDragMove, { passive: false });
+  document.addEventListener('touchend', _onCellDragEnd, { once: true });
+  document.addEventListener('touchcancel', _onCellDragEnd, { once: true });
+}
+
+function _onCellDragMove(e) {
+  if (!_cellDragEl) return;
+  e.preventDefault();
+  var t = e.touches[0];
+  _cellDragEl.style.pointerEvents = 'none';
+  var under = document.elementFromPoint(t.clientX, t.clientY);
+  _cellDragEl.style.pointerEvents = '';
+  while (under && !(under.dataset && under.dataset.cellId)) under = under.parentElement;
+  document.querySelectorAll('.cell-drop-target').forEach(function(c) { c.classList.remove('cell-drop-target'); });
+  _cellDropTarget = (under && under !== _cellDragEl) ? under : null;
+  if (_cellDropTarget) _cellDropTarget.classList.add('cell-drop-target');
+}
+
+function _onCellDragEnd(e) {
+  if (!_cellDragEl) return;
+  var el = _cellDragEl;
+  el.classList.remove('cell-drag-active');
+  document.removeEventListener('touchmove', _onCellDragMove);
+  document.removeEventListener('touchcancel', _onCellDragEnd);
+  document.querySelectorAll('.cell-drop-target').forEach(function(c) { c.classList.remove('cell-drop-target'); });
+  var cancelled = e && e.type === 'touchcancel';
+  if (_cellDropTarget && !cancelled) {
+    _reorderCellNode(el, _cellDropTarget);
+    _saveCellOrder();
+    try { if (typeof applyCaps === 'function') applyCaps(); } catch(e2) {}   // a row may have gained/lost its last visible card
+  }
+  _cellDragEl = null; _cellDropTarget = null;
+}
+
+function _reorderCellNode(moving, target) {
+  var aParent = moving.parentNode, bParent = target.parentNode;
+  if (aParent === bParent) {
+    var nodes = Array.from(aParent.children);
+    var iM = nodes.indexOf(moving), iT = nodes.indexOf(target);
+    if (iM < iT) {
+      var nxt = target.nextSibling;
+      nxt ? aParent.insertBefore(moving, nxt) : aParent.appendChild(moving);
+    } else {
+      aParent.insertBefore(moving, target);
+    }
+  } else {
+    var aNext = moving.nextSibling, bNext = target.nextSibling;
+    if (moving.nextSibling === target) { aParent.insertBefore(target, moving); }
+    else if (target.nextSibling === moving) { bParent.insertBefore(moving, target); }
+    else {
+      bParent.insertBefore(moving, bNext);
+      aParent.insertBefore(target, aNext);
+    }
+  }
+}
+
+function _saveCellOrder() {
+  var order = {};
+  _CELL_ROWS.forEach(function(rowId) {
+    var row = document.getElementById(rowId);
+    if (!row) return;
+    order[rowId] = Array.from(row.querySelectorAll('[data-cell-id]')).map(function(c) { return c.dataset.cellId; });
+  });
+  if (typeof storage !== 'undefined') storage.set('lb_cell_order', JSON.stringify(order));
 }
 
 /* ── Button-row drag (reorder buttons in #quick-grid) ──────── */
@@ -4166,6 +5107,20 @@ function _onBtnTouchStart(e) {
 function _beginBtnDrag(el) {
   _btnDragEl = el;
   el.classList.add('btn-drag-active');
+  // Reveal hidden buttons as faint "ghost" slots so a button can be dragged into a currently hidden
+  // position. Cap the grid at 4 columns (same 4-per-row geometry) so the revealed ghosts wrap into
+  // rows of four instead of one over-wide row that runs off-screen.
+  var grid = document.getElementById('quick-grid');
+  if (grid) {
+    var all = grid.querySelectorAll('[data-btn-id]');
+    all.forEach(function(b) {
+      if (b.style.display === 'none') { b.style.display = ''; b.classList.add('btn-ghost-slot'); }
+    });
+    if (all.length) {
+      grid.style.gridTemplateColumns = 'repeat(' + Math.min(all.length, 4) + ', 1fr)';
+      grid.style.justifyContent = '';
+    }
+  }
   document.addEventListener('touchmove', _onBtnDragMove, { passive: false });
   document.addEventListener('touchend', _onBtnDragEnd, { once: true });
   document.addEventListener('touchcancel', _onBtnDragEnd, { once: true });
@@ -4180,7 +5135,7 @@ function _onBtnDragMove(e) {
   var grid = document.getElementById('quick-grid');
   if (!grid) return;
   grid.querySelectorAll('[data-btn-id]').forEach(function(btn) {
-    if (btn === _btnDragEl || btn.style.display === 'none') return;
+    if (btn === _btnDragEl) return;
     var r = btn.getBoundingClientRect();
     if (tx >= r.left && tx <= r.right && ty >= r.top && ty <= r.bottom) under = btn;
   });
@@ -4198,6 +5153,8 @@ function _onBtnDragEnd(e) {
   document.removeEventListener('touchcancel', _onBtnDragEnd);
   var grid = document.getElementById('quick-grid');
   if (grid) grid.querySelectorAll('.btn-drop-target').forEach(function(s) { s.classList.remove('btn-drop-target'); });
+  // Drop the ghost-slot reveal; applyButtonRowConfig() below restores the real visibility + grid.
+  if (grid) grid.querySelectorAll('.btn-ghost-slot').forEach(function(s) { s.classList.remove('btn-ghost-slot'); });
   var cancelled = e && e.type === 'touchcancel';
   if (_btnDragTarget && !cancelled) {
     var parent = el.parentElement;
@@ -4211,6 +5168,7 @@ function _onBtnDragEnd(e) {
     }
     _saveBtnOrder();
   }
+  applyButtonRowConfig();
   _btnDragEl = null; _btnDragTarget = null;
 }
 
@@ -4271,60 +5229,285 @@ function _initEditorRowDrag(handle, row, listEl, order, themeName) {
 }
 
 /* Inject user CSS-variable overrides for the active theme into a <style> tag. */
+/* Apply CSS-variable overrides for the active theme via CSSOM setProperty - CSP-safe.
+   style.textContent injection is blocked by style-src file:; setProperty is not.
+   Default theme: all mode vars always computed and set (includes DEFAULT_CSS_VARS fallback).
+   Custom theme: only user overrides and theme-declared defaults are set; everything else
+   is removeProperty'd so the theme's own CSS retains control of its palette. */
 function injectThemeVars() {
   var name = _themeActive || 'Default';
+  var root = document.documentElement;
+
+  // Remove any legacy style-injection element from earlier code paths.
+  var old = document.getElementById('_theme-var-overrides');
+  if (old) old.parentNode.removeChild(old);
+
   var vars = {};
   try {
     if (typeof LB !== 'undefined' && LB.getThemeVars)
       vars = JSON.parse(LB.getThemeVars(name) || '{}');
   } catch(e) {}
-  var style = document.getElementById('_theme-var-overrides');
-  if (!style) {
-    style = document.createElement('style');
-    style.id = '_theme-var-overrides';
-    document.head.appendChild(style);
+  var themeCssVars = {};
+  try {
+    if (name !== 'Default' && typeof LB !== 'undefined' && LB.getThemeMeta) {
+      var _tm = JSON.parse(LB.getThemeMeta(name) || '{}');
+      themeCssVars = _tm.cssVars || {};
+    }
+  } catch(e) {}
+
+  // Return theme's own declared default for key k, or undefined if not declared.
+  function tdef(k) {
+    var tc = themeCssVars[k];
+    if (tc === undefined) return undefined;
+    if (typeof tc === 'string' || typeof tc === 'number') return String(tc);
+    if (typeof tc === 'object' && tc !== null && tc.default !== undefined) return String(tc.default);
+    return undefined;
+  }
+  // Resolve: saved override > theme's own declared default > DEFAULT_CSS_VARS default.
+  function dv(k) {
+    if (vars[k] !== undefined) return vars[k];
+    var td = tdef(k); if (td !== undefined) return td;
+    var d = DEFAULT_CSS_VARS[k];
+    return d ? String(d.default) : '';
+  }
+  // setProperty or removeProperty depending on whether val is defined.
+  function sp(v, val) {
+    if (val !== undefined && val !== '') root.style.setProperty(v, val);
+    else root.style.removeProperty(v);
   }
 
-  function dv(k) {
-    var d = DEFAULT_CSS_VARS[k];
-    return vars[k] !== undefined ? vars[k] : (d ? String(d.default) : '');
-  }
-  function buildModeBlock(mode, card, bg, lum) {
-    var t = displayTextColors(mode, lum);
-    var a = Math.max(0, Math.min(100, lum));
-    var k = 0.35 + 0.65 * (a / 100);
-    var base = DISPLAY_ACCENTS[mode];
-    var r = '--card:' + card + ';--bg:' + bg + ';--text:' + t.text + ';--label:' + t.label + ';';
+  var isDark = root.getAttribute('data-theme') !== 'light';
+  var mode = isDark ? 'dark' : 'light';
+  var lum = Number(dv('--' + mode + '-lum'));
+  var a = Math.max(0, Math.min(100, lum));
+  var k = 0.35 + 0.65 * (a / 100);
+  var base = DISPLAY_ACCENTS[mode];
+  var t = displayTextColors(mode, lum);
+
+  if (name === 'Default') {
+    root.style.setProperty('--card', dv('--' + mode + '-card'));
+    root.style.setProperty('--bg',   dv('--' + mode + '-bg'));
+    root.style.setProperty('--text',
+      vars['--' + mode + '-text']  !== undefined ? vars['--' + mode + '-text']  : (tdef('--' + mode + '-text')  || t.text));
+    root.style.setProperty('--label',
+      vars['--' + mode + '-label'] !== undefined ? vars['--' + mode + '-label'] : (tdef('--' + mode + '-label') || t.label));
+    var bd = vars['--' + mode + '-border'] !== undefined ? vars['--' + mode + '-border'] : tdef('--' + mode + '-border');
+    sp('--border', bd);
+    // Accent colors with luminance-based dimming for Default theme.
     Object.keys(base).forEach(function(n) {
       var saved = vars['--' + n];
       if (saved !== undefined) {
-        r += '--' + n + ':' + saved + ';';
+        root.style.setProperty('--' + n, saved);
       } else {
-        var hsl = hexToHsl(base[n]);
-        if (hsl) {
-          var l = mode === 'dark' ? hsl.l * k : 100 - (100 - hsl.l) * k;
-          r += '--' + n + ':hsl(' + hsl.h.toFixed(0) + ' ' + hsl.s.toFixed(0) + '% ' + l.toFixed(1) + '%);';
+        var td = tdef('--' + n);
+        if (td !== undefined) {
+          root.style.setProperty('--' + n, td);
+        } else {
+          var hsl = hexToHsl(base[n]);
+          if (hsl) {
+            var l = mode === 'dark' ? hsl.l * k : 100 - (100 - hsl.l) * k;
+            root.style.setProperty('--' + n, 'hsl(' + hsl.h.toFixed(0) + ' ' + hsl.s.toFixed(0) + '% ' + l.toFixed(1) + '%)');
+          }
         }
       }
     });
-    return r;
+  } else {
+    // Custom theme: apply only user overrides and theme-declared defaults; remove everything
+    // else so the theme's own CSS retains control of its palette.
+    sp('--card',  vars['--' + mode + '-card']  !== undefined ? vars['--' + mode + '-card']  : tdef('--' + mode + '-card'));
+    sp('--bg',    vars['--' + mode + '-bg']    !== undefined ? vars['--' + mode + '-bg']    : tdef('--' + mode + '-bg'));
+    sp('--text',  vars['--' + mode + '-text']  !== undefined ? vars['--' + mode + '-text']  : tdef('--' + mode + '-text'));
+    sp('--label', vars['--' + mode + '-label'] !== undefined ? vars['--' + mode + '-label'] : tdef('--' + mode + '-label'));
+    sp('--border',vars['--' + mode + '-border']!== undefined ? vars['--' + mode + '-border']: tdef('--' + mode + '-border'));
+    Object.keys(base).forEach(function(n) {
+      var saved = vars['--' + n];
+      if (saved !== undefined) {
+        root.style.setProperty('--' + n, saved);
+      } else {
+        var td = tdef('--' + n);
+        if (td !== undefined) root.style.setProperty('--' + n, td);
+        else root.style.removeProperty('--' + n);
+      }
+    });
   }
-  var fontRules = '';
+
+  // Font sizes: apply saved override or theme-declared default.
   FONT_META.forEach(function(m) {
-    var saved = vars[m.varName];
-    if (saved !== undefined) {
-      var px = Math.max(m.min, Math.min(m.max, parseInt(saved, 10) || m.def));
-      fontRules += m.varName + ':' + px + 'px;';
+    var effective = vars[m.varName] !== undefined ? vars[m.varName] : tdef(m.varName);
+    if (effective !== undefined) {
+      var px = Math.max(m.min, Math.min(m.max, parseInt(effective, 10) || m.def));
+      root.style.setProperty(m.varName, px + 'px');
+    } else {
+      root.style.removeProperty(m.varName);
     }
   });
-  var css = fontRules ? ':root{' + fontRules + '}' : '';
-  css += ':root:not([data-theme="light"]){' + buildModeBlock('dark',  dv('--dark-card'),  dv('--dark-bg'),  Number(dv('--dark-lum')))  + '}';
-  css += ':root[data-theme="light"]{' + buildModeBlock('light', dv('--light-card'), dv('--light-bg'), Number(dv('--light-lum'))) + '}';
-  style.textContent = css;
-  var ROOT_VARS = ['--card','--bg','--text','--label','--value','--ble','--gps','--good','--btnfill','--warn','--danger'];
-  ROOT_VARS.forEach(function(v) { document.documentElement.style.removeProperty(v); });
-  FONT_META.forEach(function(m) { document.documentElement.style.removeProperty(m.varName); });
+
+  // Tile min-heights + --unlock: apply saved override or theme-declared default (removeProperty when
+  // unset so the theme's own value shows through).
+  ['--tile-h-speed', '--tile-h-hero', '--tile-h-motors', '--unlock'].forEach(function(v) {
+    var effective = vars[v] !== undefined ? vars[v] : tdef(v);
+    if (effective !== undefined) root.style.setProperty(v, effective);
+    else root.style.removeProperty(v);
+  });
+
+  // Alpha transparency: slider stores TRANSPARENCY t (0=solid, 100=fully see-through).
+  // CSS var = OPACITY = 1 - t/100. Strip '%' suffix before parsing.
+  ['--tile-alpha', '--btn-alpha', '--gauge-alpha'].forEach(function(v) {
+    var effective = vars[v] !== undefined ? vars[v] : tdef(v);
+    var t = effective !== undefined
+      ? parseFloat(String(effective).replace('%', ''))
+      : DEFAULT_CSS_VARS[v].default;
+    var opacity = 1 - Math.max(0, Math.min(100, isNaN(t) ? 0 : t)) / 100;
+    root.style.setProperty(v, String(opacity));
+  });
+
   try { scheduleFitFold(); } catch(e) {}
+}
+
+/* ── Tile Catalog ────────────────────────────────────────────────────────────
+   All standard SoFlow tile concepts. Speed = ONE concept with two selectable
+   sources (VCU / GPS) instead of two separate tiles. Used by the "Available to add"
+   section in renderTileEditor for themes that don't natively include standard tiles. */
+var TILE_CATALOG = [
+  { id: 'tile-speed', label: 'tile.label.speed',
+    sources: [
+      { val: 'ble', label: 'tile.label.speed.ble', domId: 'tile-speed-ble' },
+      { val: 'gps', label: 'tile.label.speed.gps', domId: 'tile-speed-gps' }
+    ]
+  },
+  { id: 'tile-hero-soc',      label: 'tile.label.battery'       },
+  { id: 'tile-hero-mode',     label: 'tile.label.mode'          },
+  { id: 'tile-tele-r1',       label: 'tile.label.tele.r1'       },
+  { id: 'tile-tele-r2',       label: 'tile.label.tele.r2'       },
+  { id: 'tile-tele-r3',       label: 'tile.label.tele.r3'       },
+  { id: 'tile-dg-speed',      label: 'tile.label.dg.speed'      },
+  { id: 'tile-dg-volt',       label: 'tile.label.dg.voltcur'    },
+  { id: 'tile-dg-odo',        label: 'tile.label.dg.odorssi'    },
+  { id: 'tile-dg-err',        label: 'tile.label.dg.err'        },
+  { id: 'tile-ride-disttime', label: 'tile.label.ride.disttime' },
+  { id: 'tile-ride-avg',      label: 'tile.label.ride.avg'      },
+  { id: 'tile-ride-alt',      label: 'tile.label.ride.alt'      },
+  { id: 'tile-ride-gps',      label: 'tile.label.ride.gps'      },
+  { id: 'tile-allvals',       label: 'tile.label.allvals'       }
+];
+
+/* Returns true if the given data-tile-id DOM element is currently in the pool (not yet activated). */
+function _tileIsInPool(domId) {
+  var pool = document.getElementById('std-tile-pool');
+  return !!(pool && pool.querySelector('[data-tile-id="' + domId + '"]'));
+}
+
+/* Ensure #std-tile-extras exists inside #scroller (created lazily when first pool tile is activated). */
+function _getOrCreateExtras() {
+  var el = document.getElementById('std-tile-extras');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'std-tile-extras';
+    var scroller = document.getElementById('scroller');
+    if (scroller) scroller.appendChild(el);
+  }
+  return el;
+}
+
+/* Move an activated pool tile to #std-tile-extras (visible in scroll area).
+   conceptId is the TILE_CATALOG.id; source is 'ble'/'gps' for speed, null for others.
+   For multi-source concepts only the chosen source's tile is moved; the other stays in pool. */
+function _activatePoolTile(conceptId, source, themeName) {
+  var pool = document.getElementById('std-tile-pool');
+  if (!pool) return;
+  var concept = null;
+  for (var ci = 0; ci < TILE_CATALOG.length; ci++) { if (TILE_CATALOG[ci].id === conceptId) { concept = TILE_CATALOG[ci]; break; } }
+  if (!concept) return;
+  var domIds = concept.sources
+    ? concept.sources.filter(function(s) { return !source || s.val === source; }).map(function(s) { return s.domId; })
+    : [concept.id];
+  var extras = _getOrCreateExtras();
+  domIds.forEach(function(domId) {
+    var el = pool.querySelector('[data-tile-id="' + domId + '"]');
+    if (!el) return;
+    el.dataset.tilePooled = '1';
+    extras.appendChild(el);
+    if (domId === 'tile-speed-ble' || domId === 'tile-speed-gps') {
+      el.removeEventListener('click', onVcuTileTap);
+      el.addEventListener('click', onVcuTileTap);
+    }
+  });
+  var cfg = {};
+  try { if (typeof LB !== 'undefined' && LB.getTileConfig) cfg = JSON.parse(LB.getTileConfig(themeName) || '{}'); } catch(e) {}
+  var poolEnabled = cfg.poolEnabled || [];
+  domIds.forEach(function(id) { if (poolEnabled.indexOf(id) < 0) poolEnabled.push(id); });
+  if (concept.sources && source) { cfg.poolSources = cfg.poolSources || {}; cfg.poolSources[conceptId] = source; }
+  cfg.poolEnabled = poolEnabled;
+  try { if (typeof LB !== 'undefined' && LB.saveTileConfig) LB.saveTileConfig(themeName, JSON.stringify(cfg)); } catch(e) {}
+  applyTileConfig();
+  initCellDrag();
+  renderTileEditor(themeName);
+}
+
+/* Move a pool tile back from extras to #std-tile-pool (deactivate / return to "Available"). */
+function _deactivatePoolTile(domId, themeName) {
+  var pool = document.getElementById('std-tile-pool');
+  if (!pool) return;
+  var el = document.querySelector('#std-tile-extras [data-tile-id="' + domId + '"]');
+  if (el) { delete el.dataset.tilePooled; pool.appendChild(el); }
+  var cfg = {};
+  try { if (typeof LB !== 'undefined' && LB.getTileConfig) cfg = JSON.parse(LB.getTileConfig(themeName) || '{}'); } catch(e) {}
+  cfg.poolEnabled = (cfg.poolEnabled || []).filter(function(id) { return id !== domId; });
+  try { if (typeof LB !== 'undefined' && LB.saveTileConfig) LB.saveTileConfig(themeName, JSON.stringify(cfg)); } catch(e) {}
+  applyTileConfig();
+  renderTileEditor(themeName);
+}
+
+/* On page load: restore any pool tiles the user previously activated for this theme. */
+function _restorePoolEnabled() {
+  if (!document.getElementById('std-tile-pool')) return;
+  var name = _themeActive || 'Default';
+  var cfg = {};
+  try { if (typeof LB !== 'undefined' && LB.getTileConfig) cfg = JSON.parse(LB.getTileConfig(name) || '{}'); } catch(e) {}
+  var poolEnabled = cfg.poolEnabled || [];
+  if (poolEnabled.length === 0) return;
+  var extras = _getOrCreateExtras();
+  var pool = document.getElementById('std-tile-pool');
+  poolEnabled.forEach(function(domId) {
+    var el = pool.querySelector('[data-tile-id="' + domId + '"]');
+    if (!el) return;
+    el.dataset.tilePooled = '1';
+    extras.appendChild(el);
+    if (domId === 'tile-speed-ble' || domId === 'tile-speed-gps') {
+      el.removeEventListener('click', onVcuTileTap);
+      el.addEventListener('click', onVcuTileTap);
+    }
+  });
+}
+
+/* Before theme HTML injection: move all editable Standard tiles into #std-tile-pool so
+   innerHTML doesn't destroy them. isFullScope=true parks from #scroller, false from #fold-inner. */
+function _parkTilesBeforeInjection(isFullScope) {
+  var pool = document.getElementById('std-tile-pool');
+  if (!pool) return;
+  var root = isFullScope
+    ? document.getElementById('scroller')
+    : document.getElementById('fold-inner');
+  if (!root) return;
+  Array.from(root.querySelectorAll('[data-tile-id]')).forEach(function(el) {
+    if (!el.dataset.tileNoEditor) pool.appendChild(el);
+  });
+}
+
+/* After theme HTML injection: remove any Standard tile from the pool whose data-tile-id
+   the theme already provides natively, avoiding duplicate IDs for getElementById calls.
+   Pool tiles that remain (theme didn't cover them) stay invisible in the pool; the
+   tile editor surfaces them via TILE_CATALOG so users can explicitly enable them. */
+function _cleanPoolAfterInjection() {
+  var pool = document.getElementById('std-tile-pool');
+  if (!pool) return;
+  var existing = {};
+  document.querySelectorAll('#scroller [data-tile-id]').forEach(function(el) {
+    existing[el.dataset.tileId] = true;
+  });
+  Array.from(pool.querySelectorAll('[data-tile-id]')).forEach(function(el) {
+    if (existing[el.dataset.tileId]) pool.removeChild(el);
+  });
 }
 
 /* Inject custom theme HTML (non-Default), then apply tile config and CSS var overrides for ALL themes. */
@@ -4347,30 +5530,41 @@ function initActiveTheme() {
     if (active.name !== 'Default' && LB.getThemeHtml) {
       var html = LB.getThemeHtml(active.name);
       if (html) {
-        var inner = document.getElementById('fold-inner');
-        if (inner) {
-          inner.innerHTML = html;
+        var themeMeta = {};
+        try {
+          if (LB.getThemeMeta) themeMeta = JSON.parse(LB.getThemeMeta(active.name) || '{}');
+        } catch (eMeta) {}
+        // Merge any custom i18n strings before injection so applyLang() sees them
+        try {
+          if (themeMeta.strings && window.I18N) {
+            if (themeMeta.strings.en && window.I18N.en) Object.assign(window.I18N.en, themeMeta.strings.en);
+            if (themeMeta.strings.de && window.I18N.de) Object.assign(window.I18N.de, themeMeta.strings.de);
+          }
+        } catch (eStr) {}
+        var isFullScope = themeMeta.scope === 'full';
+        _themeScope = isFullScope ? 'full' : 'fold';
+        var container = isFullScope
+          ? document.getElementById('scroller')
+          : document.getElementById('fold-inner');
+        if (container) {
+          _parkTilesBeforeInjection(isFullScope);
+          container.innerHTML = html;
+          _cleanPoolAfterInjection();
           reattachSpeedUnlock();
-          // Merge any custom i18n strings the theme declared in theme.json `strings` into
-          // the global I18N table before applyLang() translates the freshly-injected HTML.
-          try {
-            if (LB.getThemeMeta && window.I18N) {
-              var themeMeta = JSON.parse(LB.getThemeMeta(active.name) || '{}');
-              if (themeMeta.strings) {
-                if (themeMeta.strings.en && window.I18N.en) Object.assign(window.I18N.en, themeMeta.strings.en);
-                if (themeMeta.strings.de && window.I18N.de) Object.assign(window.I18N.de, themeMeta.strings.de);
-              }
-            }
-          } catch (eStr) {}
+          reattachQuickGridHandlers();
           try { applyLang(); } catch (eLang) {}
         }
       }
     }
     injectThemeVars();
+    _restorePoolEnabled();
     applyTileConfig();
     scheduleFitFold();
   } catch (e) {
     try { applyTileConfig(); } catch(e2) {}
+  } finally {
+    // Always reveal content - even if injection threw - so the page doesn't stay hidden.
+    document.documentElement.removeAttribute('data-theme-loading');
   }
 }
 
@@ -4425,7 +5619,8 @@ function wireEvents() {
   // Settings open/close
   document.getElementById('btn-settings').addEventListener('click', openSettings);
   document.getElementById('btn-close-settings').addEventListener('click', closeSettings);
-  document.getElementById('settings-overlay').addEventListener('click', closeSettings);
+  var bbSettingsBtn = document.getElementById('bb-btn-settings');
+  if (bbSettingsBtn) bbSettingsBtn.addEventListener('click', openSettings);
 
   // Connect scooter (settings sheet): open the Connect page.
   document.getElementById('btn-connect-scooter').addEventListener('click', () => {
@@ -4464,10 +5659,6 @@ function wireEvents() {
   });
   document.getElementById('btn-battery-back').addEventListener('click', closeBatteryPage);
 
-  document.getElementById('btn-open-display').addEventListener('click', () => {
-    closeSettings();
-    openDisplayPage();
-  });
   document.getElementById('btn-display-back').addEventListener('click', closeDisplayPage);
 
   document.getElementById('btn-open-theme').addEventListener('click', () => {
@@ -4511,13 +5702,18 @@ function wireEvents() {
   });
 
   // Main-screen quick toggles: front light / zero-start / dark mode / lock.
-  document.querySelectorAll('#drive-quick .dq-btn[data-dq]').forEach(btn => {
+  document.querySelectorAll('#quick-grid .dq-btn[data-dq]').forEach(btn => {
     btn.addEventListener('click', () => toggleDriveQuick(btn.dataset.dq));
   });
 
   // Hidden gesture: triple-tap the VCU speed tile to toggle the throttle between open and eKFV.
-  const vcuTile = document.querySelector('#speed-row .ble-drum');
+  // The GPS drum takes the same gesture; when the drums are parked (custom theme) the pool tiles are used.
+  const vcuTile = document.querySelector('#speed-row .ble-drum') ||
+                  document.querySelector('#std-tile-pool [data-tile-id="tile-speed-ble"]');
   if (vcuTile) vcuTile.addEventListener('click', onVcuTileTap);
+  const gpsTile = document.querySelector('#speed-row .gps-drum') ||
+                  document.querySelector('#std-tile-pool [data-tile-id="tile-speed-gps"]');
+  if (gpsTile) gpsTile.addEventListener('click', onVcuTileTap);
 
   // Version Info & Disclaimer (side-menu footer): open the modal (Close / backdrop / Escape).
   document.getElementById('btn-version-info').addEventListener('click', () => {
@@ -4627,6 +5823,76 @@ function wireEvents() {
     } catch (err) {}
   });
 
+  // Streaming icon visibility toggle
+  const srtToggle = document.getElementById('toggle-streaming-btn');
+  const srtShow = storage.get('lb_show_streaming') !== 'false';
+  if (srtToggle) srtToggle.checked = srtShow;
+  applySrtVisibility(srtShow);
+  if (srtToggle) srtToggle.addEventListener('change', e => {
+    storage.set('lb_show_streaming', e.target.checked ? 'true' : 'false');
+    applySrtVisibility(e.target.checked);
+  });
+
+  // Bottom navigation toggle + shortcut selects
+  const bnToggle = document.getElementById('toggle-bottom-nav');
+  const bnEnabled = storage.get('lb_bottom_nav') === 'true';
+  if (bnToggle) bnToggle.checked = bnEnabled;
+  applyBottomNav(bnEnabled);
+  if (bnToggle) bnToggle.addEventListener('change', e => {
+    storage.set('lb_bottom_nav', e.target.checked ? 'true' : 'false');
+    applyBottomNav(e.target.checked);
+  });
+
+  // Dashboard lock toggle: blocks the long-press drag of tiles, cards and quick buttons
+  const dlToggle = document.getElementById('toggle-dash-lock');
+  if (dlToggle) {
+    dlToggle.checked = storage.get('lb_dash_locked') === 'true';
+    dlToggle.addEventListener('change', e => {
+      storage.set('lb_dash_locked', e.target.checked ? 'true' : 'false');
+    });
+  }
+
+  function populateBbSelect(selId, storageKey) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    var prev = sel.value || storage.get(storageKey) || 'none';
+    sel.innerHTML = '';
+    Object.keys(BB_SHORTCUTS).forEach(function(k) {
+      var opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = t(BB_SHORTCUTS[k].labelKey) || k;
+      sel.appendChild(opt);
+    });
+    var dashBtns = _bbDashShortcuts();
+    if (dashBtns.length > 0) {
+      var sep = document.createElement('option');
+      sep.disabled = true; sep.textContent = '── ' + t('settings.bottomnav.sc.scooter.group') + ' ──';
+      sel.appendChild(sep);
+      dashBtns.forEach(function(d) {
+        var opt = document.createElement('option');
+        opt.value = d.key;
+        opt.textContent = d.label;
+        sel.appendChild(opt);
+      });
+    }
+    sel.value = prev;
+    if (!sel.value) sel.value = 'none';
+    if (!sel._bbWired) {
+      sel._bbWired = true;
+      sel.addEventListener('change', function() {
+        storage.set(storageKey, sel.value);
+        applyBottomShortcuts();
+      });
+    }
+  }
+  window._repopulateBbSelects = function() {
+    populateBbSelect('bb-left-sel', 'lb_bb_left');
+    populateBbSelect('bb-right-sel', 'lb_bb_right');
+    applyBottomShortcuts();
+  };
+  populateBbSelect('bb-left-sel', 'lb_bb_left');
+  populateBbSelect('bb-right-sel', 'lb_bb_right');
+
   // Debug mode toggle: persist via native (survives restarts) then reflect the banner state.
   const dbgToggle = document.getElementById('toggle-debug');
   if (dbgToggle) dbgToggle.addEventListener('change', e => {
@@ -4705,13 +5971,16 @@ function init() {
   renderRoutes();
   initNavBanner();
   initRideBanner();
-  initActiveTheme();
-  applyButtonRowConfig();
-  applyQuickBtnOrder();
-  initBtnDrag();
+  initActiveTheme(); // inject custom theme HTML BEFORE initFold so fold sees the right HTML first
+  applyButtonRowConfig(); // show only configured buttons before fold measurement
+  applyQuickBtnOrder();   // restore saved button order (drag-to-reorder)
+  applyQuickCellOrder();  // restore saved card positions (hero/live-value cells)
   initDisplayPage();
-  applyFontSizes();   // push any saved tile font sizes onto :root before the first fold measurement
+  applyFontSizes();   // theme vars (incl. tile font sizes) onto :root before the first fold measurement
   initFold();      // after initLang, so the first measurement sees the rider's own label lengths
+  initTileDrag();    // always wire long-press drag, regardless of theme/LB
+  initCellDrag();    // long-press drag for hero-cell / motor-cell cards
+  initBtnDrag();     // long-press drag for quick-grid buttons
 
   // Start BLE polling
   tickBLE();
@@ -4751,6 +6020,16 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// MutationObserver that keeps the native back-button state in sync with open/closed pages.
+// Watching class changes on the whole document catches every open() / close() transition
+// without requiring per-function hooks. Only calls the bridge when the state actually changes.
+(function() {
+  try {
+    new MutationObserver(function() { _updateNavState(); })
+      .observe(document.documentElement, { subtree: true, attributeFilter: ['class'] });
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>

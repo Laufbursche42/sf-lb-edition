@@ -42,6 +42,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
+
 /**
  * Host activity: a full-screen WebView that renders the offline dashboard
  * (file:///android_asset/dashboard/telemetry.html) and exposes a "LB" JavaScript
@@ -59,6 +62,7 @@ public class MainActivity extends Activity {
     private static final int REQ_THEME_ZIP = 4712;
 
     private WebView webView;
+    private volatile boolean jsCanGoBack = false;
     private BleManager ble;
     private DebugLog debugLog;
     private RideLogger rideLogger;
@@ -86,6 +90,7 @@ public class MainActivity extends Activity {
         // Delegated to UiChrome so every screen (main + native) shares the exact same inset logic.
         prefs = getSharedPreferences("lb", MODE_PRIVATE);
         themeManager = new ThemeManager(this);
+        ThemeSeeder.seed(this, themeManager);
         UiChrome.applyFullscreen(this);
 
         configureWebView();
@@ -116,6 +121,18 @@ public class MainActivity extends Activity {
             if (debugLog.isEnabled()) debugLog.start();
         } catch (Throwable t) {
             Log.e(TAG, "debug resume failed", t);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                () -> {
+                    if (jsCanGoBack && webView != null) {
+                        webView.evaluateJavascript("if(window.__navBack)window.__navBack();", null);
+                    } else {
+                        finish();
+                    }
+                });
         }
 
         requestRuntimePermissions();
@@ -597,8 +614,8 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
+        if (jsCanGoBack && webView != null) {
+            webView.evaluateJavascript("if(window.__navBack)window.__navBack();", null);
         } else {
             super.onBackPressed();
         }
@@ -609,6 +626,11 @@ public class MainActivity extends Activity {
      * Every method is null/exception-safe - nothing throws across the bridge.
      */
     private class LbBridge {
+
+        @JavascriptInterface
+        public void setCanGoBack(boolean canGoBack) {
+            jsCanGoBack = canGoBack;
+        }
 
         /** End the active turn-by-turn navigation session (stops the foreground service). */
         @JavascriptInterface
