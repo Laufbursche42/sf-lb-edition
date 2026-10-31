@@ -666,6 +666,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void connect(String addr) {
             try {
+                if (debugLog != null) debugLog.addRedactLiteral(addr);
                 Log.i(TAG, "LB.connect(" + LogSan.s(addr) + ")");
                 if (ble != null) ble.connect(addr);
             } catch (Throwable t) {
@@ -677,6 +678,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void connect(String addr, String name) {
             try {
+                if (debugLog != null) { debugLog.addRedactLiteral(addr); debugLog.addRedactLiteral(name); }
                 Log.i(TAG, "LB.connect(" + LogSan.s(addr) + ", " + LogSan.s(name) + ")");
                 if (ble != null) ble.connect(addr, name);
             } catch (Throwable t) {

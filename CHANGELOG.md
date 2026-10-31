@@ -14,6 +14,12 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.19
+
+- Added: the in-app theme guide now links to a formatted PDF (EN and DE) and to the raw Markdown source for AI assistants.
+- Changed: the theme guide is now built from a single Markdown source - a pre-commit hook regenerates the in-app HTML and both PDFs from `THEME-GUIDE.md` / `THEME-GUIDE.de.md`, so the three always match.
+- Added: debug logs are now scrubbed of personal data (MAC addresses, device names, IDs, tokens and secrets) before they are exported or shared - always on, matching the websites. Useful troubleshooting data is kept.
+
 ## 1.0.18
 
 - Added: two ready-to-use themes, Carbon and Lambo, now ship built in - activate them in the Theme Manager, no import or download needed.

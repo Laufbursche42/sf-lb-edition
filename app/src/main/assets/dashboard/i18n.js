@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Printable theme guide.</b> The in-app theme guide now links to a formatted PDF (English &amp; German) and to its raw Markdown source for AI assistants. The in-app guide, the PDF and the Markdown are all generated from one source, so they always match.",
+      "<b>Debug logs are scrubbed of personal data.</b> When you export or share a debug log, MAC addresses, device names, IDs and secrets are removed automatically - the useful troubleshooting data stays. Always on.",
       "<b>Two ready-to-use themes built in.</b> Carbon and Lambo now ship with the app - open the Theme Manager and tap Activate, no import or download needed. Want your own look? The built-in guide walks you through making one.",
       "<b>Back button fixed on Samsung &amp; Android 13&ndash;16.</b> Pressing the Android back button no longer exits the app from sub-pages. The app now uses the modern back gesture API &mdash; fully compatible with Samsung One UI 6+, Android 13 through 16 and all gesture navigation modes.",
       "<b>Theme editor overhaul.</b> The theme editor now has dropdown-based button selectors (no fixed maximum), drag-reorderable slots, an alignment control and group labels in both languages.",
@@ -701,6 +703,8 @@ window.I18N = {
     "settings.debug.group.title": "Debug",
     "settings.debug.mode.hint": "Records logs for troubleshooting",
     "settings.debug.mode.label": "Debug mode",
+    "settings.debug.redact.label": "Redact personal data",
+    "settings.debug.redact.hint": "Always on - MACs, device names, IDs and secrets are removed before a log is shared",
     "settings.display.colors.action": "&#127912; Display settings",
     "settings.display.dark.label": "Dark mode",
     "settings.display.fullscreen.hint": "Hide the Android status bar",
@@ -888,6 +892,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Druckbarer Theme-Guide.</b> Der In-App-Theme-Guide verlinkt jetzt ein formatiertes PDF (Deutsch &amp; Englisch) und seine rohe Markdown-Quelle f&uuml;r KI-Assistenten. In-App-Guide, PDF und Markdown werden alle aus einer Quelle erzeugt und passen damit immer zusammen.",
+      "<b>Debug-Logs werden von persönlichen Daten bereinigt.</b> Beim Exportieren oder Teilen eines Debug-Logs werden MAC-Adressen, Gerätenamen, IDs und Secrets automatisch entfernt - die nützlichen Fehlersuchdaten bleiben. Immer an.",
       "<b>Zwei fertige Themes integriert.</b> Carbon und Lambo sind jetzt direkt in der App dabei - im Theme-Manager einfach auf Aktivieren tippen, kein Import oder Download n&ouml;tig. Eigenes Design? Die eingebaute Anleitung f&uuml;hrt dich Schritt f&uuml;r Schritt durch.",
       "<b>Zur&uuml;ck-Taste auf Samsung &amp; Android 13&ndash;16 repariert.</b> Die Android-Zur&uuml;ck-Taste schlie&szlig;t die App nicht mehr, wenn man sich auf einer Unterseite befindet. Die App verwendet jetzt die moderne Gesten-API &mdash; vollst&auml;ndig kompatibel mit Samsung One UI 6+, Android 13 bis 16 und allen Navigationsmodi.",
       "<b>Theme-Editor-&Uuml;berarbeitung.</b> Der Theme-Editor hat jetzt Dropdown-Selektoren f&uuml;r Buttons (kein fixes Maximum), verschiebbare Slots, eine Ausrichtungssteuerung und Gruppenbezeichnungen in beiden Sprachen.",
@@ -1569,6 +1575,8 @@ window.I18N = {
     "settings.debug.group.title": "Debug",
     "settings.debug.mode.hint": "Zeichnet Logs zur Fehlersuche auf",
     "settings.debug.mode.label": "Debug-Modus",
+    "settings.debug.redact.label": "Persönliche Daten schwärzen",
+    "settings.debug.redact.hint": "Immer an - MACs, Gerätenamen, IDs und Secrets werden entfernt, bevor ein Log geteilt wird",
     "settings.display.colors.action": "&#127912; Anzeige-Einstellungen",
     "settings.display.dark.label": "Dunkelmodus",
     "settings.display.fullscreen.hint": "Blendet die Android-Statusleiste aus",
