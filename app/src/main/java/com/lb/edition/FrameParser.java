@@ -36,7 +36,8 @@ final class FrameParser {
     // ── decoded live model (NaN / -1 / "" mean "not seen yet") ──
     private double speed = Double.NaN, voltage = Double.NaN, current = Double.NaN, power = Double.NaN;
     private double energy = Double.NaN;
-    private double tripKm = Double.NaN, totalKm = Double.NaN;
+    private double tripKm = Double.NaN, totalKm = Double.NaN, remaining = Double.NaN;
+    private int durationSec = -1;   // SO5-family ride time (0x1D b23-25), seconds
     private int battery = -1, mode = -1, error = -1;
     private int locked = -1, headlight = -1, imperial = -1, darkMode = -1;   // tri-state: -1 unknown
     private String errorHex = "", errorNames = "";
@@ -51,8 +52,8 @@ final class FrameParser {
 
     /** Clear the decoded model (fresh connect). */
     synchronized void reset() {
-        speed = voltage = current = power = energy = tripKm = totalKm = Double.NaN;
-        battery = mode = error = -1;
+        speed = voltage = current = power = energy = tripKm = totalKm = remaining = Double.NaN;
+        battery = mode = error = durationSec = -1;
         locked = headlight = imperial = darkMode = -1;
         errorHex = errorNames = fw = fwDisplay = fwCpu = "";
     }
@@ -107,7 +108,11 @@ final class FrameParser {
         if (d.length < 3) return EMPTY;
         int g = d[0] & 0xFF, sub = d[1] & 0xFF;
         if (g == 0x05 && sub == 0x46) decodeRealtimeSo6(d);
-        if (g == 0x05 && sub == 0x0E) return new String[]{"so6:5:14", "so6:5:12", "so6:5:1"};
+        if (g == 0x05 && sub == 0x48) decodeCyclingSo6(d);   // trip + total
+        if (g == 0x05 && sub == 0x0E) {
+            if (d.length > 3) locked = (d[3] == 0) ? 1 : 0;
+            return new String[]{"so6:5:14", "so6:5:12", "so6:5:1"};
+        }
         return new String[]{"so6:" + g + ":" + sub};
     }
 
@@ -157,6 +162,7 @@ final class FrameParser {
         }
         if (b.length >= 22) { tripKm = u16(b, 18) / 10.0; totalKm = u16(b, 20); }
         if (b.length >= 23) battery = b[22] & 0xFF;
+        if (b.length >= 26) durationSec = b[23] * 3600 + b[24] * 60 + b[25];   // ride time (SO5-family)
         if (b.length >= 27) darkMode = (b[26] == 0) ? 1 : 0;   // darkMode active when the byte is 0
     }
 
@@ -189,8 +195,18 @@ final class FrameParser {
         speed = u16(d, 3) / 10.0;
         if (d.length >= 7) current = u16(d, 5) / 100.0;
         if (d.length >= 9) voltage = u16(d, 7) / 100.0;
+        if (d.length >= 11) remaining = u16(d, 9) / 10.0;   // remaining range (km)
         if (d.length >= 12) battery = d[11] & 0xFF;
         if (d.length >= 14) locked = (d[13] == 0) ? 1 : 0;   // matches the original app (0 -> locked)
+    }
+
+    /** SO6/SO4 UL {05,48} cycling (spec 6.4): trip u16 b5-6 /10, total u32 b7-10 /10 (32-bit, unlike D7). */
+    private synchronized void decodeCyclingSo6(int[] d) {
+        if (d.length >= 7) tripKm = u16(d, 5) / 10.0;
+        if (d.length >= 11) {
+            long t = ((long) (d[7] & 0xFF) << 24) | ((d[8] & 0xFF) << 16) | ((d[9] & 0xFF) << 8) | (d[10] & 0xFF);
+            totalKm = t / 10.0;
+        }
     }
 
     /** SO4 firmware from byte 12 (spec 6.1); drives the plaintext/AES choice via SettingsState. */
@@ -261,6 +277,8 @@ final class FrameParser {
             if (!fwCpu.isEmpty()) o.put("fwCpu", fwCpu);
             putD(o, "tripKm", tripKm);
             putD(o, "totalKm", totalKm);
+            putD(o, "range", remaining);
+            if (durationSec >= 0) o.put("duration", durationSec);
 
             Proto p = proto;
             if (p != null) {
