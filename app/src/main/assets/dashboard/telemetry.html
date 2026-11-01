@@ -130,16 +130,8 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
 
     <!-- Quick function toggles, sent to the scooter immediately over BLE. Each button appears only
          when its capability is supported; greyed out until connected. -->
-    <div id="quick-grid" class="qg-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group" data-tile-id="quick-actions" data-tile-label="Quick Buttons" data-tile-no-editor="true">
-      <button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" data-btn-id="btn-dq-light" data-bb-shortcut="dq-light" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>
-      <button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" data-btn-id="btn-dq-zero" data-bb-shortcut="dq-zero" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>
-      <button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" data-btn-id="btn-dq-lock" data-bb-shortcut="dq-lock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>
-      <button type="button" class="dq-btn" data-dq="darkMode" data-cap="darkMode" data-btn-id="btn-dq-dark" data-bb-shortcut="dq-dark" aria-label="Toggle dark mode" data-i18n-aria="dash.drive.quick.darkmode.aria" data-i18n="dash.drive.quick.darkmode">Dark</button>
-      <button type="button" class="dq-btn" data-dq="mode" data-cap="mode" data-btn-id="btn-dq-mode" data-bb-shortcut="dq-mode" aria-label="Cycle ride mode" data-i18n-aria="dash.drive.quick.mode.aria" data-i18n="dash.drive.quick.mode">Mode</button>
-      <button type="button" class="dq-btn" data-dq="indicator" data-cap="indicator" data-btn-id="btn-dq-ind" data-bb-shortcut="dq-ind" aria-label="Toggle BLE status light" data-i18n-aria="dash.drive.quick.indicator.aria" data-i18n="dash.drive.quick.indicator">Status light</button>
-      <button type="button" class="dq-btn" data-dq="unit" data-cap="unit" data-btn-id="btn-dq-unit" data-bb-shortcut="dq-unit" aria-label="Toggle scooter display unit" data-i18n-aria="dash.drive.quick.unit.aria" data-i18n="dash.drive.quick.unit">Unit</button>
-      <button type="button" class="dq-btn" data-dq="battery" data-cap="battery" data-btn-id="btn-dq-bat" data-bb-shortcut="dq-bat" aria-label="Unlock battery" data-i18n-aria="dash.drive.quick.battery.aria" data-i18n="dash.drive.quick.battery">Battery</button>
-    </div>
+    <!-- Quick controls: empty skin container; the driver fills it via renderQuickControls(). -->
+    <div id="quick-grid" class="qg-disabled" role="group" aria-label="Function quick toggles" data-i18n-aria="dash.drive.quick.group" data-tile-id="quick-actions" data-tile-label="Quick Buttons" data-tile-no-editor="true"></div>
 
      </div>
     </div>
@@ -4695,23 +4687,47 @@ function reattachSpeedUnlock() {
    from a single app i18n key. The same function then reads identically everywhere (quick-bar,
    bottom-nav, shortcuts, settings) - e.g. always "Zero-Start", never a theme's "Kickstart" - and a
    Teverun-shaped theme never collapses to a near-empty bar. */
-var _SF_QUICKBAR_HTML =
-  '<button type="button" class="dq-btn" data-dq="frontLight" data-cap="frontLight" data-btn-id="btn-dq-light" data-bb-shortcut="dq-light" aria-label="Toggle front light" data-i18n-aria="dash.drive.quick.frontlight.aria" data-i18n="dash.drive.quick.frontlight">Light</button>' +
-  '<button type="button" class="dq-btn" data-dq="zeroStart" data-cap="zeroStart" data-btn-id="btn-dq-zero" data-bb-shortcut="dq-zero" aria-label="Toggle zero start" data-i18n-aria="dash.drive.quick.zerostart.aria" data-i18n="dash.drive.quick.zerostart">Zero-Start</button>' +
-  '<button type="button" class="dq-btn" data-dq="lock" data-cap="vlock" data-btn-id="btn-dq-lock" data-bb-shortcut="dq-lock" aria-label="Toggle immobilizer" data-i18n-aria="dash.drive.quick.lock.aria" data-i18n="dash.drive.quick.lock">Lock</button>' +
-  '<button type="button" class="dq-btn" data-dq="darkMode" data-cap="darkMode" data-btn-id="btn-dq-dark" data-bb-shortcut="dq-dark" aria-label="Toggle dark mode" data-i18n-aria="dash.drive.quick.darkmode.aria" data-i18n="dash.drive.quick.darkmode">Dark</button>' +
-  '<button type="button" class="dq-btn" data-dq="mode" data-cap="mode" data-btn-id="btn-dq-mode" data-bb-shortcut="dq-mode" aria-label="Cycle ride mode" data-i18n-aria="dash.drive.quick.mode.aria" data-i18n="dash.drive.quick.mode">Mode</button>' +
-  '<button type="button" class="dq-btn" data-dq="indicator" data-cap="indicator" data-btn-id="btn-dq-ind" data-bb-shortcut="dq-ind" aria-label="Toggle BLE status light" data-i18n-aria="dash.drive.quick.indicator.aria" data-i18n="dash.drive.quick.indicator">Status light</button>' +
-  '<button type="button" class="dq-btn" data-dq="unit" data-cap="unit" data-btn-id="btn-dq-unit" data-bb-shortcut="dq-unit" aria-label="Toggle scooter display unit" data-i18n-aria="dash.drive.quick.unit.aria" data-i18n="dash.drive.quick.unit">Unit</button>' +
-  '<button type="button" class="dq-btn" data-dq="battery" data-cap="battery" data-btn-id="btn-dq-bat" data-bb-shortcut="dq-bat" aria-label="Unlock battery" data-i18n-aria="dash.drive.quick.battery.aria" data-i18n="dash.drive.quick.battery">Battery</button>';
+/* Driver control set: every quick control this manufacturer offers. renderQuickControls() builds them
+   into #quick-grid (standard fold or an injected theme) as capability-gated dq-btn buttons with markup
+   identical to the old hand-written bar, so reattachQuickGridHandlers()/reflectDriveQuick() wire and
+   mirror them by selector. Replaces the old hardcoded _SF_QUICKBAR_HTML string. */
+var SF_QUICK_CONTROLS = [
+  { dq: 'frontLight', cap: 'frontLight', btnId: 'btn-dq-light', bb: 'dq-light', i18n: 'dash.drive.quick.frontlight', aria: 'dash.drive.quick.frontlight.aria' },
+  { dq: 'zeroStart',  cap: 'zeroStart',  btnId: 'btn-dq-zero',  bb: 'dq-zero',  i18n: 'dash.drive.quick.zerostart',  aria: 'dash.drive.quick.zerostart.aria' },
+  { dq: 'lock',       cap: 'vlock',      btnId: 'btn-dq-lock',  bb: 'dq-lock',  i18n: 'dash.drive.quick.lock',       aria: 'dash.drive.quick.lock.aria' },
+  { dq: 'darkMode',   cap: 'darkMode',   btnId: 'btn-dq-dark',  bb: 'dq-dark',  i18n: 'dash.drive.quick.darkmode',   aria: 'dash.drive.quick.darkmode.aria' },
+  { dq: 'mode',       cap: 'mode',       btnId: 'btn-dq-mode',  bb: 'dq-mode',  i18n: 'dash.drive.quick.mode',       aria: 'dash.drive.quick.mode.aria' },
+  { dq: 'indicator',  cap: 'indicator',  btnId: 'btn-dq-ind',   bb: 'dq-ind',   i18n: 'dash.drive.quick.indicator',  aria: 'dash.drive.quick.indicator.aria' },
+  { dq: 'unit',       cap: 'unit',       btnId: 'btn-dq-unit',  bb: 'dq-unit',  i18n: 'dash.drive.quick.unit',       aria: 'dash.drive.quick.unit.aria' },
+  { dq: 'battery',    cap: 'battery',    btnId: 'btn-dq-bat',   bb: 'dq-bat',   i18n: 'dash.drive.quick.battery',    aria: 'dash.drive.quick.battery.aria' }
+];
+function renderQuickControls(grid) {
+  if (!grid) grid = document.getElementById('quick-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  SF_QUICK_CONTROLS.forEach(function(c) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dq-btn';
+    b.dataset.dq = c.dq;
+    b.dataset.cap = c.cap;
+    b.dataset.btnId = c.btnId;
+    b.dataset.bbShortcut = c.bb;
+    if (c.bbLabel) b.dataset.bbLabel = c.bbLabel;
+    b.setAttribute('data-i18n', c.i18n);
+    if (c.aria) { b.setAttribute('data-i18n-aria', c.aria); b.setAttribute('aria-label', t(c.aria)); }
+    b.textContent = t(c.i18n);
+    grid.appendChild(b);
+  });
+  try { reattachQuickGridHandlers(); } catch (e) {}   // wires + applyButtonRowConfig + initBtnDrag + caps
+  try { reflectDriveQuick(); } catch (e) {}
+}
 
-/* Re-attach the quick-toggle click handlers to the #quick-grid buttons. For a custom theme we first
-   replace the theme's own (Teverun-shaped) buttons with the app's SoFlow bar above; then wire every
-   button and capability-gate it. Called after theme injection (reattachSpeedUnlock()). */
+/* Re-attach the quick-toggle click handlers to the #quick-grid buttons (built by renderQuickControls);
+   wire every button and capability-gate it. Called from renderQuickControls after the buttons are built. */
 function reattachQuickGridHandlers() {
   var grid = document.getElementById('quick-grid');
   if (!grid) return;
-  if (_themeActive && _themeActive !== 'Default') grid.innerHTML = _SF_QUICKBAR_HTML;
   grid.querySelectorAll('.dq-btn[data-dq]').forEach(function(btn) {
     btn.removeEventListener('click', btn._dqHandler);
     btn._dqHandler = function() { toggleDriveQuick(btn.dataset.dq); };
@@ -5621,7 +5637,7 @@ function initActiveTheme() {
           container.innerHTML = html;
           _cleanPoolAfterInjection();
           reattachSpeedUnlock();
-          reattachQuickGridHandlers();
+          renderQuickControls();   // the injected theme's #quick-grid is an empty skin; the driver fills it
           try { applyLang(); } catch (eLang) {}
         }
       }
@@ -5771,10 +5787,9 @@ function wireEvents() {
     else showToast(t('msg.app.only.in.app'));
   });
 
-  // Main-screen quick toggles: front light / zero-start / dark mode / lock.
-  document.querySelectorAll('#quick-grid .dq-btn[data-dq]').forEach(btn => {
-    btn.addEventListener('click', () => toggleDriveQuick(btn.dataset.dq));
-  });
+  // Build the quick controls from the driver set (SF_QUICK_CONTROLS) and wire them. The old hand-written
+  // buttons are gone; renderQuickControls() creates identical markup and reattaches the handlers by selector.
+  renderQuickControls();
 
   // Hidden gesture: triple-tap the VCU speed tile to toggle the throttle between open and eKFV.
   // The GPS drum takes the same gesture; when the drums are parked (custom theme) the pool tiles are used.

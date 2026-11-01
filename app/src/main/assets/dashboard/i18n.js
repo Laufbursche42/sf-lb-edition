@@ -20,6 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Themes are now fully manufacturer-neutral.</b> The built-in themes no longer carry any hardcoded buttons - each app fills the quick-control bar from its own scooter, so the very same theme .zip looks and works correctly in the Teverun, SoFlow and Navee apps alike.",
       "<b>Align each dashboard row.</b> Every row - the tiles and the quick buttons - can now be centred, left- or right-aligned, or set to fill, each row on its own, in the Theme Manager. Centred is the default, so a part-filled row (like a two-button last row) sits neatly in the middle.",
       "<b>Printable theme guide.</b> The in-app theme guide now links to a formatted PDF (English &amp; German) and to its raw Markdown source for AI assistants. The in-app guide, the PDF and the Markdown are all generated from one source, so they always match.",
       "<b>Debug logs are scrubbed of personal data.</b> When you export or share a debug log, MAC addresses, device names, IDs and secrets are removed automatically - the useful troubleshooting data stays. Always on.",
@@ -900,6 +901,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Themes sind jetzt vollst&auml;ndig herstellerneutral.</b> Die eingebauten Themes enthalten keine fest verdrahteten Kn&ouml;pfe mehr - jede App f&uuml;llt die Schnellsteuerung aus ihrem eigenen Roller, sodass dieselbe Theme-.zip in der Teverun-, SoFlow- und Navee-App gleicherma&szlig;en richtig aussieht und funktioniert.",
       "<b>Jede Dashboard-Zeile ausrichten.</b> Jede Zeile - die Kacheln und die Schnellkn&ouml;pfe - l&auml;sst sich jetzt einzeln zentrieren, links- oder rechtsb&uuml;ndig stellen oder f&uuml;llen, im Theme-Manager. Zentriert ist Standard, sodass eine nur teilweise gef&uuml;llte Zeile (z.&nbsp;B. eine Zweier-Knopfreihe) mittig sitzt.",
       "<b>Druckbarer Theme-Guide.</b> Der In-App-Theme-Guide verlinkt jetzt ein formatiertes PDF (Deutsch &amp; Englisch) und seine rohe Markdown-Quelle f&uuml;r KI-Assistenten. In-App-Guide, PDF und Markdown werden alle aus einer Quelle erzeugt und passen damit immer zusammen.",
       "<b>Debug-Logs werden von persönlichen Daten bereinigt.</b> Beim Exportieren oder Teilen eines Debug-Logs werden MAC-Adressen, Gerätenamen, IDs und Secrets automatisch entfernt - die nützlichen Fehlersuchdaten bleiben. Immer an.",

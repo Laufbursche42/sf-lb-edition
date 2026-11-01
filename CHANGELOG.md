@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.21
+
+- Changed: the quick-control bar is now built from the app's own driver (renderQuickControls) instead of hand-written HTML, and the built-in themes ship with an empty quick-control container - so the same theme .zip is fully manufacturer-neutral and works identically in the Teverun, SoFlow and Navee apps. The old `_SF_QUICKBAR_HTML` string is gone.
+
 ## 1.0.20
 
 - Added: every dashboard row - the tiles and the quick-button row - can now be aligned per row (centred by default, or left / right / fill) in the Theme Manager, saved per theme. A part-filled row, such as a two-button last row, now sits centred instead of hanging to the left.
