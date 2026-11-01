@@ -20,6 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Align each dashboard row.</b> Every row - the tiles and the quick buttons - can now be centred, left- or right-aligned, or set to fill, each row on its own, in the Theme Manager. Centred is the default, so a part-filled row (like a two-button last row) sits neatly in the middle.",
       "<b>Printable theme guide.</b> The in-app theme guide now links to a formatted PDF (English &amp; German) and to its raw Markdown source for AI assistants. The in-app guide, the PDF and the Markdown are all generated from one source, so they always match.",
       "<b>Debug logs are scrubbed of personal data.</b> When you export or share a debug log, MAC addresses, device names, IDs and secrets are removed automatically - the useful troubleshooting data stays. Always on.",
       "<b>Two ready-to-use themes built in.</b> Carbon and Lambo now ship with the app - open the Theme Manager and tap Activate, no import or download needed. Want your own look? The built-in guide walks you through making one.",
@@ -854,6 +855,13 @@ window.I18N = {
     "theme.editor.tiles.show.all": "Show all",
 
     "theme.btnrow.section": "Quick buttons",
+    "theme.rowalign.center": "Centered",
+    "theme.rowalign.fill": "Fill",
+    "theme.rowalign.hint": "per row",
+    "theme.rowalign.left": "Left",
+    "theme.rowalign.right": "Right",
+    "theme.rowalign.row": "Row",
+    "theme.rowalign.section": "Row alignment",
     "theme.btnrow.align.section": "Button row alignment",
     "theme.btnrow.align.section.hint": "how buttons are aligned in the row",
 
@@ -892,6 +900,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Jede Dashboard-Zeile ausrichten.</b> Jede Zeile - die Kacheln und die Schnellkn&ouml;pfe - l&auml;sst sich jetzt einzeln zentrieren, links- oder rechtsb&uuml;ndig stellen oder f&uuml;llen, im Theme-Manager. Zentriert ist Standard, sodass eine nur teilweise gef&uuml;llte Zeile (z.&nbsp;B. eine Zweier-Knopfreihe) mittig sitzt.",
       "<b>Druckbarer Theme-Guide.</b> Der In-App-Theme-Guide verlinkt jetzt ein formatiertes PDF (Deutsch &amp; Englisch) und seine rohe Markdown-Quelle f&uuml;r KI-Assistenten. In-App-Guide, PDF und Markdown werden alle aus einer Quelle erzeugt und passen damit immer zusammen.",
       "<b>Debug-Logs werden von persönlichen Daten bereinigt.</b> Beim Exportieren oder Teilen eines Debug-Logs werden MAC-Adressen, Gerätenamen, IDs und Secrets automatisch entfernt - die nützlichen Fehlersuchdaten bleiben. Immer an.",
       "<b>Zwei fertige Themes integriert.</b> Carbon und Lambo sind jetzt direkt in der App dabei - im Theme-Manager einfach auf Aktivieren tippen, kein Import oder Download n&ouml;tig. Eigenes Design? Die eingebaute Anleitung f&uuml;hrt dich Schritt f&uuml;r Schritt durch.",
@@ -1726,6 +1735,13 @@ window.I18N = {
     "theme.editor.tiles.show.all": "Alle einblenden",
 
     "theme.btnrow.section": "Schnellknöpfe",
+    "theme.rowalign.center": "Zentriert",
+    "theme.rowalign.fill": "Füllen",
+    "theme.rowalign.hint": "pro Zeile",
+    "theme.rowalign.left": "Links",
+    "theme.rowalign.right": "Rechts",
+    "theme.rowalign.row": "Zeile",
+    "theme.rowalign.section": "Zeilen-Ausrichtung",
     "theme.btnrow.align.section": "Ausrichtung der Schnellknöpfe",
     "theme.btnrow.align.section.hint": "wie die Knöpfe in der Reihe ausgerichtet werden",
 

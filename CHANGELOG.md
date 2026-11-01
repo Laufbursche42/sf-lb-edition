@@ -14,6 +14,11 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.20
+
+- Added: every dashboard row - the tiles and the quick-button row - can now be aligned per row (centred by default, or left / right / fill) in the Theme Manager, saved per theme. A part-filled row, such as a two-button last row, now sits centred instead of hanging to the left.
+- Changed: the old global button-row alignment (fill / center / edges) is replaced by this per-row control; existing themes are untouched.
+
 ## 1.0.19
 
 - Added: the in-app theme guide now links to a formatted PDF (EN and DE) and to the raw Markdown source for AI assistants.
