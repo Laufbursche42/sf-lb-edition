@@ -200,6 +200,23 @@ html[data-theme-loading] #scroller { visibility: hidden; }
 #motor-area.lb-packed { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--gap); justify-content: center; align-content: start; }
 #motor-area.lb-packed > [id^="motor-row"] { display: contents; }
 #motor-area.lb-packed .motor-cell { flex: 0 1 calc((100% - 2 * var(--gap)) / 3); }
+/* Driver-rendered live-value cells (renderTelemetryCells) flow into one packed three-column grid
+   (hero + live values); presence-hidden cells drop out so the visible set packs and a partial last
+   row centres. Same contract in a theme's own #tele-fold, so the skin stays manufacturer-neutral. */
+#tele-fold {
+  display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--gap);
+  justify-content: center; align-content: start;
+}
+#tele-fold > .hero-cell, #tele-fold > .motor-cell {
+  flex: 0 1 calc((100% - 2 * var(--gap)) / 3);
+  overflow: hidden;
+}
+/* In the packed grid the hero value takes the motor-value size and long words (e.g. gear text) clip
+   instead of spilling into the next cell when fitFold scales the fold up. */
+#tele-fold .hc-val { font-size: var(--sz-hero-val, clamp(22px, 6vw, 30px)); }
+#tele-fold .hc-val, #tele-fold .mc-main {
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .hero-cell {
   flex: 1; min-width: 0;
   background: var(--card); border: 1px solid var(--border);

@@ -1,7 +1,9 @@
 # Release build - fully automatic, no manual tagging.
-# Version comes from version.properties, same formula as app/build.gradle, passed to Gradle via
-# -PverName / -PverCode so the APK number matches the tag. Builds a signed APK on every push to
-# main and publishes a GitHub Release; skips if that version already exists.
+# On every push to `main` this computes the version from version.properties, the same file the
+# gradle build reads, builds a SIGNED release APK and publishes a GitHub Release tagged
+# `v<major>.<minor>.<n>` with the APK attached. If a release for that version already exists it
+# does nothing, so a new release appears whenever a new commit lands on main.
+# Manual runs (Actions -> Run workflow) behave the same.
 #
 # Required repository Secrets (Settings -> Secrets and variables -> Actions):
 #   KEYSTORE_BASE64    - the release keystore, base64-encoded (contents of keystore.base64.txt)
@@ -25,6 +27,7 @@ on:
       - '.github/**'
       - '.githooks/**'
       - 'firmware/**'
+      - 'version.properties'
   workflow_dispatch:
 
 permissions:
@@ -35,32 +38,28 @@ jobs:
     name: Build and publish signed APK
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (full history for commit-count versioning)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Compute the version - app/src commits for the name, all commits for the code
+      - name: Compute the next version (no bump yet)
         id: ver
         run: |
+          # releaseCount in version.properties is the patch of the LAST PUBLISHED release, so the
+          # next release is releaseCount + 1. NOTHING is written back here: the counter is advanced
+          # only AFTER the release is published (final step), so a failed or skipped build never
+          # burns a version number. The version is passed to gradle with -PverName/-PverCode, so the
+          # APK number matches the tag exactly (no second +1 in build.gradle).
           MAJOR=$(sed -n 's/^major=//p' version.properties)
           MINOR=$(sed -n 's/^minor=//p' version.properties)
-          PATCH_ZERO_AT=$(sed -n 's/^patchZeroAt=//p' version.properties)
           CODE_BASE=$(sed -n 's/^codeBase=//p' version.properties)
-          # versionName counts only app/src commits (identical to app/build.gradle), so docs/CI/config
-          # commits never bump it; the duplicate-tag guard below then skips a release that has no new app.
-          APP_COMMITS=$(git rev-list --count HEAD -- app/src)
-          ALL_COMMITS=$(git rev-list --count HEAD)
-          PATCH=$(( APP_COMMITS - PATCH_ZERO_AT ))
-          if [ "$PATCH" -lt 0 ]; then PATCH=0; fi
-          VERSION="$MAJOR.$MINOR.$PATCH"
-          TAG="v$VERSION"
-          # versionCode grows with every commit and never goes backwards.
-          VCODE=$(( CODE_BASE + ALL_COMMITS ))
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          OLD_COUNT=$(sed -n 's/^releaseCount=//p' version.properties)
+          NEXT=$(( OLD_COUNT + 1 ))
+          VCODE=$(( CODE_BASE + NEXT + 1 ))
+          echo "version=$MAJOR.$MINOR.$NEXT" >> "$GITHUB_OUTPUT"
+          echo "tag=v$MAJOR.$MINOR.$NEXT" >> "$GITHUB_OUTPUT"
           echo "vcode=$VCODE" >> "$GITHUB_OUTPUT"
-          echo "Version $TAG (versionCode $VCODE): $APP_COMMITS app/src commits, $ALL_COMMITS total - same as the local build"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Next release: $MAJOR.$MINOR.$NEXT (versionCode $VCODE); releaseCount stays $OLD_COUNT until published."
 
       - name: Skip if this version was already released
         id: exists
@@ -77,16 +76,14 @@ jobs:
 
       - name: Set up JDK 21 (Temurin)
         if: steps.exists.outputs.exists == 'false'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Android SDK
         if: steps.exists.outputs.exists == 'false'
-        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
-        with:
-          packages: 'platform-tools'
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
 
       - name: Set up Gradle
         if: steps.exists.outputs.exists == 'false'
@@ -110,6 +107,38 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease -PverName="${{ steps.ver.outputs.version }}" -PverCode="${{ steps.ver.outputs.vcode }}"
+
+      - name: Force v1 (JAR) + v2 signing and GATE on it
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # AGP with minSdk>=24 drops v1 (JAR) signing even with enableV1Signing=true, producing a
+          # v2-only APK. MIUI/Xiaomi rejects a v2-only APK on install (INSTALL_FAILED_USER_RESTRICTED
+          # "Invalid apk"). Re-sign with apksigner forcing v1+v2 (--min-sdk-version 19 makes apksigner
+          # include v1), then HARD-GATE: abort the release if v1 is not present, so a v2-only APK can
+          # never be published again.
+          APK=app/build/outputs/apk/release/app-release.apk
+          APKSIGNER=$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -n1)
+          [ -z "$APKSIGNER" ] && APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n1)
+          echo "apksigner: $APKSIGNER"
+          "$APKSIGNER" sign \
+            --ks "$RUNNER_TEMP/release.keystore" \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled false \
+            --min-sdk-version 19 \
+            "$APK"
+          echo "----- signature schemes -----"
+          "$APKSIGNER" verify --verbose --min-sdk-version 19 "$APK" | grep -i scheme || true
+          if ! "$APKSIGNER" verify --verbose --min-sdk-version 19 "$APK" | grep -qi "v1 scheme (JAR signing): true"; then
+            echo "::error::Release APK is NOT v1 (JAR) signed -> MIUI/Xiaomi would reject it as 'Invalid apk'. Aborting release."
+            exit 1
+          fi
+          echo "OK: APK is v1 (JAR) + v2 signed."
 
       - name: Stage APK under the release name
         if: steps.exists.outputs.exists == 'false'
@@ -135,6 +164,20 @@ jobs:
             --target "${{ github.sha }}" \
             --title "sf-lb-edition ${{ steps.ver.outputs.tag }}" \
             --notes-file "$RUNNER_TEMP/release-notes.md"
+
+      - name: Advance releaseCount and commit it back (only after a successful publish)
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          # The release is now published, so this version number is used up: advance releaseCount to
+          # it. version.properties is in paths-ignore and the message carries [skip ci], so this
+          # commit never retriggers the workflow. If anything above failed, this step never runs and
+          # the counter stays put, so the same number is retried next push (one release = one bump).
+          sed -i "s/^releaseCount=.*/releaseCount=${{ steps.ver.outputs.next }}/" version.properties
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.properties
+          git commit -m "ci: release ${{ steps.ver.outputs.tag }} [skip ci]"
+          git push
 
       - name: Refresh the profile-page roster so the new APK shows at once
         if: steps.exists.outputs.exists == 'false'

@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Fully customizable dashboard.</b> Every live-value tile is now filled by your SoFlow's own driver into a shared layout - the app shows exactly what your scooter reports. In the Theme Manager a 'Live tiles' list lets you pick, per theme, which value each tile shows (a dropdown per tile, like the quick buttons).",
+      "<b>Carbon &amp; Lambo refreshed.</b> The built-in gauge themes now render your driver's values in their own skin, cap the fold tidily (9 tiles / 8 buttons), and mark 40-100 km/h dark red on the gauge for unlocked scooters that reach those speeds. They auto-update on this release.",
       "<b>Tidier dashboard.</b> The Default dashboard's live-value cells now pack into a neat grid (a partial last row centres), power shows in kW, and your custom themes keep their own layout untouched.",
       "<b>Unified dashboard layout.</b> The built-in (Default) dashboard now uses the same shared layout as the Teverun and Navee apps - speed, battery and a live-values grid - showing only the values your SoFlow actually reports and hiding the rest. Energy and lock state are back, and power now reads correctly in watts.",
       "<b>SO6 scooters read trip, total distance and lock correctly.</b> On the SO6 / SO4-UL protocol family the app now decodes the separate trip/total-distance frame and the lock-status frame, so those values show correctly; remaining range and ride time are read too.",
@@ -94,6 +96,7 @@ window.I18N = {
     "dash.tele.range.title": "RANGE", "dash.tele.range.unit": "km",
     "dash.tele.odo.title": "TOTAL", "dash.tele.odo.unit": "km",
     "dash.tele.error.title": "ERROR", "dash.tele.error.unit": "code",
+    "dash.tele.duration.title": "RIDE TIME", "dash.tele.duration.unit": "h:m:s",
     "dash.tele.lock.title": "LOCK", "dash.tele.lock.unit": "state",
     "dash.drive.quick.frontlight": "Light", "dash.drive.quick.frontlight.aria": "Toggle front light",
     "dash.drive.quick.zerostart": "Zero-Start", "dash.drive.quick.zerostart.aria": "Toggle zero start",
@@ -863,6 +866,8 @@ window.I18N = {
     "theme.editor.tiles.show.all": "Show all",
 
     "theme.btnrow.section": "Quick buttons",
+    "theme.livetiles.section": "Live tiles",
+    "theme.livetiles.pick.aria": "Choose value",
     "theme.rowalign.center": "Centered",
     "theme.rowalign.fill": "Fill",
     "theme.rowalign.hint": "per row",
@@ -910,6 +915,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Voll anpassbares Dashboard.</b> Jede Live-Wert-Kachel wird jetzt vom Treiber deines SoFlow in ein geteiltes Layout gefüllt - die App zeigt genau das, was dein Roller meldet. Im Theme-Manager wählst du über eine 'Live-Kacheln'-Liste pro Theme, welchen Wert jede Kachel zeigt (ein Dropdown pro Kachel, wie bei den Buttons).",
+      "<b>Carbon &amp; Lambo überarbeitet.</b> Die eingebauten Gauge-Themes rendern jetzt die Treiber-Werte in eigener Optik, deckeln den Fold sauber (9 Kacheln / 8 Buttons) und markieren 40-100 km/h dunkelrot auf dem Tacho für entsperrte Roller, die das erreichen. Sie aktualisieren sich mit diesem Release automatisch.",
       "<b>Aufgeräumtes Dashboard.</b> Die Live-Wert-Kacheln im Standard-Dashboard packen sich jetzt zu einem sauberen Raster (eine unvollständige letzte Reihe sitzt mittig), die Leistung steht in kW, und deine eigenen Themes behalten ihr Layout.",
       "<b>Vereinheitlichtes Dashboard-Layout.</b> Das eingebaute (Standard-)Dashboard nutzt jetzt dasselbe geteilte Layout wie die Teverun- und Navee-Apps - Geschwindigkeit, Akku und ein Live-Werte-Raster - und zeigt nur die Werte, die dein SoFlow wirklich meldet, der Rest wird ausgeblendet. Energie und Sperrstatus sind zurück, und die Leistung wird jetzt korrekt in Watt angezeigt.",
       "<b>SO6-Roller lesen Trip, Gesamtstrecke und Sperre korrekt.</b> Bei der SO6-/SO4-UL-Protokollfamilie dekodiert die App jetzt den separaten Trip-/Gesamt-Frame und den Sperrstatus-Frame, sodass diese Werte korrekt angezeigt werden; Restreichweite und Fahrtzeit werden ebenfalls gelesen.",
@@ -984,6 +991,7 @@ window.I18N = {
     "dash.tele.range.title": "REICHWEITE", "dash.tele.range.unit": "km",
     "dash.tele.odo.title": "GESAMT", "dash.tele.odo.unit": "km",
     "dash.tele.error.title": "FEHLER", "dash.tele.error.unit": "Code",
+    "dash.tele.duration.title": "FAHRZEIT", "dash.tele.duration.unit": "h:m:s",
     "dash.tele.lock.title": "SPERRE", "dash.tele.lock.unit": "Status",
     "dash.drive.quick.frontlight": "Licht", "dash.drive.quick.frontlight.aria": "Frontlicht schalten",
     "dash.drive.quick.zerostart": "Zero-Start", "dash.drive.quick.zerostart.aria": "Zero-Start schalten",
@@ -1753,6 +1761,8 @@ window.I18N = {
     "theme.editor.tiles.show.all": "Alle einblenden",
 
     "theme.btnrow.section": "Schnellknöpfe",
+    "theme.livetiles.section": "Live-Kacheln",
+    "theme.livetiles.pick.aria": "Wert wählen",
     "theme.rowalign.center": "Zentriert",
     "theme.rowalign.fill": "Füllen",
     "theme.rowalign.hint": "pro Zeile",

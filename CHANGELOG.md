@@ -2,7 +2,7 @@
 
 Notable changes to Laufbursche Edition (SoFlow), newest first.
 
-The version series lives in `version.properties`, which both the gradle build and the release workflow read. `versionName` is `<major>.<minor>.<n>` where `n` counts the commits since the series began, so the number rises by one on every release with no manual editing. `versionCode` counts straight through a series change and never goes backwards.
+The version series lives in `version.properties`. `versionName` is `<major>.<minor>.<n>` where `n` is the release count: it advances by exactly one per push/release (bumped by the CI workflow), never by individual commits. `versionCode` never goes backwards.
 
 Release notes are built automatically for each release: if this file has a section whose heading matches the released version it is used verbatim, otherwise the commit subjects since the previous release are listed. Either way a fixed Disclaimer and a "phoning home" note are appended (see `.github/release-footer.md`).
 
@@ -14,26 +14,14 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
-## 1.0.24
-
-- Changed: the Default dashboard's live-value cells now pack into a tidy grid (a partial last row centres), power reads in kW, and custom themes keep their own per-row layout unchanged.
-
-## 1.0.23
-
-- Changed: the built-in (Default) dashboard now uses the same shared canonical fold layout as the Teverun and Navee apps (speed, battery, live-values grid); it fills only the values the connected SoFlow reports and hides the rest. Energy and lock are shown again, and power now reads correctly in watts.
-
-## 1.0.22
-
-- Added: on the SO6 / SO4-UL protocol family the app now decodes the separate trip/total-distance frame and the lock-status frame, so trip, total distance and lock state are shown correctly; remaining range and ride time are read too.
-
-## 1.0.21
-
-- Changed: the quick-control bar is now built from the app's own driver (renderQuickControls) instead of hand-written HTML, and the built-in themes ship with an empty quick-control container - so the same theme .zip is fully manufacturer-neutral and works identically in the Teverun, SoFlow and Navee apps. The old `_SF_QUICKBAR_HTML` string is gone.
-
 ## 1.0.20
 
-- Added: every dashboard row - the tiles and the quick-button row - can now be aligned per row (centred by default, or left / right / fill) in the Theme Manager, saved per theme. A part-filled row, such as a two-button last row, now sits centred instead of hanging to the left.
-- Changed: the old global button-row alignment (fill / center / edges) is replaced by this per-row control; existing themes are untouched.
+- Driver-rendered, customizable dashboard. Every live-value tile is now filled by your SoFlow's own driver into a shared layout, so the app shows exactly the values your scooter reports and hides the rest. Energy, lock, remaining range and ride time are read, and power reads in kW.
+- Pick what shows above the fold. In the Theme Manager a "Live tiles" list (between the fixed speed row and the scroll area) lets you choose, per theme, which value each tile shows - a dropdown per tile, just like the quick buttons - plus a tidy packed grid with a centred partial last row.
+- Manufacturer-neutral themes, driver-filled. The quick-control bar and the live tiles are built from the app's own driver into empty skin containers, so the built-in Carbon and Lambo theme .zips are byte-identical across the Teverun, SoFlow and Navee apps; each app fills them with its own scooter's values.
+- Carbon & Lambo refreshed (auto-updated on this release). Both now show your driver's values in their own skin, cap the fold tidily (9 tiles / 8 buttons on the gauge themes), and the speed gauge marks 40-100 km/h dark red for unlocked scooters that reach those speeds.
+- Per-row alignment. Every dashboard row - tiles and quick buttons - can be aligned (centre by default, or left / right / fill) in the Theme Manager, saved per theme; a part-filled last row centres.
+- SO6 / SO4-UL decode the separate trip/total-distance frame and the lock-status frame, so trip, total distance and lock state show correctly.
 
 ## 1.0.19
 
