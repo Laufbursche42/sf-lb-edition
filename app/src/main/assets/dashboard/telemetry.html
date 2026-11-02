@@ -3008,7 +3008,6 @@ function renderErrorReports() {
 
 let _errTimer = null;
 function openErrorReports() {
-  closeSettings();
   renderErrorReports();
   document.getElementById('error-reports-page').classList.add('open');
   clearInterval(_errTimer);
@@ -3237,7 +3236,6 @@ function renderRideLog() {
 
 let _infoTimer = null;
 function openInfoPage() {
-  closeSettings();
   renderInfoPage();
   renderRideLog();                                  // toggle state + last-3-rides list, refreshed on open
   document.getElementById('info-page').classList.add('open');
@@ -3300,7 +3298,6 @@ function renderBatteryPage() {
 
 let _batteryTimer = null;
 function openBatteryPage() {
-  closeSettings();
   renderBatteryPage();
   document.getElementById('battery-page').classList.add('open');
   clearInterval(_batteryTimer);
@@ -5757,7 +5754,6 @@ function wireEvents() {
 
   // Routes sub-page open/close
   document.getElementById('btn-open-routes').addEventListener('click', () => {
-    closeSettings();
     importNativeRoutes();   // pull in any track recorded natively (incl. with the screen off)
     renderRoutes();
     document.getElementById('routes-page').classList.add('open');
@@ -5790,14 +5786,12 @@ function wireEvents() {
 
   // Connect scooter (settings sheet): open the Connect page.
   document.getElementById('btn-connect-scooter').addEventListener('click', () => {
-    closeSettings();
     openConnectPage();
   });
 
   // Scooter settings: open the in-app scooter settings page (requires a connected scooter).
   document.getElementById('btn-scooter-settings').addEventListener('click', () => {
     if (!state.bleConnected) { showToast(t('msg2.toast.no_scooter_connected'), 3000, 'err'); return; }
-    closeSettings();
     openScooterPage();
   });
   document.getElementById('btn-scooter-back').addEventListener('click', closeScooterPage);
@@ -5806,21 +5800,18 @@ function wireEvents() {
   // Read error reports: show current active faults/errors from live BLE data (requires connection).
   document.getElementById('btn-error-reports').addEventListener('click', () => {
     if (!state.bleConnected) { showToast(t('msg2.toast.no_scooter_connected'), 3000, 'err'); return; }
-    closeSettings();
     openErrorReports();
   });
   document.getElementById('btn-error-reports-back').addEventListener('click', closeErrorReports);
 
   // Scooter info: identity + firmware/app versions read from live BLE data.
   document.getElementById('btn-info').addEventListener('click', () => {
-    closeSettings();
     openInfoPage();
   });
   document.getElementById('btn-info-back').addEventListener('click', closeInfoPage);
 
   // Battery info: pack values read from live BLE data.
   document.getElementById('btn-battery').addEventListener('click', () => {
-    closeSettings();
     openBatteryPage();
   });
   document.getElementById('btn-battery-back').addEventListener('click', closeBatteryPage);
@@ -5828,7 +5819,6 @@ function wireEvents() {
   document.getElementById('btn-display-back').addEventListener('click', closeDisplayPage);
 
   document.getElementById('btn-open-theme').addEventListener('click', () => {
-    closeSettings();
     openThemePage();
   });
   document.getElementById('btn-theme-back').addEventListener('click', closeThemePage);
@@ -5883,7 +5873,6 @@ function wireEvents() {
 
   // Version Info & Disclaimer (side-menu footer): open the modal (Close / backdrop / Escape).
   document.getElementById('btn-version-info').addEventListener('click', () => {
-    closeSettings();
     openVersionInfo();
   });
   document.getElementById('verinfo-close').addEventListener('click', closeVersionInfo);
@@ -5898,7 +5887,6 @@ function wireEvents() {
 
   // What is new: from the settings and Got it / backdrop / Escape to close.
   document.getElementById('btn-whatsnew').addEventListener('click', () => {
-    closeSettings();
     openWhatsNew();
   });
   document.getElementById('whatsnew-close').addEventListener('click', closeWhatsNew);

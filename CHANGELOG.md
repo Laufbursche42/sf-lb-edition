@@ -22,6 +22,7 @@ If no matching section exists the notes fall back to the commit messages, so kee
 - Carbon & Lambo refreshed (auto-updated on this release). Both now show your driver's values in their own skin, cap the fold tidily (9 tiles / 8 buttons on the gauge themes), and the speed gauge marks 40-100 km/h dark red for unlocked scooters that reach those speeds.
 - Per-row alignment. Every dashboard row - tiles and quick buttons - can be aligned (centre by default, or left / right / fill) in the Theme Manager, saved per theme; a part-filled last row centres.
 - SO6 / SO4-UL decode the separate trip/total-distance frame and the lock-status frame, so trip, total distance and lock state show correctly.
+- Back button returns one level. The on-screen back arrows and the Android back button now step back exactly one level (a sub-page returns to Settings, Settings to the dashboard) instead of sometimes jumping straight to the dashboard.
 
 ## 1.0.19
 
