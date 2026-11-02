@@ -20,6 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>SO6 / SO4-UL: more live values.</b> Current, total distance and lock now show on the SO6 and SO4-UL scooters (they were parsed but hidden), and the Error tile no longer shows a fake \u0027OK\u0027 where the scooter sends no fault data.",
       "<b>Back button fixed.</b> The back arrows and the Android back button now step back exactly one level - a sub-page returns to Settings, not straight to the dashboard.",
       "<b>Fully customizable dashboard.</b> Every live-value tile is now filled by your SoFlow's own driver into a shared layout - the app shows exactly what your scooter reports. In the Theme Manager a 'Live tiles' list lets you pick, per theme, which value each tile shows (a dropdown per tile, like the quick buttons).",
       "<b>Carbon &amp; Lambo refreshed.</b> The built-in gauge themes now render your driver's values in their own skin, cap the fold tidily (9 tiles / 8 buttons), and mark 40-100 km/h dark red on the gauge for unlocked scooters that reach those speeds. They auto-update on this release.",
@@ -916,6 +917,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>SO6 / SO4-UL: mehr Live-Werte.</b> Strom, Gesamtstrecke und Sperrstatus werden jetzt bei den SO6- und SO4-UL-Rollern angezeigt (waren geparst, aber versteckt), und die Fehler-Kachel zeigt kein falsches \u0027OK\u0027 mehr, wo der Roller keine Fehlerdaten sendet.",
       "<b>Zurück-Taste korrigiert.</b> Die Zurück-Pfeile und die Android-Zurück-Taste gehen jetzt genau eine Ebene zurück - eine Unterseite führt zurück zu den Einstellungen, nicht direkt aufs Dashboard.",
       "<b>Voll anpassbares Dashboard.</b> Jede Live-Wert-Kachel wird jetzt vom Treiber deines SoFlow in ein geteiltes Layout gefüllt - die App zeigt genau das, was dein Roller meldet. Im Theme-Manager wählst du über eine 'Live-Kacheln'-Liste pro Theme, welchen Wert jede Kachel zeigt (ein Dropdown pro Kachel, wie bei den Buttons).",
       "<b>Carbon &amp; Lambo überarbeitet.</b> Die eingebauten Gauge-Themes rendern jetzt die Treiber-Werte in eigener Optik, deckeln den Fold sauber (9 Kacheln / 8 Buttons) und markieren 40-100 km/h dunkelrot auf dem Tacho für entsperrte Roller, die das erreichen. Sie aktualisieren sich mit diesem Release automatisch.",

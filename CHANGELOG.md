@@ -23,6 +23,7 @@ If no matching section exists the notes fall back to the commit messages, so kee
 - Per-row alignment. Every dashboard row - tiles and quick buttons - can be aligned (centre by default, or left / right / fill) in the Theme Manager, saved per theme; a part-filled last row centres.
 - SO6 / SO4-UL decode the separate trip/total-distance frame and the lock-status frame, so trip, total distance and lock state show correctly.
 - Back button returns one level. The on-screen back arrows and the Android back button now step back exactly one level (a sub-page returns to Settings, Settings to the dashboard) instead of sometimes jumping straight to the dashboard.
+- SO6 / SO4-UL show more live data. Current, total distance and lock state are now shown for the SO6 and SO4-UL family - the scooter sends them, they were just hidden before. The Error tile is hidden on families that carry no fault frame, instead of showing a misleading "OK".
 
 ## 1.0.19
 
