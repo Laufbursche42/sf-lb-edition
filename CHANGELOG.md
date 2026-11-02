@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.23
+
+- Changed: the built-in (Default) dashboard now uses the same shared canonical fold layout as the Teverun and Navee apps (speed, battery, live-values grid); it fills only the values the connected SoFlow reports and hides the rest. Energy and lock are shown again, and power now reads correctly in watts.
+
 ## 1.0.22
 
 - Added: on the SO6 / SO4-UL protocol family the app now decodes the separate trip/total-distance frame and the lock-status frame, so trip, total distance and lock state are shown correctly; remaining range and ride time are read too.

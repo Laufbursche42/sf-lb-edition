@@ -155,12 +155,10 @@ html[data-theme-loading] #scroller { visibility: hidden; }
   transform-origin: top left; width: 100%;
 }
 #fold-inner > * { flex-shrink: 0; }
-/* Per-tile minimum heights - set via --tile-h-* CSS vars in the style editor (0 = natural).
-   SoFlow has no #motors-section wrapper (its live-value rows are direct fold rows, so fitFold()
-   counts them one by one), so the motor height applies to each of the three rows. */
-#speed-row { min-height: var(--tile-h-speed, 0px); }
-#hero-row  { min-height: var(--tile-h-hero, 0px); }
-#motor-row, #motor-row-2, #motor-row-3 { min-height: var(--tile-h-motors, 0px); }
+/* Per-tile minimum heights - set via --tile-h-* CSS vars in the style editor (0 = natural). */
+#speed-row      { min-height: var(--tile-h-speed, 0px); }
+#hero-row       { min-height: var(--tile-h-hero, 0px); }
+#motors-section { min-height: var(--tile-h-motors, 0px); }
 
 /* ── Speed Drums ───────────────────────────────────────────── */
 #speed-row {
@@ -187,15 +185,19 @@ html[data-theme-loading] #scroller { visibility: hidden; }
 }
 
 /* ── Hero Metrics ──────────────────────────────────────────── */
-/* Hero cells and motor cells are the same kind of tile row. A fixed two-column grid so a cell a
-   given model does not report can be hidden and a lone remaining cell keeps its half width and stays
-   put, instead of a flex row stretching it full width and shifting its centred content. A row whose
-   cells are all hidden is removed by applyCaps(). */
-#hero-row, #motor-row, #motor-row-2, #motor-row-3 {
+/* Hero cells and motor cells are the same kind of tile row, so they share one three-column grid
+   (the canonical Default fold carries three cells per row). */
+#hero-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--gap);
 }
+/* The live-value rows are structural only (display: contents): every cell flows into ONE shared
+   three-column grid on #motor-area, so the cells this app actually fills pack together tidily
+   instead of leaving a stretched single cell per row. applyDataSlots hides the unfilled cells. */
+#motor-row, #motor-row-2, #motor-row-3, #motor-row-4, #motor-row-5 { display: contents; }
+.motor-cell.slot-empty,
+#motors-section.slot-sect-empty { display: none; }
 .hero-cell {
   flex: 1; min-width: 0;
   background: var(--card); border: 1px solid var(--border);
@@ -471,6 +473,15 @@ select.theme-sel {
 #motor-row-3 .mc-title { font-size: var(--sz-m3-top, var(--fs-sm)); }
 #motor-row-3 .mc-main { font-size: var(--sz-m3-mid, clamp(22px, 7vw, 32px)); }
 #motor-row-3 .mc-unit { font-size: var(--sz-m3-bot, var(--fs-sm)); }
+#motor-row-4 .mc-title { font-size: var(--sz-m4-top, var(--fs-sm)); }
+#motor-row-4 .mc-main { font-size: var(--sz-m4-mid, clamp(22px, 7vw, 32px)); }
+#motor-row-4 .mc-unit { font-size: var(--sz-m4-bot, var(--fs-sm)); }
+#motor-row-5 .mc-title { font-size: var(--sz-m4-top, var(--fs-sm)); }
+#motor-row-5 .mc-main { font-size: var(--sz-m4-mid, clamp(22px, 7vw, 32px)); }
+#motor-row-5 .mc-unit { font-size: var(--sz-m4-bot, var(--fs-sm)); }
+
+/* The four live-value rows stack inside the #motors-section wrapper. */
+#motor-area { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); align-content: start; }
 
 /* Two stacked tile rows: temperatures and power above, currents below. */
 /* Motor-mode quick toggle: its own full-width row under the motor tiles, four equal buttons,
