@@ -105,7 +105,8 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.odo.total">Total</span><span class="dg-value" id="dg-total">-</span></div>
         <div class="dg-cell"><span class="dg-labwrap"><span class="dg-label" data-i18n="dash.grid.rssi">RSSI</span><button type="button" class="set-help" data-set-help="dg-rssi" aria-label="What is this?" data-i18n-aria="dash.help.what" data-i18n="dash.help.icon">?</button></span><span class="dg-value" id="dg-rssi">-</span></div>
       </div>
-      <div class="dg-row one-col" data-tile-id="tile-dg-err" data-tile-label="Error" data-i18n-tile-label="tile.label.dg.err">
+      <!-- error cap is D7-only: SO3/SO6 carry no fault frame, so hide the tile instead of showing a fake "OK". -->
+      <div class="dg-row one-col" data-tile-id="tile-dg-err" data-tcap="error" data-tile-label="Error" data-i18n-tile-label="tile.label.dg.err">
         <div class="dg-cell"><span class="dg-label" data-i18n="dash.grid.error">Error</span><span class="dg-value" id="dg-err">-</span></div>
       </div>
     </div>

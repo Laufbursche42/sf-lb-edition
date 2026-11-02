@@ -110,7 +110,11 @@ final class FrameParser {
         if (g == 0x05 && sub == 0x46) decodeRealtimeSo6(d);
         if (g == 0x05 && sub == 0x48) decodeCyclingSo6(d);   // trip + total
         if (g == 0x05 && sub == 0x0E) {
-            if (d.length > 3) locked = (d[3] == 0) ? 1 : 0;
+            // So6BaseDataDelegate: byte3 0 -> locked, 1 -> unlocked, any other value -> keep prior state.
+            if (d.length > 3) {
+                if (d[3] == 0) locked = 1;
+                else if (d[3] == 1) locked = 0;
+            }
             return new String[]{"so6:5:14", "so6:5:12", "so6:5:1"};
         }
         return new String[]{"so6:" + g + ":" + sub};

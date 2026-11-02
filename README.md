@@ -431,7 +431,7 @@ Frames arrive with the family's start byte; D7/SO4 and SO5ProBase carry live dat
 - **SO4 `0x1D`:** status byte (bit 0 headlight, bits 1-3 mode, bit 4 unit, bit 7 locked); speed, voltage and current each as a 0.1-scaled big-endian pair; a fault byte; the protocol version nibble (byte 12, which also selects whether AES is active); display and CPU version bytes; trip and total distance; battery percentage.
 - **SO5ProBase `0x1D`:** the same shape with length guards - status, speed, voltage, current, a four-byte fault field, protocol / display / CPU versions, trip and total distance, battery percentage, a ride-duration triple and a dark-mode byte (0 = on), each present only when the frame is long enough.
 - **SO3 `0x1D`:** status, speed, voltage, current and (when long enough) power and energy. Bytes 3, 15 and 16 feed the rolling secret. A separate `0x2D` frame carries the firmware nibbles, trip and total distance.
-- **SO6 `{05,46}`:** after decryption, voltage (0.1-scaled, confirmed), current and power; further fields are uncertain. SO6 reports no speed, mode, battery, lock, firmware or distance.
+- **SO6 / SO4-UL:** after AES decryption, the `{05,46}` realtime frame carries speed (0.1-scaled big-endian), current and voltage (both 0.01-scaled big-endian), remaining range (0.1-scaled), battery percentage (raw byte) and a lock flag (byte 13, `0` = locked). The `{05,48}` cycling frame carries trip (0.1-scaled 16-bit) and total distance (0.1-scaled 32-bit); `{05,0E}` reports lock state (`0` = locked, `1` = unlocked, any other byte leaves it unchanged). Mode, power, energy, firmware and errors are not carried by these frames.
 
 Speed, voltage, current, power and energy are read as unsigned big-endian pairs scaled by 0.1 unless noted.
 
