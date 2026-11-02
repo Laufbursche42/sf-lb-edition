@@ -187,17 +187,19 @@ html[data-theme-loading] #scroller { visibility: hidden; }
 /* ── Hero Metrics ──────────────────────────────────────────── */
 /* Hero cells and motor cells are the same kind of tile row, so they share one three-column grid
    (the canonical Default fold carries three cells per row). */
-#hero-row {
+#hero-row, #motor-row, #motor-row-2, #motor-row-3, #motor-row-4, #motor-row-5 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: var(--gap);
 }
-/* The live-value rows are structural only (display: contents): every cell flows into ONE shared
-   three-column grid on #motor-area, so the cells this app actually fills pack together tidily
-   instead of leaving a stretched single cell per row. applyDataSlots hides the unfilled cells. */
-#motor-row, #motor-row-2, #motor-row-3, #motor-row-4, #motor-row-5 { display: contents; }
 .motor-cell.slot-empty,
 #motors-section.slot-sect-empty { display: none; }
+/* Default only: applyDataSlots adds .lb-packed to #motor-area so the cells this app fills flow
+   into ONE shared three-column grid and pack together (no stretched single cell per row). A
+   custom theme never gets .lb-packed, so it keeps its own per-row layout untouched. */
+#motor-area.lb-packed { display: flex; flex-direction: row; flex-wrap: wrap; gap: var(--gap); justify-content: center; align-content: start; }
+#motor-area.lb-packed > [id^="motor-row"] { display: contents; }
+#motor-area.lb-packed .motor-cell { flex: 0 1 calc((100% - 2 * var(--gap)) / 3); }
 .hero-cell {
   flex: 1; min-width: 0;
   background: var(--card); border: 1px solid var(--border);
@@ -481,7 +483,7 @@ select.theme-sel {
 #motor-row-5 .mc-unit { font-size: var(--sz-m4-bot, var(--fs-sm)); }
 
 /* The four live-value rows stack inside the #motors-section wrapper. */
-#motor-area { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--gap); align-content: start; }
+#motor-area { display: flex; flex-direction: column; gap: var(--gap); }
 
 /* Two stacked tile rows: temperatures and power above, currents below. */
 /* Motor-mode quick toggle: its own full-width row under the motor tiles, four equal buttons,

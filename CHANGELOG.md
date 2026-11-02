@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.24
+
+- Changed: the Default dashboard's live-value cells now pack into a tidy grid (a partial last row centres), power reads in kW, and custom themes keep their own per-row layout unchanged.
+
 ## 1.0.23
 
 - Changed: the built-in (Default) dashboard now uses the same shared canonical fold layout as the Teverun and Navee apps (speed, battery, live-values grid); it fills only the values the connected SoFlow reports and hides the rest. Energy and lock are shown again, and power now reads correctly in watts.

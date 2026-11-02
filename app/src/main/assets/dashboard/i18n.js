@@ -20,6 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Tidier dashboard.</b> The Default dashboard's live-value cells now pack into a neat grid (a partial last row centres), power shows in kW, and your custom themes keep their own layout untouched.",
       "<b>Unified dashboard layout.</b> The built-in (Default) dashboard now uses the same shared layout as the Teverun and Navee apps - speed, battery and a live-values grid - showing only the values your SoFlow actually reports and hiding the rest. Energy and lock state are back, and power now reads correctly in watts.",
       "<b>SO6 scooters read trip, total distance and lock correctly.</b> On the SO6 / SO4-UL protocol family the app now decodes the separate trip/total-distance frame and the lock-status frame, so those values show correctly; remaining range and ride time are read too.",
       "<b>Themes are now fully manufacturer-neutral.</b> The built-in themes no longer carry any hardcoded buttons - each app fills the quick-control bar from its own scooter, so the very same theme .zip looks and works correctly in the Teverun, SoFlow and Navee apps alike.",
@@ -84,7 +85,7 @@ window.I18N = {
     "dash.hero.mode.label": "Mode",
     "dash.tele.section": "Live values",
     "dash.tele.volt.title": "VOLTAGE", "dash.tele.volt.unit": "V",
-    "dash.tele.power.title": "POWER", "dash.tele.power.unit": "W",
+    "dash.tele.power.title": "POWER", "dash.tele.power.unit": "kW",
     "dash.tele.energy.title": "ENERGY", "dash.tele.energy.unit": "Wh",
     "dash.tele.trip.title": "TRIP", "dash.tele.trip.unit": "km",
     "dash.tele.total.title": "TOTAL", "dash.tele.total.unit": "km",
@@ -909,6 +910,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Aufgeräumtes Dashboard.</b> Die Live-Wert-Kacheln im Standard-Dashboard packen sich jetzt zu einem sauberen Raster (eine unvollständige letzte Reihe sitzt mittig), die Leistung steht in kW, und deine eigenen Themes behalten ihr Layout.",
       "<b>Vereinheitlichtes Dashboard-Layout.</b> Das eingebaute (Standard-)Dashboard nutzt jetzt dasselbe geteilte Layout wie die Teverun- und Navee-Apps - Geschwindigkeit, Akku und ein Live-Werte-Raster - und zeigt nur die Werte, die dein SoFlow wirklich meldet, der Rest wird ausgeblendet. Energie und Sperrstatus sind zurück, und die Leistung wird jetzt korrekt in Watt angezeigt.",
       "<b>SO6-Roller lesen Trip, Gesamtstrecke und Sperre korrekt.</b> Bei der SO6-/SO4-UL-Protokollfamilie dekodiert die App jetzt den separaten Trip-/Gesamt-Frame und den Sperrstatus-Frame, sodass diese Werte korrekt angezeigt werden; Restreichweite und Fahrtzeit werden ebenfalls gelesen.",
       "<b>Themes sind jetzt vollst&auml;ndig herstellerneutral.</b> Die eingebauten Themes enthalten keine fest verdrahteten Kn&ouml;pfe mehr - jede App f&uuml;llt die Schnellsteuerung aus ihrem eigenen Roller, sodass dieselbe Theme-.zip in der Teverun-, SoFlow- und Navee-App gleicherma&szlig;en richtig aussieht und funktioniert.",
@@ -973,7 +975,7 @@ window.I18N = {
     "dash.hero.mode.label": "Modus",
     "dash.tele.section": "Live-Werte",
     "dash.tele.volt.title": "SPANNUNG", "dash.tele.volt.unit": "V",
-    "dash.tele.power.title": "LEISTUNG", "dash.tele.power.unit": "W",
+    "dash.tele.power.title": "LEISTUNG", "dash.tele.power.unit": "kW",
     "dash.tele.energy.title": "ENERGIE", "dash.tele.energy.unit": "Wh",
     "dash.tele.trip.title": "TRIP", "dash.tele.trip.unit": "km",
     "dash.tele.total.title": "GESAMT", "dash.tele.total.unit": "km",

@@ -1746,7 +1746,7 @@ function updateBLEUI(data) {
 
   // Canonical Default fold "Live values": this app fills power (W), voltage, total and trip; the
   // rest of the shared superset is hidden by applyDataSlots().
-  setTxt('m-power', isNaN(data.power) ? '-' : Math.round(data.power * 1000));
+  setTxt('m-power', isNaN(data.power) ? '-' : data.power.toFixed(2));
   setTxt('tl-volt', data.voltage.toFixed(1));
   setTxt('tl-odo', Math.round(convDist(data.totalKm)));
   setTxt('tl-trip', isNaN(data.tripKm) ? '-' : convDist(data.tripKm).toFixed(1));
@@ -1770,7 +1770,7 @@ function updateBLEUI(data) {
   // some of these ids (e.g. m-power) for its own value, so this runs ONLY under a custom theme.
   if (_themeActive && _themeActive !== 'Default') {
     setTxt('mr-temp', data.voltage.toFixed(1));
-    setTxt('mf-temp', Math.round(data.power));
+    setTxt('mf-temp', isNaN(data.power) ? '-' : data.power.toFixed(2));
     setTxt('m-power', isNaN(data.energy) ? '-' : Math.round(data.energy));
     setTxt('mr-cur', Math.round(convDist(data.totalKm)));
     setTxt('mf-cur', isNaN(data.tripKm) ? '-' : Math.round(convDist(data.tripKm)));
@@ -2969,6 +2969,7 @@ function applyDataSlots() {
   if (_themeActive && _themeActive !== 'Default') return;
   const area = document.getElementById('motor-area');
   if (!area) return;
+  area.classList.add('lb-packed');
   area.querySelectorAll('.motor-cell').forEach(cell => {
     const span = cell.querySelector('.mc-main span[id]');
     cell.classList.toggle('slot-empty', !(span && DATA_SLOTS.indexOf(span.id) >= 0));
