@@ -561,12 +561,29 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Only allow HTTPS from the project's GitHub release/API hosts. Blocks a tampered update URL
+     *  from pointing the installer or an in-app fetch at an attacker-controlled host. */
+    private static boolean isTrustedGithubHttps(String url) {
+        try {
+            java.net.URL u = new java.net.URL(url);
+            if (!"https".equalsIgnoreCase(u.getProtocol())) return false;
+            String h = u.getHost() == null ? "" : u.getHost().toLowerCase(java.util.Locale.ROOT);
+            return h.equals("github.com") || h.equals("api.github.com")
+                    || h.equals("codeload.github.com")
+                    || h.equals("objects.githubusercontent.com")
+                    || h.endsWith(".githubusercontent.com");
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     private String httpGetText(String url) throws Exception {
         return new String(httpGetBytes(url), StandardCharsets.UTF_8);
     }
 
     /** Simple HTTP(S) GET into memory (used for the small release JSON and the firmware/APK files). */
     private byte[] httpGetBytes(String urlStr) throws Exception {
+        if (!isTrustedGithubHttps(urlStr)) throw new java.io.IOException("untrusted URL host: not a GitHub HTTPS URL");
         java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(urlStr).openConnection();
         try {
             c.setRequestProperty("User-Agent", "lb-edition");

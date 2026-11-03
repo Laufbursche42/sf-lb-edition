@@ -14,6 +14,14 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.21
+
+- Quick-control button text is now adjustable and starts smaller, so long German labels (like "Diebstahlschutz") no longer overflow or overlap. Set the size under Settings -> Display -> Font sizes, or per theme in the Theme Manager (new "Quick buttons" font control).
+- Shorter, clearer button labels: the anti-theft toggle is now simply "Lock" ("Schloss"), which fits the narrow quick-button row.
+- Speed gauge: the unlocked scale now ends at 100 km/h (it briefly read 110); the locked scale stays at 40, so the gauge reads identically in every Laufbursche app.
+- Dark-mode text brightness now defaults to full (100) instead of 90.
+- Security: in-app downloads (the app-update check and its files) are now restricted to the project's GitHub release hosts.
+
 ## 1.0.20
 
 - Driver-rendered, customizable dashboard. Every live-value tile is now filled by your SoFlow's own driver into a shared layout, so the app shows exactly the values your scooter reports and hides the rest. Energy, lock, remaining range and ride time are read, and power reads in kW.

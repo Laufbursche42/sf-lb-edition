@@ -20,6 +20,10 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Speed gauge ends at 100.</b> On the unlocked scale the gauge now tops out at 100 km/h (it had briefly read 110); the locked scale still reads to 40, so the dial behaves the same in every Laufbursche app.",
+      "<b>Brighter dark-mode text by default.</b> The dark theme's text brightness now starts at full (100) instead of 90; you can still dial it down under the theme's Dark colours.",
+      "<b>Quick buttons fit long labels.</b> The quick-control toggle buttons now start at a smaller font so long names no longer overflow or overlap, and you can fine-tune their size yourself under Settings &rarr; Display &rarr; Font sizes (and per theme in the Theme Manager).",
+      "<b>Clearer button labels.</b> The anti-theft toggle is now simply labelled 'Lock', which reads better in the narrow quick-button row.",
       "<b>SO6 / SO4-UL: more live values.</b> Current, total distance and lock now show on the SO6 and SO4-UL scooters (they were parsed but hidden), and the Error tile no longer shows a fake \u0027OK\u0027 where the scooter sends no fault data.",
       "<b>Back button fixed.</b> The back arrows and the Android back button now step back exactly one level - a sub-page returns to Settings, not straight to the dashboard.",
       "<b>Fully customizable dashboard.</b> Every live-value tile is now filled by your SoFlow's own driver into a shared layout - the app shows exactly what your scooter reports. In the Theme Manager a 'Live tiles' list lets you pick, per theme, which value each tile shows (a dropdown per tile, like the quick buttons).",
@@ -103,7 +107,7 @@ window.I18N = {
     "dash.drive.quick.frontlight": "Light", "dash.drive.quick.frontlight.aria": "Toggle front light",
     "dash.drive.quick.zerostart": "Zero-Start", "dash.drive.quick.zerostart.aria": "Toggle zero start",
     "dash.drive.quick.darkmode": "Dark", "dash.drive.quick.darkmode.aria": "Toggle dark mode",
-    "dash.drive.quick.lock": "Anti-Theft", "dash.drive.quick.lock.aria": "Toggle anti-theft lock",
+    "dash.drive.quick.lock": "Lock", "dash.drive.quick.lock.aria": "Toggle lock",
     "dash.drive.quick.mode": "Mode", "dash.drive.quick.mode.aria": "Cycle ride mode",
     "dash.drive.quick.indicator": "Status light", "dash.drive.quick.indicator.aria": "Toggle BLE status light",
     "dash.drive.quick.unit": "Unit", "dash.drive.quick.unit.aria": "Toggle scooter display unit",
@@ -844,6 +848,7 @@ window.I18N = {
     "style.var.sz-m2-top": "Tile 2 title",
     "style.var.sz-m2-mid": "Tile 2 value",
     "style.var.sz-m2-bot": "Tile 2 unit",
+    "style.var.sz-qbtn": "Quick buttons",
     "style.var.tile-h-speed": "Speed tile height",
     "style.var.tile-h-hero": "Hero tile height",
     "style.var.tile-h-motors": "Motor tile height",
@@ -917,6 +922,10 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Tacho endet bei 100.</b> Auf der entsperrten Skala reicht der Tacho jetzt bis 100 km/h (er zeigte kurzzeitig 110); die gesperrte Skala geht weiterhin bis 40, sodass sich der Tacho in jeder Laufbursche-App gleich verh\u00e4lt.",
+      "<b>Hellere Schrift im Dunkelmodus (Standard).</b> Die Text-Helligkeit des dunklen Themes startet jetzt bei voll (100) statt 90; herunterregeln kannst du sie weiterhin unter den Dunkel-Farben des Themes.",
+      "<b>Schnell-Buttons fassen lange Beschriftungen.</b> Die Schnell-Buttons starten jetzt mit kleinerer Schrift, sodass lange Namen nicht mehr überlaufen oder sich überlappen - die Größe lässt sich außerdem selbst einstellen unter Einstellungen &rarr; Anzeige &rarr; Schriftgrößen (und pro Theme im Theme-Manager).",
+      "<b>Klarere Button-Beschriftungen.</b> Der Diebstahlschutz-Button heißt jetzt einfach 'Schloss' - das liest sich in der schmalen Schnell-Button-Reihe besser.",
       "<b>SO6 / SO4-UL: mehr Live-Werte.</b> Strom, Gesamtstrecke und Sperrstatus werden jetzt bei den SO6- und SO4-UL-Rollern angezeigt (waren geparst, aber versteckt), und die Fehler-Kachel zeigt kein falsches \u0027OK\u0027 mehr, wo der Roller keine Fehlerdaten sendet.",
       "<b>Zurück-Taste korrigiert.</b> Die Zurück-Pfeile und die Android-Zurück-Taste gehen jetzt genau eine Ebene zurück - eine Unterseite führt zurück zu den Einstellungen, nicht direkt aufs Dashboard.",
       "<b>Voll anpassbares Dashboard.</b> Jede Live-Wert-Kachel wird jetzt vom Treiber deines SoFlow in ein geteiltes Layout gefüllt - die App zeigt genau das, was dein Roller meldet. Im Theme-Manager wählst du über eine 'Live-Kacheln'-Liste pro Theme, welchen Wert jede Kachel zeigt (ein Dropdown pro Kachel, wie bei den Buttons).",
@@ -1000,7 +1009,7 @@ window.I18N = {
     "dash.drive.quick.frontlight": "Licht", "dash.drive.quick.frontlight.aria": "Frontlicht schalten",
     "dash.drive.quick.zerostart": "Zero-Start", "dash.drive.quick.zerostart.aria": "Zero-Start schalten",
     "dash.drive.quick.darkmode": "Dunkel", "dash.drive.quick.darkmode.aria": "Dunkelmodus schalten",
-    "dash.drive.quick.lock": "Diebstahlschutz", "dash.drive.quick.lock.aria": "Diebstahlschutz schalten",
+    "dash.drive.quick.lock": "Schloss", "dash.drive.quick.lock.aria": "Schloss schalten",
     "dash.drive.quick.mode": "Fahrmodus", "dash.drive.quick.mode.aria": "Fahrmodus wechseln",
     "dash.drive.quick.indicator": "Anzeigelicht", "dash.drive.quick.indicator.aria": "BLE-Anzeigelicht schalten",
     "dash.drive.quick.unit": "Einheit", "dash.drive.quick.unit.aria": "Anzeige-Einheit schalten",
@@ -1741,6 +1750,7 @@ window.I18N = {
     "style.var.sz-m2-top": "Kachel2-Titel",
     "style.var.sz-m2-mid": "Kachel2-Wert",
     "style.var.sz-m2-bot": "Kachel2-Unit",
+    "style.var.sz-qbtn": "Schnell-Buttons",
     "style.var.tile-h-speed": "Speed-Kachel Höhe",
     "style.var.tile-h-hero": "Hero-Kachel Höhe",
     "style.var.tile-h-motors": "Motor-Kachel Höhe",
