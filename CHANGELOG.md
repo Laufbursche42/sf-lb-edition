@@ -22,6 +22,7 @@ If no matching section exists the notes fall back to the commit messages, so kee
 - Dark-mode text brightness now defaults to full (100) instead of 90.
 - Security: in-app downloads (the app-update check and its files) are now restricted to the project's GitHub release hosts.
 - The app is now named "SF Laufbursche Edition" on the home screen, so the Laufbursche apps for the different scooter makes are easy to tell apart.
+- Language selector: the active language (EN/DE) is now clearly highlighted (filled, with a checkmark). It previously relied on an undefined colour, so the active button could render invisibly and the other one looked selected (GitHub #26).
 
 ## 1.0.20
 
