@@ -199,11 +199,13 @@ class ThemeManager {
         try {
             org.json.JSONObject meta = new org.json.JSONObject();
             meta.put("name", name);
-            meta.put("version", "1.0");
             // Re-parse original zip json to carry through cssVars, strings and other declared fields
             if (jsonBytes != null) {
                 try {
                     org.json.JSONObject orig = new org.json.JSONObject(new String(jsonBytes, StandardCharsets.UTF_8));
+                    if (orig.has("version")) meta.put("version", orig.get("version"));
+                    if (orig.has("author")) meta.put("author", orig.get("author"));
+                    if (orig.has("description")) meta.put("description", orig.get("description"));
                     if (orig.has("cssVars")) meta.put("cssVars", orig.get("cssVars"));
                     if (orig.has("strings")) meta.put("strings", orig.get("strings"));
                     if (orig.has("scope")) meta.put("scope", orig.get("scope"));
@@ -232,7 +234,7 @@ class ThemeManager {
                     File jsonFile = getThemeFile(name, "json");
                     byte[] jsonBytes = jsonFile.exists() ? readFile(jsonFile) : null;
                     if (jsonBytes == null) {
-                        jsonBytes = new JSONObject().put("name", name).put("version", "1.0")
+                        jsonBytes = new JSONObject().put("name", name)
                                 .toString().getBytes(StandardCharsets.UTF_8);
                     }
                     putZipEntry(zos, "theme.json", jsonBytes);

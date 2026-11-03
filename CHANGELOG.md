@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.22
+
+- Carbon and Lambo updated to theme version 5.2, and the Theme Manager now reliably shows each theme's real version - imported and re-seeded themes no longer lose it (it could appear as "1.0").
+
 ## 1.0.21
 
 - Quick-control button text is now adjustable and starts smaller, so long German labels (like "Diebstahlschutz") no longer overflow or overlap. Set the size under Settings -> Display -> Font sizes, or per theme in the Theme Manager (new "Quick buttons" font control).
