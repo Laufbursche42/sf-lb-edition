@@ -21,6 +21,7 @@ If no matching section exists the notes fall back to the commit messages, so kee
 - Speed gauge: the unlocked scale now ends at 100 km/h (it briefly read 110); the locked scale stays at 40, so the gauge reads identically in every Laufbursche app.
 - Dark-mode text brightness now defaults to full (100) instead of 90.
 - Security: in-app downloads (the app-update check and its files) are now restricted to the project's GitHub release hosts.
+- The app is now named "SF Laufbursche Edition" on the home screen, so the Laufbursche apps for the different scooter makes are easy to tell apart.
 
 ## 1.0.20
 
