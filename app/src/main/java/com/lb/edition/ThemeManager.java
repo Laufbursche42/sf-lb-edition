@@ -6,6 +6,7 @@ package com.lb.edition;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,6 +27,7 @@ import java.util.zip.ZipOutputStream;
 /** Stores and serves user-imported dashboard themes (HTML + CSS file pairs). */
 class ThemeManager {
 
+    private static final String TAG = "ThemeManager";
     private static final String PREF_ACTIVE = "theme_active";
     private static final int MAX_THEME_BYTES = 2 * 1024 * 1024;   // 2 MB per file
 
@@ -123,7 +125,9 @@ class ThemeManager {
             writeFile(getThemeFile(name, "css"), cssBytes);
             return null;
         } catch (Throwable t) {
-            return "import failed: " + t.getMessage();
+            // Log the detail internally; never surface the raw exception text to the dashboard UI.
+            Log.e(TAG, "importTheme failed", t);
+            return "import failed";
         }
     }
 
@@ -188,7 +192,9 @@ class ThemeManager {
                 zis.closeEntry();
             }
         } catch (Throwable t) {
-            return new String[]{null, "zip read failed: " + t.getMessage()};
+            // Log the detail internally; never surface the raw exception text to the dashboard UI.
+            Log.e(TAG, "importThemeZip read failed", t);
+            return new String[]{null, "zip read failed"};
         }
         if (htmlBytes == null) return new String[]{null, "theme.html missing in zip"};
         if (cssBytes == null) return new String[]{null, "theme.css missing in zip"};
