@@ -20,6 +20,7 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>New Beginner's Guide.</b> A short in-app guide for newcomers, in Settings just above Version Info. It shows how to connect over Bluetooth and what your model can actually do - most SoFlows have a Bluetooth speed setting, the SO6 and SO4-UL have none, an older-firmware SO4 switches ride mode only. It is honest that the app only sends the value: whether your scooter runs faster than the factory limit is up to its own firmware. Bilingual (EN/DE).",
       "<b>Correct theme version.</b> Carbon and Lambo are now version 5.2, and the Theme Manager shows each theme's real version (imported or re-seeded themes could show 1.0 before).",
       "<b>Pick your speedometer scale.</b> The gauge themes now have evenly-spaced, easy-to-read marks and the needle sits exactly on the number. Choose Klar, Fine or Round in the Theme Manager - the eKFV speeds 20, 22 and 25 are now clearly apart.",
       "<b>Brighter dark-mode text by default.</b> The dark theme's text brightness now starts at full (100) instead of 90; you can still dial it down under the theme's Dark colours.",
@@ -952,6 +953,7 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Neue Einsteiger-Anleitung.</b> Eine kurze In-App-Anleitung für Einsteiger, in den Einstellungen direkt über der Version-Info. Sie zeigt, wie du dich per Bluetooth verbindest und was dein Modell wirklich kann - die meisten SoFlows haben eine Bluetooth-Geschwindigkeitseinstellung, der SO6 und der SO4-UL keine, ein SO4 mit älterer Firmware schaltet nur den Fahrmodus. Sie sagt ehrlich, dass die App nur den Wert sendet: ob dein Roller oberhalb der Werksdrossel schneller fährt, entscheidet seine eigene Firmware. Zweisprachig (EN/DE).",
       "<b>Korrekte Theme-Version.</b> Carbon und Lambo sind jetzt Version 5.2, und der Theme-Manager zeigt die echte Version jedes Themes (importierte oder neu eingespielte Themes konnten vorher 1.0 anzeigen).",
       "<b>Wähle deine Tacho-Skala.</b> Die Gauge-Themes haben jetzt gleichmäßig verteilte, gut lesbare Marken, und der Zeiger steht exakt auf der Zahl. Im Theme-Manager wählst du Klar, Fein oder Rund - die eKFV-Tempi 20, 22 und 25 sind jetzt klar getrennt.",
       "<b>Hellere Schrift im Dunkelmodus (Standard).</b> Die Text-Helligkeit des dunklen Themes startet jetzt bei voll (100) statt 90; herunterregeln kannst du sie weiterhin unter den Dunkel-Farben des Themes.",

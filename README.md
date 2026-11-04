@@ -133,6 +133,7 @@ The scooter can also be fully **locked or unlocked** (immobiliser) from the sett
 
 - **Error / fault** view - read out the fault state the scooter reports.
 - **Info page** showing, read-only and read live from the scooter over Bluetooth: the controller, display and CPU firmware versions the scooter reports, plus its Bluetooth name. (The app version lives in the "Version Info & Disclaimer" entry, not here.)
+- **Beginner's Guide** - a short, model-by-model guide for new users, reached from Settings (the "Beginner's Guide" entry just above Version Info & Disclaimer). SoFlow changes the speed over Bluetooth only - there is no firmware to flash, so every change is reversible: most models have a Bluetooth speed setting, the SO6 and SO4 UL have none, and an older-firmware SO4 switches ride mode only (a separate speed limit arrives with firmware 5.0). Honest that the app only sends the value; whether the scooter actually runs faster than the factory limit is up to its own firmware. Bilingual (EN/DE).
 
 ### Battery info
 
