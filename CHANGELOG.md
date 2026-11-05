@@ -14,6 +14,11 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.25
+
+- Every dashboard text can now be resized, on every theme. The Theme Manager now has a working font-size control for every visible text on the dashboard, above and below the fold - the speed readouts (VCU and GPS), the upper tiles, each live-value tile row, the quick buttons, the ride data, the all-values list and the section headers. Each one takes effect live and really applies on the Default grid and on the Carbon and Lambo gauge themes alike; previously many of these controls did nothing, because the live-value tiles were rendered at a fixed size and the below-fold texts had no control at all. Quick-button text size now ranges from 5 to 30 (GitHub #26).
+- Keyboard-free font-size steppers and clearer labels. The font-size fields in the Theme Manager are now minus/plus steppers, so they can be adjusted without a soft keyboard. The controls are grouped and renamed so it is clear what each one changes - "Speed VCU" and "Speed GPS" are separate, and the tile controls are labelled by tile row (1 top, 2, 3) rather than by a counted tile (GitHub #26).
+
 ## 1.0.24
 
 - Theme settings now take effect on every theme. The font-size, colour and spacing controls in the Theme Manager now really apply on every dashboard - the Default grid and the Lambo and Carbon gauge themes alike. Previously some controls did nothing on certain themes because the speed readout and the Default live-value tiles used a fixed size (GitHub #26).

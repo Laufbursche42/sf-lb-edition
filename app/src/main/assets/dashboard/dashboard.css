@@ -271,11 +271,11 @@ html[data-theme-loading] #scroller { visibility: hidden; }
   justify-content: space-between; gap: 6px;
 }
 .dg-cell:not(:last-child) { border-right: 1px solid var(--border); }
-.dg-label { color: var(--label); font-size: var(--fs-md); white-space: nowrap; }
+.dg-label { color: var(--label); font-size: var(--sz-dg-lbl, var(--fs-md)); white-space: nowrap; }
 /* Longer labels (e.g. "Recuperation") may wrap / shrink so the full word stays readable. */
-.dg-label-wide { white-space: normal; font-size: var(--fs-sm); line-height: 1.15; }
+.dg-label-wide { white-space: normal; font-size: var(--sz-dg-lbl, var(--fs-sm)); line-height: 1.15; }
 .dg-value {
-  font-weight: var(--fw-semibold); font-size: var(--fs-lg); color: var(--value);
+  font-weight: var(--fw-semibold); font-size: var(--sz-dg-val, var(--fs-lg)); color: var(--value);
   font-variant-numeric: tabular-nums; text-align: right;
 }
 /* Groups a data-grid label with its inline "?" help button so they stay together on the left. */
@@ -289,7 +289,7 @@ html[data-theme-loading] #scroller { visibility: hidden; }
 }
 .section-hdr {
   padding: 10px 14px; border-bottom: 1px solid var(--border);
-  font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--label);
+  font-size: var(--sz-sec, var(--fs-base)); font-weight: var(--fw-bold); color: var(--label);
   letter-spacing: .08em; text-transform: uppercase;
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
@@ -495,6 +495,9 @@ select.theme-sel {
    The big speed drums have their own larger range; their small unit is a normal label. */
 #speed-row .sd-val { font-size: var(--sz-speed-val, clamp(42px, 13vw, 64px)); }
 #speed-row .sd-unit { font-size: var(--sz-speed-lbl, var(--fs-base)); }
+/* GPS drum: own size knobs, default to the main speed sizes so the look is unchanged until set. */
+#speed-row .gps-drum .sd-val { font-size: var(--sz-gps-val, var(--sz-speed-val, clamp(42px, 13vw, 64px))); }
+#speed-row .gps-drum .sd-unit { font-size: var(--sz-gps-lbl, var(--sz-speed-lbl, var(--fs-base))); }
 #hero-row .hc-val { font-size: var(--sz-hero-val, clamp(28px, 9vw, 38px)); }
 #hero-row .hc-unit { font-size: var(--sz-hero-lbl, var(--fs-md)); }
 #motor-row .mc-title { font-size: var(--sz-m1-top, var(--fs-sm)); }
@@ -525,7 +528,7 @@ select.theme-sel {
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); color: var(--label);
   font-size: var(--fs-xs); font-weight: var(--fw-bold); line-height: 1.1; cursor: pointer;
-  white-space: nowrap;
+  white-space: normal; overflow-wrap: anywhere;
   font-size: var(--sz-qbtn, clamp(6px, 2.8cqi, 10px));   /* same reasoning as .dq-btn below */
   -webkit-tap-highlight-color: transparent;
 }
@@ -545,7 +548,7 @@ select.theme-sel {
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--card); color: var(--label);
   font-size: var(--fs-xs); font-weight: var(--fw-bold); line-height: 1.1; cursor: pointer;
-  white-space: nowrap;
+  white-space: normal; overflow-wrap: anywhere;
   /* Sized from the row's own width, not in fixed px: fitFold() lays the fold out at
      100/scale percent width, so a fixed size would grow relative to the buttons whenever the
      fold scales up and would cut "Kickstart" off. cqi keeps the ratio constant at any scale.
@@ -565,8 +568,8 @@ select.theme-sel {
   padding: 8px 12px; border-bottom: 1px solid var(--border); gap: 8px;
 }
 .av-row:last-child { border-bottom: none; }
-.av-label { color: var(--label); font-size: var(--fs-base); flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
-.av-val { font-weight: var(--fw-semibold); font-size: var(--fs-lg); color: var(--value); font-variant-numeric: tabular-nums; text-align: right; flex: 0 0 auto; white-space: nowrap; }
+.av-label { color: var(--label); font-size: var(--sz-av-lbl, var(--fs-base)); flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.av-val { font-weight: var(--fw-semibold); font-size: var(--sz-av-val, var(--fs-lg)); color: var(--value); font-variant-numeric: tabular-nums; text-align: right; flex: 0 0 auto; white-space: nowrap; }
 /* Subtle circular "?" info button per row; opens a shared explanation popup (event-delegated). */
 .av-help {
   flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%;
