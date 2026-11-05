@@ -76,6 +76,25 @@ public class MainActivity extends Activity {
     private volatile boolean rideConnected = false;
 
     @Override
+    protected void attachBaseContext(android.content.Context base) {
+        // Lock the app to fontScale 1.0 so the system / OEM font-size and display-size setting
+        // (e.g. OPPO ColorOS, Samsung "huge" fonts) cannot scale the dashboard out of shape. The
+        // WebView already pins its text zoom to 100 %, but some OEM WebViews ignore setTextZoom and
+        // still honour the host Configuration's fontScale; pinning it here neutralises that path too.
+        // The dashboard is a fixed cockpit layout and ships its own in-app font-size control instead.
+        try {
+            android.content.res.Configuration c =
+                    new android.content.res.Configuration(base.getResources().getConfiguration());
+            if (c.fontScale != 1.0f) {
+                c.fontScale = 1.0f;
+                base = base.createConfigurationContext(c);
+            }
+        } catch (Throwable ignored) {
+        }
+        super.attachBaseContext(base);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
