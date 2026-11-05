@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Theme settings now apply on every theme.</b> Font size, colour and spacing you set in the Theme Manager now really take effect on every dashboard - the Default grid and the Lambo and Carbon gauge themes alike. Before, some controls did nothing on certain themes because the speed readout and the Default tiles used a fixed size.",
+      "<b>No overflowing text at large font sizes.</b> A large system font or display size no longer stretches the dashboard out of shape. Oversized tile titles now wrap inside their tile instead of spilling over the edge.",
       "<b>New Beginner's Guide.</b> A short in-app guide for newcomers, in Settings just above Version Info. It shows how to connect over Bluetooth and what your model can actually do - most SoFlows have a Bluetooth speed setting, the SO6 and SO4-UL have none, an older-firmware SO4 switches ride mode only. It is honest that the app only sends the value: whether your scooter runs faster than the factory limit is up to its own firmware. Bilingual (EN/DE).",
       "<b>Correct theme version.</b> Carbon and Lambo are now version 5.2, and the Theme Manager shows each theme's real version (imported or re-seeded themes could show 1.0 before).",
       "<b>Pick your speedometer scale.</b> The gauge themes now have evenly-spaced, easy-to-read marks and the needle sits exactly on the number. Choose Klar, Fine or Round in the Theme Manager - the eKFV speeds 20, 22 and 25 are now clearly apart.",
@@ -953,6 +955,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Theme-Einstellungen greifen jetzt in jedem Theme.</b> Schriftgröße, Farbe und Abstände aus dem Theme-Manager wirken jetzt wirklich auf jedem Dashboard - das Default-Raster und die Gauge-Themes Lambo und Carbon eingeschlossen. Vorher taten manche Regler auf einzelnen Themes nichts, weil die Tempo-Anzeige und die Default-Kacheln eine feste Größe nutzten.",
+      "<b>Kein Überlauf mehr bei großer Schrift.</b> Eine große System-Schrift oder Anzeigegröße verzieht das Dashboard nicht mehr. Zu große Kachel-Titel brechen jetzt innerhalb der Kachel um statt über den Rand zu laufen.",
       "<b>Neue Einsteiger-Anleitung.</b> Eine kurze In-App-Anleitung für Einsteiger, in den Einstellungen direkt über der Version-Info. Sie zeigt, wie du dich per Bluetooth verbindest und was dein Modell wirklich kann - die meisten SoFlows haben eine Bluetooth-Geschwindigkeitseinstellung, der SO6 und der SO4-UL keine, ein SO4 mit älterer Firmware schaltet nur den Fahrmodus. Sie sagt ehrlich, dass die App nur den Wert sendet: ob dein Roller oberhalb der Werksdrossel schneller fährt, entscheidet seine eigene Firmware. Zweisprachig (EN/DE).",
       "<b>Korrekte Theme-Version.</b> Carbon und Lambo sind jetzt Version 5.2, und der Theme-Manager zeigt die echte Version jedes Themes (importierte oder neu eingespielte Themes konnten vorher 1.0 anzeigen).",
       "<b>Wähle deine Tacho-Skala.</b> Die Gauge-Themes haben jetzt gleichmäßig verteilte, gut lesbare Marken, und der Zeiger steht exakt auf der Zahl. Im Theme-Manager wählst du Klar, Fein oder Rund - die eKFV-Tempi 20, 22 und 25 sind jetzt klar getrennt.",

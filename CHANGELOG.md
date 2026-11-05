@@ -14,6 +14,11 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.24
+
+- Theme settings now take effect on every theme. The font-size, colour and spacing controls in the Theme Manager now really apply on every dashboard - the Default grid and the Lambo and Carbon gauge themes alike. Previously some controls did nothing on certain themes because the speed readout and the Default live-value tiles used a fixed size (GitHub #26).
+- No overflowing text with large fonts. A large system font or display size no longer stretches the dashboard out of shape (the app now pins its own font scale), and oversized tile titles wrap inside their tile instead of spilling over the edge.
+
 ## 1.0.23
 
 - New in-app Beginner's Guide for newcomers, reached from Settings (the "Beginner's Guide" entry just above Version Info & Disclaimer). A short, model-aware guide: how to connect over Bluetooth and what each model can do - most SoFlows have a Bluetooth speed setting, the SO6 and SO4-UL have no speed command at all, and the SO4 on firmware 4.x and earlier can switch ride mode only (a separate speed limit arrives with firmware 5.0). It is honest that the app only sends the value: whether the scooter runs faster than the factory limit is up to its own firmware. The guide shares the same shell and wording across the Laufbursche apps, uses the standard button look and carries no forum link. Fully bilingual (EN/DE).
