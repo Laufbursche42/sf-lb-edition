@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Button text sized to fit, up to 35.</b> The quick-button label size now starts at 9 so the labels fit by default, and its maximum in the Theme manager is raised from 30 to 35 for when you want it large.",
+      "<b>Long button labels wrap with a hyphen.</b> German button labels now break at syllable boundaries, so a long word like 'Anzeigelicht' wraps inside the button with a hyphen instead of spilling over - even at the largest size.",
       "<b>Every dashboard text is now resizable - on every theme.</b> The Theme Manager now has a working font-size control for every visible text on the dashboard, above and below the fold: the speed readouts (VCU and GPS), the upper tiles, each live-value tile row, the quick buttons, the ride data, the all-values list and the section headers. Each one takes effect live and really applies on the Default grid and on the Carbon and Lambo gauge themes alike - before, many of these controls did nothing. Quick-button size now ranges from 5 to 30.",
       "<b>Font-size controls without a keyboard, and clearer labels.</b> The font-size fields are now minus/plus steppers, so you can adjust them without a soft keyboard. The controls are also grouped and renamed so it is clear what each one changes - 'Speed VCU' and 'Speed GPS' are separate, and the tile controls are labelled by tile row (1 top, 2, 3) instead of by a counted tile.",
       "<b>Theme settings now apply on every theme.</b> Font size, colour and spacing you set in the Theme Manager now really take effect on every dashboard - the Default grid and the Lambo and Carbon gauge themes alike. Before, some controls did nothing on certain themes because the speed readout and the Default tiles used a fixed size.",
@@ -969,6 +971,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Button-Schrift passt standardmäßig - bis 35 einstellbar.</b> Die Schriftgröße der Schnelltasten-Beschriftung startet jetzt bei 9 und passt so von Haus aus; ihr Maximum im Theme-Manager wurde von 30 auf 35 angehoben, falls du es groß möchtest.",
+      "<b>Lange Button-Beschriftungen brechen mit Bindestrich um.</b> Deutsche Button-Texte trennen jetzt an Silbengrenzen, damit ein langes Wort wie 'Anzeigelicht' mit Bindestrich innerhalb des Buttons umbricht statt überzulaufen - auch bei größter Schrift.",
       "<b>Jeder Dashboard-Text ist jetzt verstellbar - in jedem Theme.</b> Der Theme-Manager hat jetzt für jeden sichtbaren Text auf dem Dashboard einen funktionierenden Schriftgrößen-Regler, über und unter dem Fold: die Tempo-Anzeigen (VCU und GPS), die oberen Kacheln, jede Live-Wert-Kachelreihe, die Quick-Buttons, die Fahrdaten, die Alle-Werte-Liste und die Abschnitts-Titel. Jeder greift sofort und wirkt wirklich auf dem Default-Raster und den Gauge-Themes Carbon und Lambo gleichermaßen - vorher taten viele dieser Regler nichts. Die Quick-Button-Größe reicht jetzt von 5 bis 30.",
       "<b>Schriftgrößen-Regler ohne Tastatur und klarere Beschriftung.</b> Die Schriftgrößen-Felder sind jetzt Stepper mit Minus- und Plus-Knopf, du kannst sie also ohne Tastatur verstellen. Die Regler sind außerdem gruppiert und umbenannt, sodass klar ist, was jeder ändert - 'Speed VCU' und 'Speed GPS' sind getrennt und die Kachel-Regler sind nach Kachelreihe benannt (1 oben, 2, 3) statt nach gezählter Kachel.",
       "<b>Theme-Einstellungen greifen jetzt in jedem Theme.</b> Schriftgröße, Farbe und Abstände aus dem Theme-Manager wirken jetzt wirklich auf jedem Dashboard - das Default-Raster und die Gauge-Themes Lambo und Carbon eingeschlossen. Vorher taten manche Regler auf einzelnen Themes nichts, weil die Tempo-Anzeige und die Default-Kacheln eine feste Größe nutzten.",
@@ -1063,11 +1067,11 @@ window.I18N = {
     "dash.tele.lock.title": "SPERRE", "dash.tele.lock.unit": "Status",
     "dash.drive.quick.frontlight": "Licht", "dash.drive.quick.frontlight.aria": "Frontlicht schalten",
     "dash.drive.quick.zerostart": "Zero-Start", "dash.drive.quick.zerostart.aria": "Zero-Start schalten",
-    "dash.drive.quick.darkmode": "Dunkel", "dash.drive.quick.darkmode.aria": "Dunkelmodus schalten",
+    "dash.drive.quick.darkmode": "Dun­kel", "dash.drive.quick.darkmode.aria": "Dunkelmodus schalten",
     "dash.drive.quick.lock": "Schloss", "dash.drive.quick.lock.aria": "Schloss schalten",
-    "dash.drive.quick.mode": "Fahrmodus", "dash.drive.quick.mode.aria": "Fahrmodus wechseln",
-    "dash.drive.quick.indicator": "Anzeigelicht", "dash.drive.quick.indicator.aria": "BLE-Anzeigelicht schalten",
-    "dash.drive.quick.unit": "Einheit", "dash.drive.quick.unit.aria": "Anzeige-Einheit schalten",
+    "dash.drive.quick.mode": "Fahr­mo­dus", "dash.drive.quick.mode.aria": "Fahrmodus wechseln",
+    "dash.drive.quick.indicator": "An­zei­ge­licht", "dash.drive.quick.indicator.aria": "BLE-Anzeigelicht schalten",
+    "dash.drive.quick.unit": "Ein­heit", "dash.drive.quick.unit.aria": "Anzeige-Einheit schalten",
     "dash.drive.quick.battery": "Akku", "dash.drive.quick.battery.aria": "Akku entsperren",
     "msg.error.ok": "OK",
     "msg.lock.locked": "Gesperrt", "msg.lock.open": "Offen",
