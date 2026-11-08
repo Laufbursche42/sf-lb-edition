@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.28
+
+- Adjustable tap count for the throttle toggle. Scooter settings has a new "Taps to toggle" field (free value 1 to 50, default 3): it sets how many taps on the main-screen speed tile switch the limiter between the open and the eKFV value. The hidden gesture now follows this number instead of a fixed three; the 700 ms window between taps is unchanged. The help texts show the current number.
+
 ## 1.0.27
 
 - Cleaner in-app bug report. The "report a problem" form no longer wraps its labels in Markdown bold, so the GitHub issue it opens reads as clean text (App:, Android:, Scooter / model: ...) instead of raw asterisks. The attached debug-log heading is plain text too.

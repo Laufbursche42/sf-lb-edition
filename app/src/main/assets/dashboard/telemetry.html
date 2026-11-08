@@ -474,9 +474,9 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <div id="ss-speed-section" class="is-hidden">
       <div class="section-hdr sub-hdr" data-i18n="scooter.speed.section.title">Speed</div>
       <div class="settings-group pt-4">
-        <div class="settings-row-sublabel mb-8" data-i18n="scooter.speed.intro">
+        <div class="settings-row-sublabel mb-8" data-i18n-tap="scooter.speed.intro">
           Unlock raises the limiter to the open value; Lock sets it back to the road-legal value.
-          The triple-tap gesture on the main screen switches between the same two values.
+          Tapping the speed tile 3 times on the main screen switches between the same two values.
         </div>
         <div class="settings-row">
           <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.speed.open.label">Open (km/h)</div><div class="settings-row-sublabel" data-i18n="scooter.speed.open.sub">Speed sent by Unlock</div></div>
@@ -485,6 +485,10 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
         <div class="settings-row">
           <div class="settings-row-left"><div class="settings-row-label" data-i18n="scooter.speed.ekfv.label">eKFV (km/h)</div><div class="settings-row-sublabel" data-i18n="scooter.speed.ekfv.sub">Road-legal limit, sent by Lock</div></div>
           <input class="set-ctrl" id="ss-ekfv" type="number" min="1" max="60" step="0.1" inputmode="decimal" value="22">
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-left"><div class="settings-row-label" data-i18n="settings.tapcount.label">Taps to toggle</div><div class="settings-row-sublabel" data-i18n-tap="settings.tapcount.hint">Tap the speed tile 3 times to switch the limiter on or off.</div></div>
+          <input class="set-ctrl" id="tap-count" type="number" min="1" max="50" step="1" inputmode="numeric" value="3">
         </div>
         <div class="fw-warn" data-i18n="scooter.speed.legal">
           <b>Private ground only.</b> Unlocking makes the scooter run faster than approved. That voids
@@ -2551,6 +2555,7 @@ function applyLang() {
   try { applyCaps(); } catch (e) {}
   renderWhatsNewList();
   renderDisclaimerList();
+  try { renderTapCountTexts(); } catch (e) {}
   // Label lengths just changed, so the fold has to be measured again.
   try { scheduleFitFold(); } catch (e) {}
 }
@@ -3120,6 +3125,19 @@ function copyBtName() {
 const SPEED_OPEN_KEY = 'lb_speed_open', SPEED_EKFV_KEY = 'lb_speed_ekfv', SPEED_RELEASED_KEY = 'lb_speed_released';
 let _speedReleased = (storage.get(SPEED_RELEASED_KEY) === '1');
 
+// How many taps on the speed tile toggle the throttle. Free value 1-50, default 3, clamped on read.
+const TAP_COUNT_KEY = 'lb_tap_count';
+function tapCount() { const v = Math.round(parseFloat(storage.get(TAP_COUNT_KEY))); return isNaN(v) ? 3 : Math.min(Math.max(v, 1), 50); }
+
+// Live help texts that name the tap count carry data-i18n-tap and are filled with {n} = tapCount().
+function renderTapCountTexts() {
+  const n = tapCount();
+  document.querySelectorAll('[data-i18n-tap]').forEach(el => {
+    const v = tf(el.getAttribute('data-i18n-tap'), { n: n });
+    if (/[<&]/.test(v)) el.innerHTML = v; else el.textContent = v;
+  });
+}
+
 function speedOpenVal() { const v = parseFloat(storage.get(SPEED_OPEN_KEY)); return isNaN(v) ? 35 : v; }
 function speedEkfvVal() { const v = parseFloat(storage.get(SPEED_EKFV_KEY)); return isNaN(v) ? 22 : v; }
 
@@ -3127,6 +3145,8 @@ function speedEkfvVal() { const v = parseFloat(storage.get(SPEED_EKFV_KEY)); ret
 function loadSpeedFields() {
   const o = document.getElementById('ss-open'); if (o) o.value = speedOpenVal();
   const e = document.getElementById('ss-ekfv'); if (e) e.value = speedEkfvVal();
+  const tc = document.getElementById('tap-count'); if (tc) tc.value = tapCount();
+  renderTapCountTexts();
 }
 
 function sendSpeedRelease(open) {
@@ -3142,14 +3162,15 @@ function sendSpeedRelease(open) {
   catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
 }
 
-/* Hidden gesture on the VCU speed tile: triple-tap toggles the throttle between open and eKFV. The
+/* Hidden gesture on the VCU speed tile: tapping it tapCount() times (default 3, set in Scooter
+   settings) toggles the throttle between open and eKFV. The
    state is persisted, so a reload or reconnect keeps the right next action. It mirrors the app's own
    last send; if the limit is changed elsewhere or reset by a controller power-cycle it can differ. */
 let _spdTapCount = 0, _spdTapTimer = null;
 function onVcuTileTap() {
   _spdTapCount++;
   clearTimeout(_spdTapTimer);
-  if (_spdTapCount >= 3) { _spdTapCount = 0; toggleSpeedRelease(); return; }
+  if (_spdTapCount >= tapCount()) { _spdTapCount = 0; toggleSpeedRelease(); return; }
   _spdTapTimer = setTimeout(() => { _spdTapCount = 0; }, 700);
 }
 function toggleSpeedRelease() {
@@ -3595,6 +3616,15 @@ function wireScooterSettings() {
   if (openF) openF.addEventListener('change', () => storage.set(SPEED_OPEN_KEY, String(parseFloat(openF.value) || 0)));
   const ekfvF = document.getElementById('ss-ekfv');
   if (ekfvF) ekfvF.addEventListener('change', () => storage.set(SPEED_EKFV_KEY, String(parseFloat(ekfvF.value) || 0)));
+  // Taps-to-toggle: clamp to 1-50 (NaN -> 3), persist, reflect the clamped value and update the help texts.
+  const tapF = document.getElementById('tap-count');
+  if (tapF) tapF.addEventListener('change', () => {
+    let v = Math.round(parseFloat(tapF.value));
+    v = isNaN(v) ? 3 : Math.min(Math.max(v, 1), 50);
+    storage.set(TAP_COUNT_KEY, String(v));
+    tapF.value = v;
+    renderTapCountTexts();
+  });
   const unlockB = document.getElementById('ss-speed-unlock');
   if (unlockB) unlockB.addEventListener('click', () => { if (sendSpeedRelease(true)) showToast(t('msg2.speed.toast.unlocked'), 3000); });
   const lockB = document.getElementById('ss-speed-lock');

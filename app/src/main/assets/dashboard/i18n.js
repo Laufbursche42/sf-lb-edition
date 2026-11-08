@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Choose how many taps toggle the limiter.</b> Scooter settings has a new 'Taps to toggle' field: pick any number from 1 to 50 for how many taps on the speed tile switch the limiter between open and eKFV. It stays at 3 unless you change it.",
+      "<b>The speed-tile gesture follows your number.</b> The hidden tap gesture on the main-screen speed tile now uses your chosen tap count instead of a fixed three, so you can make it a single quick tap or a longer deliberate sequence.",
       "<b>Cleaner bug reports.</b> The in-app report form no longer wraps its labels in Markdown bold, so the GitHub ticket it opens shows clean labels (App:, Android:, Scooter / model: ...) instead of raw asterisks.",
       "<b>Readable debug-log section.</b> The attached debug-log heading in that report is plain text too, so nothing in the copied ticket shows stray asterisks.",
       "<b>Button text sized to fit, up to 35.</b> The quick-button label size now starts at 9 so the labels fit by default, and its maximum in the Theme manager is raised from 30 to 35 for when you want it large.",
@@ -127,9 +129,11 @@ window.I18N = {
     "msg.error.ok": "OK",
     "msg.lock.locked": "Locked", "msg.lock.open": "Open",
     "scooter.speed.section.title": "eKFV limiter",
-    "scooter.speed.intro": "Limiter off sends the open value; Limiter on sends it back to the road-legal eKFV value. The triple-tap gesture on the main screen switches between the same two values.",
+    "scooter.speed.intro": "Limiter off sends the open value; Limiter on sends it back to the road-legal eKFV value. Tapping the speed tile {n} times on the main screen switches between the same two values.",
     "scooter.speed.open.label": "Open (km/h)", "scooter.speed.open.sub": "Speed sent by Unlock",
     "scooter.speed.ekfv.label": "eKFV (km/h)", "scooter.speed.ekfv.sub": "Road-legal limit, sent by Lock",
+    "settings.tapcount.label": "Taps to toggle",
+    "settings.tapcount.hint": "Tap the speed tile {n} times to switch the limiter on or off.",
     "scooter.speed.legal": "<b>Private ground only.</b> Unlocking makes the scooter run faster than approved. That voids the operating permit and the insurance cover; it is not allowed on public roads.",
     "scooter.speed.unlock": "Limiter off", "scooter.speed.lock": "Limiter on",
     "scooter.mode.section.title": "Ride mode",
@@ -973,6 +977,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Wähle, wie viele Tipps die Drossel umschalten.</b> In den Scooter-Einstellungen gibt es ein neues Feld 'Tipps zum Umschalten': stelle frei von 1 bis 50 ein, wie oft ein Tipp auf die Geschwindigkeitskachel die Drossel zwischen offen und eKFV umschaltet. Ohne Änderung bleibt es bei 3.",
+      "<b>Die Kachel-Geste folgt deiner Zahl.</b> Die versteckte Tipp-Geste auf der Geschwindigkeitskachel im Hauptschirm nutzt jetzt deine eingestellte Tipp-Zahl statt fester drei - von einem einzelnen schnellen Tipp bis zu einer längeren bewussten Folge.",
       "<b>Sauberere Fehlerberichte.</b> Das Formular zum Melden eines Problems setzt keine Markdown-Fettschrift mehr um seine Labels, sodass das erzeugte GitHub-Ticket saubere Labels zeigt (App:, Android:, Scooter / Modell: ...) statt roher Sternchen.",
       "<b>Lesbarer Debug-Log-Abschnitt.</b> Auch die Überschrift des angehängten Debug-Logs im Bericht ist jetzt Klartext, sodass im kopierten Ticket keine versprengten Sternchen erscheinen.",
       "<b>Button-Schrift passt standardmäßig - bis 35 einstellbar.</b> Die Schriftgröße der Schnelltasten-Beschriftung startet jetzt bei 9 und passt so von Haus aus; ihr Maximum im Theme-Manager wurde von 30 auf 35 angehoben, falls du es groß möchtest.",
@@ -1080,9 +1086,11 @@ window.I18N = {
     "msg.error.ok": "OK",
     "msg.lock.locked": "Gesperrt", "msg.lock.open": "Offen",
     "scooter.speed.section.title": "eKFV Drossel",
-    "scooter.speed.intro": "Drossel aus sendet den offenen Wert; Drossel ein setzt zurück auf den straßenzugelassenen eKFV-Wert. Die Dreifach-Tipp-Geste im Hauptschirm schaltet zwischen denselben zwei Werten um.",
+    "scooter.speed.intro": "Drossel aus sendet den offenen Wert; Drossel ein setzt zurück auf den straßenzugelassenen eKFV-Wert. {n}-mal auf die Geschwindigkeitskachel im Hauptschirm tippen schaltet zwischen denselben zwei Werten um.",
     "scooter.speed.open.label": "Offen (km/h)", "scooter.speed.open.sub": "Vom Entsperren gesendete Geschwindigkeit",
     "scooter.speed.ekfv.label": "eKFV (km/h)", "scooter.speed.ekfv.sub": "Straßenzugelassenes Limit, vom Sperren gesendet",
+    "settings.tapcount.label": "Tipps zum Umschalten",
+    "settings.tapcount.hint": "{n}-mal auf die Geschwindigkeitskachel tippen, um die Drossel ein- oder auszuschalten.",
     "scooter.speed.legal": "<b>Nur auf privatem Grund.</b> Mit dem Entsperren fährt der Scooter schneller als zugelassen. Damit erlischt die Betriebserlaubnis und der Versicherungsschutz; auf öffentlichen Wegen ist das nicht erlaubt.",
     "scooter.speed.unlock": "Drossel aus", "scooter.speed.lock": "Drossel ein",
     "scooter.mode.section.title": "Fahrmodus",
