@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.27
+
+- Cleaner in-app bug report. The "report a problem" form no longer wraps its labels in Markdown bold, so the GitHub issue it opens reads as clean text (App:, Android:, Scooter / model: ...) instead of raw asterisks. The attached debug-log heading is plain text too.
+
 ## 1.0.26
 
 - Quick-button labels are sized to fit by default (size 9) and can now be made larger - the per-theme size control in the Theme manager goes up to 35 (was 30).

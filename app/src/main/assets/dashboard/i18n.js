@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Cleaner bug reports.</b> The in-app report form no longer wraps its labels in Markdown bold, so the GitHub ticket it opens shows clean labels (App:, Android:, Scooter / model: ...) instead of raw asterisks.",
+      "<b>Readable debug-log section.</b> The attached debug-log heading in that report is plain text too, so nothing in the copied ticket shows stray asterisks.",
       "<b>Button text sized to fit, up to 35.</b> The quick-button label size now starts at 9 so the labels fit by default, and its maximum in the Theme manager is raised from 30 to 35 for when you want it large.",
       "<b>Long button labels wrap with a hyphen.</b> German button labels now break at syllable boundaries, so a long word like 'Anzeigelicht' wraps inside the button with a hyphen instead of spilling over - even at the largest size.",
       "<b>Every dashboard text is now resizable - on every theme.</b> The Theme Manager now has a working font-size control for every visible text on the dashboard, above and below the fold: the speed readouts (VCU and GPS), the upper tiles, each live-value tile row, the quick buttons, the ride data, the all-values list and the section headers. Each one takes effect live and really applies on the Default grid and on the Carbon and Lambo gauge themes alike - before, many of these controls did nothing. Quick-button size now ranges from 5 to 30.",
@@ -971,6 +973,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Sauberere Fehlerberichte.</b> Das Formular zum Melden eines Problems setzt keine Markdown-Fettschrift mehr um seine Labels, sodass das erzeugte GitHub-Ticket saubere Labels zeigt (App:, Android:, Scooter / Modell: ...) statt roher Sternchen.",
+      "<b>Lesbarer Debug-Log-Abschnitt.</b> Auch die Überschrift des angehängten Debug-Logs im Bericht ist jetzt Klartext, sodass im kopierten Ticket keine versprengten Sternchen erscheinen.",
       "<b>Button-Schrift passt standardmäßig - bis 35 einstellbar.</b> Die Schriftgröße der Schnelltasten-Beschriftung startet jetzt bei 9 und passt so von Haus aus; ihr Maximum im Theme-Manager wurde von 30 auf 35 angehoben, falls du es groß möchtest.",
       "<b>Lange Button-Beschriftungen brechen mit Bindestrich um.</b> Deutsche Button-Texte trennen jetzt an Silbengrenzen, damit ein langes Wort wie 'Anzeigelicht' mit Bindestrich innerhalb des Buttons umbricht statt überzulaufen - auch bei größter Schrift.",
       "<b>Jeder Dashboard-Text ist jetzt verstellbar - in jedem Theme.</b> Der Theme-Manager hat jetzt für jeden sichtbaren Text auf dem Dashboard einen funktionierenden Schriftgrößen-Regler, über und unter dem Fold: die Tempo-Anzeigen (VCU und GPS), die oberen Kacheln, jede Live-Wert-Kachelreihe, die Quick-Buttons, die Fahrdaten, die Alle-Werte-Liste und die Abschnitts-Titel. Jeder greift sofort und wirkt wirklich auf dem Default-Raster und den Gauge-Themes Carbon und Lambo gleichermaßen - vorher taten viele dieser Regler nichts. Die Quick-Button-Größe reicht jetzt von 5 bis 30.",
