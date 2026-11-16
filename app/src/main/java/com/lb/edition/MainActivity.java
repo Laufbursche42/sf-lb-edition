@@ -764,6 +764,19 @@ public class MainActivity extends Activity {
             }
         }
 
+        /** Set the scooter's advertised BLE name (ASCII, max 16). It re-advertises under the new name
+         *  and the link drops; the app reconnects by remembered address. Name not logged (it is a
+         *  user/device identifier, not something we need in logs). */
+        @JavascriptInterface
+        public void setName(String name) {
+            try {
+                Log.i(TAG, "LB.setName()");
+                if (ble != null) ble.setName(name);
+            } catch (Throwable t) {
+                Log.e(TAG, "setName bridge failed", t);
+            }
+        }
+
         /** Ride mode: eco 0, normal 1, sport 2. */
         @JavascriptInterface
         public void setSpeedMode(int mode) {

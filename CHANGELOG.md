@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.29
+
+- Rename the scooter's Bluetooth name. Scooter info has a new field to set the name the scooter advertises to any ASCII text up to 16 characters, across all protocol families (D7 opcode 0xFF; SO6 {04,01}/{04,02}, with the official app's 9-byte two-part split). A renamed scooter drops out of the official SoFlow app's name-based device list, so the field carries a clear warning and a one-tap "Restore original name"; this app reconnects by the saved address either way.
+
 ## 1.0.28
 
 - Adjustable tap count for the throttle toggle. Scooter settings has a new "Taps to toggle" field (free value 1 to 50, default 3): it sets how many taps on the main-screen speed tile switch the limiter between the open and the eKFV value. The hidden gesture now follows this number instead of a fixed three; the 700 ms window between taps is unchanged. The help texts show the current number.

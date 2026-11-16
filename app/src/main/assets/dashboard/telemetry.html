@@ -620,7 +620,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
            Both rows are read-only and refresh from lb_live_data on the 1 s render loop. -->
       <div class="settings-row">
         <div class="settings-row-left">
-          <div class="settings-row-label" data-i18n="info.scooter.fin.label">FIN / Bluetooth Name</div>
+          <div class="settings-row-label" data-i18n="info.scooter.fin.label">Bluetooth name</div>
           <div class="settings-row-sublabel mono-break" id="info-btname">-</div>
         </div>
         <button id="btn-copy-btname" class="route-gpx-btn" data-i18n="info.copy">Copy</button>
@@ -640,6 +640,21 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
       <div class="settings-row">
         <div class="settings-row-left"><div class="settings-row-label" data-i18n="info.scooter.fw.cpu">Firmware CPU</div></div>
         <span class="note-md" id="info-fw-cpu">-</span>
+      </div>
+    </div>
+
+    <!-- Change the scooter's advertised BLE name. Impactful: a renamed scooter drops out of the
+         official SoFlow app's name-based device list; this app still reconnects by saved address. The
+         original name is remembered for one-tap restore. ASCII, up to 16 chars. -->
+    <div class="settings-group has-top-rule">
+      <div class="settings-group-title" data-i18n="info.scooter.identity.change.label">Change the Bluetooth name</div>
+      <div class="fw-warn" data-i18n="info.scooter.identity.warn">Renaming changes the Bluetooth name the scooter broadcasts. The official SoFlow app finds scooters by name, so a renamed scooter no longer shows up there. This app still finds yours - it reconnects by the saved address, whatever the name. Use Restore to undo. ASCII, up to 16 characters.</div>
+      <div class="settings-row">
+        <input class="set-ctrl grow" id="ident-in" type="text" maxlength="16" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-i18n-ph="info.scooter.identity.input.placeholder" placeholder="new name">
+        <button id="btn-ident-set" class="route-gpx-btn" data-i18n="info.scooter.identity.set">Set</button>
+      </div>
+      <div class="action-btn-row">
+        <button id="btn-ident-restore" class="route-gpx-btn" data-i18n="info.scooter.identity.restore">Restore original name</button>
       </div>
     </div>
 
@@ -3102,6 +3117,7 @@ function renderInfoPage() {
   const d = liveRaw();
   const dash = v => (v === undefined || v === null || v === '') ? '-' : ('' + v);
   setTxt('info-btname', dash(d.btName));
+  rememberOriginalBtName(d.btName);
   setTxt('info-model',  dash(d.model));
   setTxt('info-fw-proto', dash(d.fw));
   setTxt('info-fw-disp',  dash(d.fwDisplay));
@@ -3115,6 +3131,37 @@ function copyBtName() {
   if (typeof LB === 'undefined' || !LB.copyClipboard) { showToast(t('msg.app.only.in.app')); return; }
   try { LB.copyClipboard('' + bt); showToast(t('msg2.info.toast.btname_copied')); }
   catch (e) { showToast(tf('msg2.toast.error', { e: e })); }
+}
+
+/* Change the advertised Bluetooth name. Renaming is impactful - the scooter re-advertises under the new
+   name and drops out of the official SoFlow app's name-based list (this app reconnects by saved address).
+   We remember the first-seen original name so Restore is one tap. ASCII, max 16. The name is NOT the FIN
+   (the FIN is the serial number); it is just the advertised BLE name (often the plain "SoFlow"). */
+const ORIG_BTNAME_KEY = 'lb_orig_btname';
+function rememberOriginalBtName(bt) {
+  if (bt === undefined || bt === null || bt === '') return;
+  try { if (!storage.get(ORIG_BTNAME_KEY)) storage.set(ORIG_BTNAME_KEY, '' + bt); } catch (e) {}
+}
+function sendIdentity(name) {
+  if (typeof LB === 'undefined' || !LB.setName) { showToast(t('msg.app.only.in.app')); return false; }
+  if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
+  const n = ('' + name).trim();
+  if (!n) { showToast(t('msg2.fin.toast.enter_first'), 3000, 'err'); return false; }
+  if (!/^[\x20-\x7E]+$/.test(n)) { showToast(t('msg2.fin.toast.ascii_only'), 3000, 'err'); return false; }
+  if (n.length > 16) { showToast(t('msg2.fin.toast.too_long'), 3000, 'err'); return false; }
+  try { LB.setName(n); showToast(t('msg2.fin.toast.sent'), 4000); return true; }
+  catch (e) { showToast(tf('msg2.toast.error', { e: e })); return false; }
+}
+function renameScooter() {
+  const el = document.getElementById('ident-in');
+  if (el) sendIdentity(el.value);
+}
+function restoreScooterName() {
+  let orig = '';
+  try { orig = storage.get(ORIG_BTNAME_KEY) || ''; } catch (e) {}
+  if (!orig) orig = liveRaw().btName || '';
+  if (!orig) { showToast(t('msg2.fin.toast.enter_first'), 3000, 'err'); return; }
+  if (sendIdentity(orig)) { const el = document.getElementById('ident-in'); if (el) el.value = orig; }
 }
 
 /* ── Speed release (throttle) ──────────────────────────────────
@@ -6086,6 +6133,8 @@ function wireEvents() {
   });
 
   document.getElementById('btn-copy-btname').addEventListener('click', copyBtName);
+  { const b = document.getElementById('btn-ident-set'); if (b) b.addEventListener('click', renameScooter); }
+  { const b = document.getElementById('btn-ident-restore'); if (b) b.addEventListener('click', restoreScooterName); }
 
   // App-update banner: download the APK and open the installer.
   {

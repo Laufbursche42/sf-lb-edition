@@ -823,6 +823,17 @@ final class BleManager {
         catch (Throwable t) { Log.e(TAG, "setMaxSpeed failed", t); }
     }
 
+    /** Set the scooter's advertised BLE name (the broadcast name, not the FIN/serial). ASCII, clamped to
+     *  16 chars. The scooter re-advertises under the new name and the BLE link drops; reconnect is by
+     *  remembered address. */
+    void setName(String name) {
+        Proto p = activeProto;
+        if (p == null) return;
+        try {
+            for (CommandBuilder.Frame f : CommandBuilder.setName(p, settings, name)) send(f);
+        } catch (Throwable t) { Log.e(TAG, "setName failed", t); }
+    }
+
     /** Ride mode: eco 0, normal 1, sport 2. */
     void setSpeedMode(int mode) {
         Proto p = activeProto;

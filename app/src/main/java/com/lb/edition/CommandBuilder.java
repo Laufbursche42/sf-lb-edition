@@ -185,6 +185,42 @@ final class CommandBuilder {
         return d7(0x1D, new int[0], 0x00);
     }
 
+    /** Set the advertised BLE name (not the FIN/serial; just the broadcast name). D7/SO3: opcode 0xFF
+     *  with the name bytes in one frame.
+     *  SO6: the name's code units via {04,01}; when the name is 9 bytes or longer the first 9 go in
+     *  {04,01} and the remainder in {04,02} (the official SoFlow app's split, confirmed in
+     *  So6BaseDataDelegate.setName: length < 9 sends one frame, otherwise sublist(0,9) then sublist(9)).
+     *  ASCII only, clamped to 16 chars; the scooter re-advertises under the new name and the link drops.
+     *  An empty name yields no frames. */
+    static Frame[] setName(Proto p, SettingsState s, String name) {
+        int[] b = asciiBytes(name, 16);
+        if (b.length == 0) return new Frame[0];
+        if (p.family == Family.SO6) {
+            if (b.length < 9) return new Frame[]{ so6(0x04, 0x01, b) };
+            return new Frame[]{ so6(0x04, 0x01, slice(b, 0, 9)), so6(0x04, 0x02, slice(b, 9, b.length)) };
+        }
+        return new Frame[]{ d7(0xFF, b, byte3(p, s)) };
+    }
+
+    /** Printable-ASCII (0x20..0x7E) code units of name, in order, clamped to maxLen bytes. Non-ASCII
+     *  characters are dropped so the wire payload can never carry a multi-byte unit. */
+    private static int[] asciiBytes(String name, int maxLen) {
+        if (name == null) return new int[0];
+        int[] tmp = new int[Math.min(name.length(), maxLen)];
+        int n = 0;
+        for (int i = 0; i < name.length() && n < maxLen; i++) {
+            char ch = name.charAt(i);
+            if (ch >= 0x20 && ch < 0x7F) tmp[n++] = ch & 0xFF;
+        }
+        return slice(tmp, 0, n);
+    }
+
+    private static int[] slice(int[] src, int from, int to) {
+        int[] out = new int[to - from];
+        for (int i = 0; i < out.length; i++) out[i] = src[from + i];
+        return out;
+    }
+
     // ── connect handshake (spec 5.8) ──
 
     /** Immediate frames to send right after connect, per family. */

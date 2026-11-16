@@ -888,6 +888,7 @@ button {
 }
 select.set-ctrl { text-align: left; -webkit-appearance: none; appearance: none; }
 .set-ctrl:disabled { opacity: 0.55; }
+#ident-in { text-align: left; min-width: 0; }   /* BLE-name field: left-align text, allow flex to shrink */
 
 /* .gs-save-btn (per-gear "Save gear" + global "Save settings"; primary fill, full width)
    is styled by the shared action-button base above. */
