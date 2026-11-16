@@ -14,6 +14,10 @@ To hand-write the notes for a release, add a section headed with its version num
 
 If no matching section exists the notes fall back to the commit messages, so keeping this file up to date is optional.
 
+## 1.0.30
+
+- Correct the Bluetooth-name rename across families. The command is only sent where it actually exists: SO6 / SO4-UL use the official `{04,01}`/`{04,02}` split, and the so5base family (SO5 Pro, SO One and relatives) use opcode `0xFF` with the required `0x7F` lead byte (the previous build omitted the lead byte on this family). SO4 and SO3 have no rename command, so the Scooter-info field is now hidden on those models instead of accepting a name that goes nowhere; attempting it reports "This model cannot be renamed".
+
 ## 1.0.29
 
 - Rename the scooter's Bluetooth name. Scooter info has a new field to set the name the scooter advertises to any ASCII text up to 16 characters, across all protocol families (D7 opcode 0xFF; SO6 {04,01}/{04,02}, with the official app's 9-byte two-part split). A renamed scooter drops out of the official SoFlow app's name-based device list, so the field carries a clear warning and a one-tap "Restore original name"; this app reconnects by the saved address either way.

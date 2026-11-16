@@ -185,13 +185,14 @@ final class CommandBuilder {
         return d7(0x1D, new int[0], 0x00);
     }
 
-    /** Set the advertised BLE name (not the FIN/serial; just the broadcast name). D7/SO3: opcode 0xFF
-     *  with the name bytes in one frame.
-     *  SO6: the name's code units via {04,01}; when the name is 9 bytes or longer the first 9 go in
-     *  {04,01} and the remainder in {04,02} (the official SoFlow app's split, confirmed in
-     *  So6BaseDataDelegate.setName: length < 9 sends one frame, otherwise sublist(0,9) then sublist(9)).
-     *  ASCII only, clamped to 16 chars; the scooter re-advertises under the new name and the link drops.
-     *  An empty name yields no frames. */
+    /** Set the advertised BLE name (not the FIN/serial; just the broadcast name). The scooter
+     *  re-advertises under the new name and the link drops. ASCII only, clamped to 16 chars; an empty
+     *  name yields no frames. The command exists on two families only:
+     *   - SO6 (So6BaseDataDelegate.setName @0x8d5514): the name's code units via {04,01}; when the name
+     *     is 9 bytes or longer the first 9 go in {04,01} and the remainder in {04,02}.
+     *   - so5base (So5ProBaseDataDelegate.setName @0x8d41cc): opcode 0xFF with payload [0x7F, name...] -
+     *     a fixed 0x7F lead byte precedes the UTF-8 name bytes.
+     *  SO4 has no setName in its branch and SO3 does not carry 0xFF, so both yield no frames. */
     static Frame[] setName(Proto p, SettingsState s, String name) {
         int[] b = asciiBytes(name, 16);
         if (b.length == 0) return new Frame[0];
@@ -199,7 +200,20 @@ final class CommandBuilder {
             if (b.length < 9) return new Frame[]{ so6(0x04, 0x01, b) };
             return new Frame[]{ so6(0x04, 0x01, slice(b, 0, 9)), so6(0x04, 0x02, slice(b, 9, b.length)) };
         }
-        return new Frame[]{ d7(0xFF, b, byte3(p, s)) };
+        if (p.family == Family.D7 && !"so4".equals(p.variant)) {   // so5base only
+            int[] payload = new int[b.length + 1];
+            payload[0] = 0x7F;
+            for (int i = 0; i < b.length; i++) payload[i + 1] = b[i];
+            return new Frame[]{ d7(0xFF, payload, 0x00) };
+        }
+        return new Frame[0];   // SO4 / SO3: no setName command
+    }
+
+    /** True when the active model has a proven setName command (SO6 or so5base). SO4 and SO3 do not. */
+    static boolean supportsSetName(Proto p) {
+        if (p == null) return false;
+        if (p.family == Family.SO6) return true;
+        return p.family == Family.D7 && !"so4".equals(p.variant);
     }
 
     /** Printable-ASCII (0x20..0x7E) code units of name, in order, clamped to maxLen bytes. Non-ASCII

@@ -20,6 +20,8 @@
 window.I18N = {
   en: {
     'whatsnew.points': [
+      "<b>Rename fixed for the SO5 Pro / SO One family.</b> The Bluetooth-name field now sends the exact command these models expect, so renaming works on them too. SO6 and SO4-UL were already correct.",
+      "<b>Rename hidden where it is not supported.</b> On models with no rename command (SO4 and SO3) the name field no longer appears, so you are not offered a field that cannot take effect.",
       "<b>Rename your scooter's Bluetooth name.</b> Scooter info has a new field to set the name the scooter advertises to any ASCII text, up to 16 characters - handy to personalize it or tell several scooters apart.",
       "<b>One-tap restore for the name.</b> A renamed scooter drops out of the official SoFlow app's list (it finds scooters by name) - this app still reconnects by its saved address, and 'Restore original name' puts the original name back in one tap.",
       "<b>Choose how many taps toggle the limiter.</b> Scooter settings has a new 'Taps to toggle' field: pick any number from 1 to 50 for how many taps on the speed tile switch the limiter between open and eKFV. It stays at 3 unless you change it.",
@@ -554,6 +556,7 @@ window.I18N = {
     "msg2.fin.toast.enter_first": "Enter a name first",
     "msg2.fin.toast.sent": "Identity sent: scooter renames and reconnects...",
     "msg2.fin.toast.too_long": "Name too long (max 16 chars)",
+    "msg2.fin.toast.unsupported": "This model cannot be renamed",
     "msg2.fw.cancel.body": "The IVCU will stay in update mode and must be flashed again before you ride. Cancel now?",
     "msg2.fw.cancel.ok": "Cancel update",
     "msg2.fw.cancel.title": "Cancel the update?",
@@ -981,6 +984,8 @@ window.I18N = {
 
   de: {
     'whatsnew.points': [
+      "<b>Umbenennen für die SO5 Pro / SO One-Familie korrigiert.</b> Das Bluetooth-Namensfeld sendet jetzt genau den Befehl, den diese Modelle erwarten, sodass das Umbenennen auch dort funktioniert. SO6 und SO4-UL waren schon korrekt.",
+      "<b>Umbenennen nur noch wo unterstützt.</b> Bei Modellen ohne Umbenenn-Befehl (SO4 und SO3) erscheint das Namensfeld nicht mehr, damit dir kein Feld angeboten wird das nichts bewirkt.",
       "<b>Bluetooth-Namen deines Scooters ändern.</b> In den Scooter-Infos gibt es ein neues Feld, das den ausgesendeten Namen auf einen beliebigen ASCII-Text bis zu 16 Zeichen setzt - praktisch zum Personalisieren oder um mehrere Scooter auseinanderzuhalten.",
       "<b>Originalnamen mit einem Tipp zurück.</b> Ein umbenannter Scooter fällt aus der Liste der offiziellen SoFlow-App (sie findet Scooter über den Namen) - diese App verbindet sich weiter über die gespeicherte Adresse und 'Originalnamen wiederherstellen' setzt den ursprünglichen Namen mit einem Tipp zurück.",
       "<b>Wähle, wie viele Tipps die Drossel umschalten.</b> In den Scooter-Einstellungen gibt es ein neues Feld 'Tipps zum Umschalten': stelle frei von 1 bis 50 ein, wie oft ein Tipp auf die Geschwindigkeitskachel die Drossel zwischen offen und eKFV umschaltet. Ohne Änderung bleibt es bei 3.",
@@ -1515,6 +1520,7 @@ window.I18N = {
     "msg2.fin.toast.enter_first": "Gib zuerst einen Namen ein",
     "msg2.fin.toast.sent": "Identität gesendet: der Scooter benennt sich um und verbindet sich neu...",
     "msg2.fin.toast.too_long": "Name zu lang (max. 16 Zeichen)",
+    "msg2.fin.toast.unsupported": "Dieses Modell kann nicht umbenannt werden",
     "msg2.fw.cancel.body": "Die IVCU bleibt im Update-Modus und muss vor dem Fahren erneut geflasht werden. Jetzt abbrechen?",
     "msg2.fw.cancel.ok": "Update abbrechen",
     "msg2.fw.cancel.title": "Update abbrechen?",

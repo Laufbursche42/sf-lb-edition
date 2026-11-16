@@ -777,6 +777,14 @@ public class MainActivity extends Activity {
             }
         }
 
+        /** Whether the connected model supports renaming (SO6 / so5base). The dashboard hides the rename
+         *  control when false so SO4 / SO3 do not show a field that cannot send. */
+        @JavascriptInterface
+        public boolean canSetName() {
+            try { return ble != null && ble.canSetName(); }
+            catch (Throwable t) { return false; }
+        }
+
         /** Ride mode: eco 0, normal 1, sport 2. */
         @JavascriptInterface
         public void setSpeedMode(int mode) {

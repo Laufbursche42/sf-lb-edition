@@ -834,6 +834,10 @@ final class BleManager {
         } catch (Throwable t) { Log.e(TAG, "setName failed", t); }
     }
 
+    /** Whether the active model actually has a BLE-name command (SO6 / so5base), so the UI can hide the
+     *  rename control on families that do not (SO4, SO3) instead of accepting a name that goes nowhere. */
+    boolean canSetName() { return CommandBuilder.supportsSetName(activeProto); }
+
     /** Ride mode: eco 0, normal 1, sport 2. */
     void setSpeedMode(int mode) {
         Proto p = activeProto;

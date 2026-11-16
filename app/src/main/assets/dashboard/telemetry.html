@@ -646,7 +646,7 @@ Source-available under the PolyForm Noncommercial License 1.0.0 with Additional 
     <!-- Change the scooter's advertised BLE name. Impactful: a renamed scooter drops out of the
          official SoFlow app's name-based device list; this app still reconnects by saved address. The
          original name is remembered for one-tap restore. ASCII, up to 16 chars. -->
-    <div class="settings-group has-top-rule">
+    <div class="settings-group has-top-rule" id="ident-group">
       <div class="settings-group-title" data-i18n="info.scooter.identity.change.label">Change the Bluetooth name</div>
       <div class="fw-warn" data-i18n="info.scooter.identity.warn">Renaming changes the Bluetooth name the scooter broadcasts. The official SoFlow app finds scooters by name, so a renamed scooter no longer shows up there. This app still finds yours - it reconnects by the saved address, whatever the name. Use Restore to undo. ASCII, up to 16 characters.</div>
       <div class="settings-row">
@@ -3118,6 +3118,8 @@ function renderInfoPage() {
   const dash = v => (v === undefined || v === null || v === '') ? '-' : ('' + v);
   setTxt('info-btname', dash(d.btName));
   rememberOriginalBtName(d.btName);
+  { const g = document.getElementById('ident-group');   // hide rename on families without a setName command (SO4/SO3)
+    if (g) g.hidden = (typeof LB !== 'undefined' && typeof LB.canSetName === 'function') ? !LB.canSetName() : false; }
   setTxt('info-model',  dash(d.model));
   setTxt('info-fw-proto', dash(d.fw));
   setTxt('info-fw-disp',  dash(d.fwDisplay));
@@ -3145,6 +3147,7 @@ function rememberOriginalBtName(bt) {
 function sendIdentity(name) {
   if (typeof LB === 'undefined' || !LB.setName) { showToast(t('msg.app.only.in.app')); return false; }
   if (!state.bleConnected) { showToast(t('msg2.toast.connect_scooter_first'), 3000, 'err'); return false; }
+  if (typeof LB.canSetName === 'function' && !LB.canSetName()) { showToast(t('msg2.fin.toast.unsupported'), 3000, 'err'); return false; }
   const n = ('' + name).trim();
   if (!n) { showToast(t('msg2.fin.toast.enter_first'), 3000, 'err'); return false; }
   if (!/^[\x20-\x7E]+$/.test(n)) { showToast(t('msg2.fin.toast.ascii_only'), 3000, 'err'); return false; }
